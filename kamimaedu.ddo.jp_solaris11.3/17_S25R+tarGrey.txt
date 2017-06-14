@@ -4,13 +4,13 @@ Postfix + S25R + tarGrey
 
 1. Postgrey
 
-   1. Perl ƒ‚ƒWƒ…[ƒ‹‚ÌŠm”F
+   1. Perl ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®ç¢ºèª
    # perl -MCPAN -e shell
    cpan> i Net::Server
    cpan> i IO::Multiplex
    cpan> i BerkeleyDB
 
-   ˆÈ‰º‚Ìƒ‚ƒWƒ…[ƒ‹‚àƒCƒ“ƒXƒg[ƒ‹‚·‚é
+   ä»¥ä¸‹ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚‚ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹
    MIME::Base64
    DB_File
    Net::SMTP
@@ -35,7 +35,7 @@ Postfix + S25R + tarGrey
    Parse::Syslog
    Net::Server::Multiplex
 
-   2. postgrey ‚ÌƒCƒ“ƒXƒg[ƒ‹
+   2. postgrey ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
    # groupadd -g 10023 postgrey
    # useradd -u 10023 -d /var/spool/postfix/postgrey -s /bin/false postgrey
    # wget http://postgrey.schweikert.ch/pub/postgrey-1.36.tar.gz
@@ -57,7 +57,7 @@ Postfix + S25R + tarGrey
    # postmap hash:/usr/local/64/etc/postfix/whitelist_client
    # postmap hash:/usr/local/64/etc/postfix/whitelist_recipient
 
-   3. ‹N“®ƒXƒNƒŠƒvƒg‚Ìì¬
+   3. èµ·å‹•ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ä½œæˆ
    # cat /etc/init.d/postgrey
    #!/bin/sh
    
@@ -103,11 +103,11 @@ Postfix + S25R + tarGrey
    # ln -s /etc/init.d/postgrey /etc/rcS.d/K36postgrey
    # ln -s /etc/init.d/postgrey /etc/rc2.d/S88postgrey
 
-2. Postfix ‚Ìİ’è
+2. Postfix ã®è¨­å®š
 
    # ln -s /usr/local/64/etc/postfix /etc/postfix
 
-   # cat /etc/postfix/main.cf (spam ‘Îô‚Éd—v‚È•”•ª‚Ì‚İ”²ˆ)
+   # cat /etc/postfix/main.cf (spam å¯¾ç­–ã«é‡è¦ãªéƒ¨åˆ†ã®ã¿æŠœç²‹)
    disable_vrfy_command = yes
    smtpd_client_restrictions =
            permit_sasl_authenticated,
@@ -161,52 +161,52 @@ Postfix + S25R + tarGrey
    smtp_destination_recipient_limit = 50
 
 
-    ƒpƒ‰ƒ[ƒ^                                                             | à–¾
+    ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿                                                             | èª¬æ˜
    ------------------------------------------------------------------------+---------------------------------
-    smtpd_recipient_restrictions =                                         | RCPT TO ƒRƒ}ƒ“ƒh‚Ìê–Ê‚Å“K—p‚·‚éAƒAƒNƒZƒX§ŒÀ
-            permit_sasl_authenticated,                                     |    SMTP-Auth ‚É‚Ä”FØ‚³‚ê‚Ä‚¢‚éê‡ ‹–‰Â
-            permit_mynetworks,                                             |    ©g‚Ìƒlƒbƒgƒ[ƒN‚©‚ç‚ÌÚ‘±‚Ìê‡ ‹–‰Â
-            reject_unauth_destination,                                     |    “]‘—‹–‰Â‚·‚éƒAƒhƒŒƒXA‰¼‘zƒAƒhƒŒƒX‚Éƒ}ƒbƒ`‚µ‚È‚¢ê‡ ‹‘”Û
-            reject_unknown_recipient_domain,                               |    RCPT TO ƒAƒhƒŒƒX‚É DNS A ‚Ü‚½‚Í MX ƒŒƒR[ƒh‚ª‚È‚­AƒAƒhƒŒƒX‚ª©gˆ¶‚Å‚È‚¢ê‡ ‹‘”Û
-            # reject_unverified_recipient,                                 |    # “à•”ƒ[ƒ‹ƒT[ƒo‚ÉƒAƒhƒŒƒX‚Ì‘¶İŠm”F‚ğs‚¢A‚È‚¢ê‡ ‹‘”Û
-            check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    ‘—MæƒAƒhƒŒƒX‚Ì WhiteList ‚Ìƒf[ƒ^ƒx[ƒX‚ÌŒŸõ‚µA‘Î‰‚·‚é“®ì‚ğÀs‚·‚é
-            check_client_access hash:/etc/postfix/whitelist_client,        |    Ú‘±Œ³ƒAƒhƒŒƒX‚Ì WhiteList ‚Ìƒf[ƒ^ƒx[ƒX‚ÌŒŸõ‚µA‘Î‰‚·‚é“®ì‚ğÀs‚·‚é
-            check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R ‚Ìƒf[ƒ^ƒx[ƒX‚ÌŒŸõ‚µA‘Î‰‚·‚é“®ì‚ğÀs‚·‚é
-            check_policy_service inet:60000,                               |    S25R ‚Ìƒf[ƒ^ƒx[ƒX‚ğŒŸ¸‚µA“®ì WARN ‚Æ‚È‚Á‚½‚à‚Ì‚ğ tarGrey ‚É“n‚·
-            permit                                                         |    ‹–‰Â (ƒNƒŠ[ƒ“ƒiƒbƒvƒ‹[ƒ‹)
-    smtpd_data_restrictions=                                               | SMTP DATA ƒRƒ}ƒ“ƒh‚Ìê–Ê‚Å“K—p‚·‚éAƒAƒNƒZƒX§ŒÀ
-            permit_sasl_authenticated,                                     |    SMTP-Auth ‚É‚Ä”FØ‚³‚ê‚Ä‚¢‚éê‡ ‹–‰Â
-            permit_mynetworks,                                             |    ©g‚Ìƒlƒbƒgƒ[ƒN‚©‚ç‚ÌÚ‘±‚Ìê‡ ‹–‰Â
-            check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    ‘—MæƒAƒhƒŒƒX‚Ì WhiteList ‚Ìƒf[ƒ^ƒx[ƒX‚ÌŒŸõ‚µA‘Î‰‚·‚é“®ì‚ğÀs‚·‚é
-            check_client_access hash:/etc/postfix/whitelist_client,        |    Ú‘±Œ³ƒAƒhƒŒƒX‚Ì WhiteList ‚Ìƒf[ƒ^ƒx[ƒX‚ÌŒŸõ‚µA‘Î‰‚·‚é“®ì‚ğÀs‚·‚é
-            check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R ‚Ìƒf[ƒ^ƒx[ƒX‚ÌŒŸõ‚µA‘Î‰‚·‚é“®ì‚ğÀs‚·‚é
-            check_policy_service inet:60000,                               |    S25R ‚Ìƒf[ƒ^ƒx[ƒX‚ğŒŸ¸‚µA“®ì WARN ‚Æ‚È‚Á‚½‚à‚Ì‚ğ tarGrey ‚É“n‚·
-            permit                                                         |    ‹–‰Â (ƒNƒŠ[ƒ“ƒiƒbƒvƒ‹[ƒ‹)
+    smtpd_recipient_restrictions =                                         | RCPT TO ã‚³ãƒãƒ³ãƒ‰ã®å ´é¢ã§é©ç”¨ã™ã‚‹ã€ã‚¢ã‚¯ã‚»ã‚¹åˆ¶é™
+            permit_sasl_authenticated,                                     |    SMTP-Auth ã«ã¦èªè¨¼ã•ã‚Œã¦ã„ã‚‹å ´åˆ è¨±å¯
+            permit_mynetworks,                                             |    è‡ªèº«ã®ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ã‹ã‚‰ã®æ¥ç¶šã®å ´åˆ è¨±å¯
+            reject_unauth_destination,                                     |    è»¢é€è¨±å¯ã™ã‚‹ã‚¢ãƒ‰ãƒ¬ã‚¹ã€ä»®æƒ³ã‚¢ãƒ‰ãƒ¬ã‚¹ã«ãƒãƒƒãƒã—ãªã„å ´åˆ æ‹’å¦
+            reject_unknown_recipient_domain,                               |    RCPT TO ã‚¢ãƒ‰ãƒ¬ã‚¹ã« DNS A ã¾ãŸã¯ MX ãƒ¬ã‚³ãƒ¼ãƒ‰ãŒãªãã€ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒè‡ªèº«å®›ã§ãªã„å ´åˆ æ‹’å¦
+            # reject_unverified_recipient,                                 |    # å†…éƒ¨ãƒ¡ãƒ¼ãƒ«ã‚µãƒ¼ãƒã«ã‚¢ãƒ‰ãƒ¬ã‚¹ã®å­˜åœ¨ç¢ºèªã‚’è¡Œã„ã€ãªã„å ´åˆ æ‹’å¦
+            check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    é€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹ã® WhiteList ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®æ¤œç´¢ã—ã€å¯¾å¿œã™ã‚‹å‹•ä½œã‚’å®Ÿè¡Œã™ã‚‹
+            check_client_access hash:/etc/postfix/whitelist_client,        |    æ¥ç¶šå…ƒã‚¢ãƒ‰ãƒ¬ã‚¹ã® WhiteList ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®æ¤œç´¢ã—ã€å¯¾å¿œã™ã‚‹å‹•ä½œã‚’å®Ÿè¡Œã™ã‚‹
+            check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®æ¤œç´¢ã—ã€å¯¾å¿œã™ã‚‹å‹•ä½œã‚’å®Ÿè¡Œã™ã‚‹
+            check_policy_service inet:60000,                               |    S25R ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã‚’æ¤œæŸ»ã—ã€å‹•ä½œ WARN ã¨ãªã£ãŸã‚‚ã®ã‚’ tarGrey ã«æ¸¡ã™
+            permit                                                         |    è¨±å¯ (ã‚¯ãƒªãƒ¼ãƒ³ãƒŠãƒƒãƒ—ãƒ«ãƒ¼ãƒ«)
+    smtpd_data_restrictions=                                               | SMTP DATA ã‚³ãƒãƒ³ãƒ‰ã®å ´é¢ã§é©ç”¨ã™ã‚‹ã€ã‚¢ã‚¯ã‚»ã‚¹åˆ¶é™
+            permit_sasl_authenticated,                                     |    SMTP-Auth ã«ã¦èªè¨¼ã•ã‚Œã¦ã„ã‚‹å ´åˆ è¨±å¯
+            permit_mynetworks,                                             |    è‡ªèº«ã®ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ã‹ã‚‰ã®æ¥ç¶šã®å ´åˆ è¨±å¯
+            check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    é€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹ã® WhiteList ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®æ¤œç´¢ã—ã€å¯¾å¿œã™ã‚‹å‹•ä½œã‚’å®Ÿè¡Œã™ã‚‹
+            check_client_access hash:/etc/postfix/whitelist_client,        |    æ¥ç¶šå…ƒã‚¢ãƒ‰ãƒ¬ã‚¹ã® WhiteList ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®æ¤œç´¢ã—ã€å¯¾å¿œã™ã‚‹å‹•ä½œã‚’å®Ÿè¡Œã™ã‚‹
+            check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®æ¤œç´¢ã—ã€å¯¾å¿œã™ã‚‹å‹•ä½œã‚’å®Ÿè¡Œã™ã‚‹
+            check_policy_service inet:60000,                               |    S25R ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã‚’æ¤œæŸ»ã—ã€å‹•ä½œ WARN ã¨ãªã£ãŸã‚‚ã®ã‚’ tarGrey ã«æ¸¡ã™
+            permit                                                         |    è¨±å¯ (ã‚¯ãƒªãƒ¼ãƒ³ãƒŠãƒƒãƒ—ãƒ«ãƒ¼ãƒ«)
 
-   1. taRgrey ‚Ì‹N“®ƒIƒvƒVƒ‡ƒ“
+   1. taRgrey ã®èµ·å‹•ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 
       OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --delay=300 --retry-count=2 --max-age=30"
 
-      --tarpit         : ’x‰„‘Ò‹@ŠÔ‚Ì—v‹ 125•b
-      --targrey        : targrey ƒ‚[ƒh
-      --delay=300      : ƒOƒŒƒCƒŠƒXƒg‚Ì•ÛŠúŠÔ 300•bŠÔ‚Í•Û‚µA300•bŒã‚É‹K’è‚ÉÄ‘—‰ñ”‚ğ–‚½‚¹‚Î©“®ƒzƒƒCƒgƒŠƒXƒg‚É’Ç‰Á‚·‚é
-      --retry-count=2  : ƒOƒŒƒCƒŠƒXƒg‚Ì•ÛŠúŠÔ 300•bŠÔ‚ğŒo‰ß‚µ‚½ŒãA—v‹‚·‚éÄ‘—‰ñ” 2‰ñ
-      --max-age=30     : ©“®ƒzƒƒCƒgƒŠƒXƒg‚Ì•ÛŠúŠÔ 30“ú
+      --tarpit         : é…å»¶å¾…æ©Ÿæ™‚é–“ã®è¦æ±‚ 125ç§’
+      --targrey        : targrey ãƒ¢ãƒ¼ãƒ‰
+      --delay=300      : ã‚°ãƒ¬ã‚¤ãƒªã‚¹ãƒˆã®ä¿æŒæœŸé–“ 300ç§’é–“ã¯ä¿æŒã—ã€300ç§’å¾Œã«è¦å®šã«å†é€å›æ•°ã‚’æº€ãŸã›ã°è‡ªå‹•ãƒ›ãƒ¯ã‚¤ãƒˆãƒªã‚¹ãƒˆã«è¿½åŠ ã™ã‚‹
+      --retry-count=2  : ã‚°ãƒ¬ã‚¤ãƒªã‚¹ãƒˆã®ä¿æŒæœŸé–“ 300ç§’é–“ã‚’çµŒéã—ãŸå¾Œã€è¦æ±‚ã™ã‚‹å†é€å›æ•° 2å›
+      --max-age=30     : è‡ªå‹•ãƒ›ãƒ¯ã‚¤ãƒˆãƒªã‚¹ãƒˆã®ä¿æŒæœŸé–“ 30æ—¥
  
-   2. taRgrey ‚Ì—˜—p‚·‚éƒf[ƒ^ƒx[ƒX (/var/spool/postfix/postgrey ”z‰º)
+   2. taRgrey ã®åˆ©ç”¨ã™ã‚‹ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ (/var/spool/postfix/postgrey é…ä¸‹)
 
-      postgrey_clients.db : ©“®ƒzƒƒCƒgƒŠƒXƒg
-      tarpit_clients.db   : tarpitting ƒOƒŒƒCƒŠƒXƒg
-      postgrey.db         : ‘—Mó‹µ‚ğŠÇ—
+      postgrey_clients.db : è‡ªå‹•ãƒ›ãƒ¯ã‚¤ãƒˆãƒªã‚¹ãƒˆ
+      tarpit_clients.db   : tarpitting ã‚°ãƒ¬ã‚¤ãƒªã‚¹ãƒˆ
+      postgrey.db         : é€ä¿¡çŠ¶æ³ã‚’ç®¡ç†
 
-   3. taRgrey ‚Ìd‘g‚İ
+   3. taRgrey ã®ä»•çµ„ã¿
 
-      smtpd_recipient_restrictions ‚Å‚Ìˆê“x–Ú‚Ì check_policy_service ‚Å tarpitting ‚ğdŠ|‚¯Aˆê’UAtarpit_clients.db (tarpitting ƒOƒŒƒCƒŠƒXƒg) ‚É“o˜^‚³‚ê‚é
-      tarpitting ‚ğ”²‚¯‚½Ú‘±‚Í smtpd_data_restrictions ‚Ü‚Å“n‚Á‚Ä‚­‚é‚½‚ßAÄ“x check_policy_service ‚ÅŒÄ‚Ño‚µAtarpitting ‚ÌƒOƒŒƒCƒŠƒXƒg‚©‚çŠY“–‚Ì IP ‚ğíœ‚·‚é
+      smtpd_recipient_restrictions ã§ã®ä¸€åº¦ç›®ã® check_policy_service ã§ tarpitting ã‚’ä»•æ›ã‘ã€ä¸€æ—¦ã€tarpit_clients.db (tarpitting ã‚°ãƒ¬ã‚¤ãƒªã‚¹ãƒˆ) ã«ç™»éŒ²ã•ã‚Œã‚‹
+      tarpitting ã‚’æŠœã‘ãŸæ¥ç¶šã¯ smtpd_data_restrictions ã¾ã§æ¸¡ã£ã¦ãã‚‹ãŸã‚ã€å†åº¦ check_policy_service ã§å‘¼ã³å‡ºã—ã€tarpitting ã®ã‚°ãƒ¬ã‚¤ãƒªã‚¹ãƒˆã‹ã‚‰è©²å½“ã® IP ã‚’å‰Šé™¤ã™ã‚‹
 
-      tarpitting ‚ğ”²‚¯‚ê‚È‚©‚Á‚½Ú‘±‚Í tarpit_clients.db (tarpitting ƒuƒ‰ƒbƒNƒŠƒXƒg) ‚É“o˜^‚³‚ê‚½‚Ü‚Ü‚Æ‚È‚èAŸ‰ñ Ú‘±‚É‚Í smtpd_recipient_restrictions ‚Å greylisting ‚Ìˆ—‚É‰ñ‚é
+      tarpitting ã‚’æŠœã‘ã‚Œãªã‹ã£ãŸæ¥ç¶šã¯ tarpit_clients.db (tarpitting ãƒ–ãƒ©ãƒƒã‚¯ãƒªã‚¹ãƒˆ) ã«ç™»éŒ²ã•ã‚ŒãŸã¾ã¾ã¨ãªã‚Šã€æ¬¡å› æ¥ç¶šæ™‚ã«ã¯ smtpd_recipient_restrictions ã§ greylisting ã®å‡¦ç†ã«å›ã‚‹
 
-   4. ©“® Whitelist (postgrey_clients.db) ‚Ìd‘g‚İ
+   4. è‡ªå‹• Whitelist (postgrey_clients.db) ã®ä»•çµ„ã¿
 
       # db_dump -p postgrey.db
       VERSION=3
@@ -214,14 +214,14 @@ Postfix + S25R + tarGrey
       type=btree
       db_pagesize=4096
       HEADER=END
-       192.168.1.0/root@kamimaedu.ddo.jp/tak@ibidensangyo.co.jp  ¦1
-       1359620946,1359621979,2,91                                ¦2
+       192.168.1.0/root@kamimaedu.ddo.jp/tak@ibidensangyo.co.jp  â€»1
+       1359620946,1359621979,2,91                                â€»2
       DATA=END
 
-      ¦1 ‘—MŒ³ƒ[ƒ‹ƒT[ƒo IP ƒAƒhƒŒƒX / ‘—MŒ³ƒAƒhƒŒƒX / ‘—MæƒAƒhƒŒƒX
-      ¦2 Ä‘—‚ÉóM‚µ‚½ŠÔ (UNIX time) / ÅŒã‚ÉóM‚µ‚½ŠÔ (UNIX time) / ƒŠƒgƒ‰ƒC‰ñ” / ‘—MŒ³ƒ[ƒ‹ƒT[ƒo IP ƒAƒhƒŒƒX‚Ì‘ælƒIƒNƒeƒbƒg
+      â€»1 é€ä¿¡å…ƒãƒ¡ãƒ¼ãƒ«ã‚µãƒ¼ãƒ IP ã‚¢ãƒ‰ãƒ¬ã‚¹ / é€ä¿¡å…ƒã‚¢ãƒ‰ãƒ¬ã‚¹ / é€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹
+      â€»2 å†é€ã«å—ä¿¡ã—ãŸæ™‚é–“ (UNIX time) / æœ€å¾Œã«å—ä¿¡ã—ãŸæ™‚é–“ (UNIX time) / ãƒªãƒˆãƒ©ã‚¤å›æ•° / é€ä¿¡å…ƒãƒ¡ãƒ¼ãƒ«ã‚µãƒ¼ãƒ IP ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ç¬¬å››ã‚ªã‚¯ãƒ†ãƒƒãƒˆ
 
-      Ä‘—‚ÉóM‚µ‚½ŠÔ (UNIX time) ‚ª ÅŒã‚ÉóM‚µ‚½ŠÔ (UNIX time) 300•bˆÈãŒo‰ß‚µ‚Ä‚¢‚é‚±‚ÆA‚©‚Â ƒŠƒgƒ‰ƒC‰ñ”‚ª 2‰ñˆÈã‚Å‚ ‚ê‚Î
-      postgrey_clients.db (©“®ƒzƒƒCƒgƒŠƒXƒg) ‚Ö“o˜^‚ğs‚¤ ¦30“ú‚ğŒo‰ß‚µ‚½ê‡ íœ‚³‚ê‚é
+      å†é€ã«å—ä¿¡ã—ãŸæ™‚é–“ (UNIX time) ãŒ æœ€å¾Œã«å—ä¿¡ã—ãŸæ™‚é–“ (UNIX time) 300ç§’ä»¥ä¸ŠçµŒéã—ã¦ã„ã‚‹ã“ã¨ã€ã‹ã¤ ãƒªãƒˆãƒ©ã‚¤å›æ•°ãŒ 2å›ä»¥ä¸Šã§ã‚ã‚Œã°
+      postgrey_clients.db (è‡ªå‹•ãƒ›ãƒ¯ã‚¤ãƒˆãƒªã‚¹ãƒˆ) ã¸ç™»éŒ²ã‚’è¡Œã† â€»30æ—¥ã‚’çµŒéã—ãŸå ´åˆ å‰Šé™¤ã•ã‚Œã‚‹
 
 

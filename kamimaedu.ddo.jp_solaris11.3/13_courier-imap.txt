@@ -57,7 +57,7 @@ Courier-imap
    # cp packaging/systemd/courier-imap.sysvinit /etc/init.d/courier-imap
    # chmod 755 /etc/init.d/courier-imap
 
-3. ƒŠƒ“ƒN‚Ìì¬
+3. ãƒªãƒ³ã‚¯ã®ä½œæˆ
 
    # ln /etc/init.d/courier-imap /etc/rc0.d/K01courier-imap
    # ln /etc/init.d/courier-imap /etc/rc1.d/K01courier-imap
@@ -68,15 +68,15 @@ Courier-imap
    # ln /etc/init.d/courier-authlib /etc/rcS.d/K01courier-authlib
    # ln /etc/init.d/courier-authlib /etc/rc2.d/S99courier-authlib
 
-4. ƒ†[ƒUì¬‚Ì Maildir ‚Ìì¬
+4. ãƒ¦ãƒ¼ã‚¶ä½œæˆæ™‚ã® Maildir ã®ä½œæˆ
 
    # /usr/local/64/bin/maildirmake /etc/skel/Maildir
 
-5. /usr/local/64/etc/courier-imap/imapd ƒ`ƒ…[ƒjƒ“ƒO
+5. /usr/local/64/etc/courier-imap/imapd ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°
 
-   IMAP_MAILBOX_SANITY_CHECK=0 : ƒz[ƒ€ƒfƒBƒŒƒNƒgƒŠ‚Æ Maildir ‚ÌŒ ŒÀ‚Ì®‡«Šm”F‚ğ–³Œø‚Æ‚·‚é
-   IMAP_USELOCKS=0             : ƒAƒNƒZƒX‚ÉƒƒbƒN‚ğ–³Œø‚Æ‚·‚é (‘½dƒAƒNƒZƒX‚Éã‚¢‚ªA•s‹ï‡‚ÌŒoŒ±‚È‚µ)
-   IMAP_ENHANCEDIDLE=0         : Šg’£ IDLE (V’…ƒ[ƒ‹óM‚É IMAP ‘¤‚©‚ç’Ê’m) ‚ğ–³Œø‚Æ‚·‚é
+   IMAP_MAILBOX_SANITY_CHECK=0 : ãƒ›ãƒ¼ãƒ ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨ Maildir ã®æ¨©é™ã®æ•´åˆæ€§ç¢ºèªã‚’ç„¡åŠ¹ã¨ã™ã‚‹
+   IMAP_USELOCKS=0             : ã‚¢ã‚¯ã‚»ã‚¹æ™‚ã«ãƒ­ãƒƒã‚¯ã‚’ç„¡åŠ¹ã¨ã™ã‚‹ (å¤šé‡ã‚¢ã‚¯ã‚»ã‚¹ã«å¼±ã„ãŒã€ä¸å…·åˆã®çµŒé¨“ãªã—)
+   IMAP_ENHANCEDIDLE=0         : æ‹¡å¼µ IDLE (æ–°ç€ãƒ¡ãƒ¼ãƒ«å—ä¿¡æ™‚ã« IMAP å´ã‹ã‚‰é€šçŸ¥) ã‚’ç„¡åŠ¹ã¨ã™ã‚‹
 
 6. TIPS
 

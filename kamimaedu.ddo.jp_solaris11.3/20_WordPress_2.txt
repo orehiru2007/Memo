@@ -1,9 +1,9 @@
 kamimaedu.ddo.jp (VMware + Solaris 10 64bit 10/09 x86)
 
-WordPress ‚Á‚Ä—¬s‚Á‚Ä‚é‚ç‚µ‚¢‚ËEEE
-‚»‚ë‚»‚ë ‰´’‹ •œŠˆ‚Ì‚©‚È‚Ÿ ‚Ì‘±‚«
+WordPress ã£ã¦æµè¡Œã£ã¦ã‚‹ã‚‰ã—ã„ã­ãƒ»ãƒ»ãƒ»
+ãã‚ãã‚ ä¿ºæ˜¼ å¾©æ´»ã®æ™‚ã‹ãªã ã®ç¶šã
 
-1. MySQL ƒ`ƒ…[ƒjƒ“ƒO
+1. MySQL ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°
 
    # cat /usr/local/etc/my.cnf | egrep -v "(^#|^$)"
    [client]
@@ -77,20 +77,20 @@ WordPress ‚Á‚Ä—¬s‚Á‚Ä‚é‚ç‚µ‚¢‚ËEEE
 
 2. WordPress
 
-   1. WordPress ‚Ìƒ_ƒEƒ“ƒ[ƒh (¦WordPress “ú–{Œê”Å‚Ìƒy[ƒW‚æ‚èÅV”Å‚ğƒ_ƒEƒ“ƒ[ƒh)
+   1. WordPress ã®ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ (â€»WordPress æ—¥æœ¬èªç‰ˆã®ãƒšãƒ¼ã‚¸ã‚ˆã‚Šæœ€æ–°ç‰ˆã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰)
       
       URL : http://ja.wordpress.org/latest-ja.tar.gz
 
-   2. MySQL root ƒpƒXƒ[ƒh‚Ìİ’è
+   2. MySQL root ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®è¨­å®š
 
       # mysqladmin -u root password password
       # mysqladmin reload
 
-   3. MySQL ‚É WordPress —p‚Ìƒf[ƒ^ƒx[ƒX‚Æƒ†[ƒU‚Ìì¬
+   3. MySQL ã« WordPress ç”¨ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã¨ãƒ¦ãƒ¼ã‚¶ã®ä½œæˆ
 
-      ƒf[ƒ^ƒx[ƒX–¼ : wpdb
-      ƒ†[ƒU–¼       : wpuser
-      ƒpƒXƒ[ƒh     : password
+      ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹å : wpdb
+      ãƒ¦ãƒ¼ã‚¶å       : wpuser
+      ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰     : password
 
       # mysql -u root -ppassword
 
@@ -113,45 +113,45 @@ WordPress ‚Á‚Ä—¬s‚Á‚Ä‚é‚ç‚µ‚¢‚ËEEE
       +--------+-----------+-------------------------------------------+
       1 row in set (0.00 sec)
 
-   4. WordPress ‚ÌƒCƒ“ƒXƒg[ƒ‹
+   4. WordPress ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 
       # wget http://ja.wordpress.org/wordpress-3.1-ja.tar.gz
       # tar zxvf wordpress-3.1-ja.tar.gz
       # cp -Rp wordpress /usr/local/apache2/htdocs/wp
 
-   5. wp-config.php ‚Ìİ’è“à—e
+   5. wp-config.php ã®è¨­å®šå†…å®¹
 
       # diff -u /usr/local/apache2/htdocs/wp/wp-config.php{.orig,} | nkf -e
       --- /usr/local/apache2/htdocs/wp/wp-config.php.orig     2011-03-28 10:09:37.266653454 +0900
       +++ /usr/local/apache2/htdocs/wp/wp-config.php  2011-03-28 10:11:09.120864652 +0900
       @@ -21,13 +21,13 @@
       
-       // ** MySQL İ’è - ‚±‚¿‚ç‚Ìî•ñ‚ÍƒzƒXƒeƒBƒ“ƒOæ‚©‚ç“üè‚µ‚Ä‚­‚¾‚³‚¢B ** //
-       /** WordPress ‚Ì‚½‚ß‚Ìƒf[ƒ^ƒx[ƒX–¼ */
+       // ** MySQL è¨­å®š - ã“ã¡ã‚‰ã®æƒ…å ±ã¯ãƒ›ã‚¹ãƒ†ã‚£ãƒ³ã‚°å…ˆã‹ã‚‰å…¥æ‰‹ã—ã¦ãã ã•ã„ã€‚ ** //
+       /** WordPress ã®ãŸã‚ã®ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹å */
       -define('DB_NAME', 'database_name_here');
       +define('DB_NAME', 'wpdb');
       
-       /** MySQL ƒf[ƒ^ƒx[ƒX‚Ìƒ†[ƒU[–¼ */
+       /** MySQL ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®ãƒ¦ãƒ¼ã‚¶ãƒ¼å */
       -define('DB_USER', 'username_here');
       +define('DB_USER', 'wpuser');
       
-       /** MySQL ƒf[ƒ^ƒx[ƒX‚ÌƒpƒXƒ[ƒh */
+       /** MySQL ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ */
       -define('DB_PASSWORD', 'password_here');
       +define('DB_PASSWORD', 'password');
       
-       /** MySQL ‚ÌƒzƒXƒg–¼ */
+       /** MySQL ã®ãƒ›ã‚¹ãƒˆå */
        define('DB_HOST', 'localhost');
       @@ -73,7 +73,7 @@
-        * wp-content/languages ‚ÉƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ä‚¢‚é•K—v‚ª‚ ‚è‚Ü‚·B—á‚¦‚Î de_DE.mo ‚ğ
-        * wp-content/languages ‚ÉƒCƒ“ƒXƒg[ƒ‹‚µ WPLANG ‚ğ 'de_DE' ‚Éİ’è‚·‚é‚±‚Æ‚ÅƒhƒCƒcŒê‚ªƒTƒ|[ƒg‚³‚ê‚Ü‚·B
+        * wp-content/languages ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚ä¾‹ãˆã° de_DE.mo ã‚’
+        * wp-content/languages ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã— WPLANG ã‚’ 'de_DE' ã«è¨­å®šã™ã‚‹ã“ã¨ã§ãƒ‰ã‚¤ãƒ„èªãŒã‚µãƒãƒ¼ãƒˆã•ã‚Œã¾ã™ã€‚
         */
       -define('WPLANG', 'ja');
       +define('WPLANG', 'ja_UTF');
       
        /**
-        * ŠJ”­Ò‚Ö: WordPress ƒfƒoƒbƒOƒ‚[ƒh
+        * é–‹ç™ºè€…ã¸: WordPress ãƒ‡ãƒãƒƒã‚°ãƒ¢ãƒ¼ãƒ‰
 
-   6. ƒuƒƒO–¼/‰ŠúƒpƒXƒ[ƒh‚Ìİ’è
+   6. ãƒ–ãƒ­ã‚°å/åˆæœŸãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®è¨­å®š
 
       URL : http://kamimaedu.ddo.jp/wp/wp-admin/install.php
 

@@ -4,19 +4,19 @@ Postfix + Dovecot (SMTP-Auth) +  TLS
 
 Postfix
 
-1. sendmail ‚Ì’â~
+1. sendmail ã®åœæ­¢
 
    # svcadm disable sendmail
    # svcs -x sendmail
    svc:/network/smtp:sendmail (sendmail SMTP mail transfer agent)
-    State: disabled since 2016”N01Œ25“ú 1152•ª12•b
+    State: disabled since 2016å¹´01æœˆ25æ—¥ 11æ™‚52åˆ†12ç§’
    Reason: Disabled by an administrator.
       See: http://support.oracle.com/msg/SMF-8000-05
       See: sendmail(1M)
       See: /var/svc/log/network-smtp:sendmail.log
    Impact: This service is not running.
 
-2. zlib 64bit (ƒCƒ“ƒXƒg[ƒ‹Ï)
+2. zlib 64bit (ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«æ¸ˆ)
 
    # wget http://zlib.net/zlib-1.2.8.tar.gz
    # tar zxvf zlib-1.2.8.tar.gz
@@ -40,10 +40,10 @@ Postfix
    # make
    # make install
 
-3. postfix 3 ‚ÌƒCƒ“ƒXƒg[ƒ‹
+3. postfix 3 ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 
 
-   1. ƒCƒ“ƒXƒg[ƒ‹
+   1. ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 
       # groupadd -g 68 postfix
       # groupadd -g 69 postdrop
@@ -154,7 +154,7 @@ Postfix
                   status = reject_plaintext_session(state);
               }
 
-   2. ‹N“®ƒXƒNƒŠƒvƒg
+   2. èµ·å‹•ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
 
       # cat /etc/init.d/postfix
       #!/bin/sh
@@ -163,7 +163,7 @@ Postfix
       
       /usr/local/64/sbin/postfix "$@"
 
-   3. ‹N“®ƒXƒNƒŠƒvƒg‚ÌƒŠƒ“ƒN‚Ìì¬
+   3. èµ·å‹•ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒªãƒ³ã‚¯ã®ä½œæˆ
 
       # chmod 755 /etc/init.d/postfix
       # ln /etc/init.d/postfix /etc/rc0.d/K36postfix
@@ -173,7 +173,7 @@ Postfix
 
 Dovecot (SMTP-Auth)
 
-1. /etc/postfix/master.cf (d—v‰ÓŠ‚Ì‚İ”²ˆ)
+1. /etc/postfix/master.cf (é‡è¦ç®‡æ‰€ã®ã¿æŠœç²‹)
 
    # diff -u /etc/postfix/master.cf{.orig,}
    --- /etc/postfix/master.cf.orig 2013-08-20 22:36:59.372187580 +0900
@@ -185,7 +185,7 @@ Dovecot (SMTP-Auth)
    +dovecot   unix  -       n       n       -       -       pipe
    +    flags=DRhu user=dovecot:dovecot argv=/usr/local/64/libexec/dovecot/dovecot-lda -d ${recipient}
 
-2. /etc/postfix/main.cf (d—v‰ÓŠ‚Ì‚İ)
+2. /etc/postfix/main.cf (é‡è¦ç®‡æ‰€ã®ã¿)
 
    # SMTP Auth Dovecot
    smtpd_tls_auth_only = yes
@@ -202,31 +202,31 @@ Dovecot (SMTP-Auth)
 
 8. TIPS
 
-   1. 3.0 ‚Å‚Ìå‚È•ÏX“_
+   1. 3.0 ã§ã®ä¸»ãªå¤‰æ›´ç‚¹
 
       1. append_dot_mydomain = yes
 
-         append_dot_mydomain : "user@host" Œ`®‚©‚ç "user@host.$mydomain" Œ`®‚Ö‚Ì‘‚«Š·‚¦À{
+         append_dot_mydomain : "user@host" å½¢å¼ã‹ã‚‰ "user@host.$mydomain" å½¢å¼ã¸ã®æ›¸ãæ›ãˆå®Ÿæ–½
 
-         ƒfƒtƒHƒ‹ƒg’l‚ªA"yes" ‚©‚ç "no" ‚É•ÏX‚³‚ê‚½
+         ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ãŒã€"yes" ã‹ã‚‰ "no" ã«å¤‰æ›´ã•ã‚ŒãŸ
 
       2. chroot = y
 
-         master.cf chroot ‚ÌƒfƒtƒHƒ‹ƒg’l‚ª "y" ‚©‚ç "n" ‚É•ÏX‚³‚ê‚½
+         master.cf chroot ã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ãŒ "y" ã‹ã‚‰ "n" ã«å¤‰æ›´ã•ã‚ŒãŸ
 
       3. mynetworks_style = subnet
 
-         ƒfƒtƒHƒ‹ƒg’l‚ª "subnet" ‚©‚ç "host" ‚É•ÏX‚³‚ê‚½
+         ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ãŒ "subnet" ã‹ã‚‰ "host" ã«å¤‰æ›´ã•ã‚ŒãŸ
 
       4. relay_domains=$mydestination
 
-         ƒfƒtƒHƒ‹ƒg’l‚ª "$mydestination" ‚©‚ç ƒJƒ‰ (w’è‚È‚µ‚É•ÏX‚³‚ê‚½)
+         ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ãŒ "$mydestination" ã‹ã‚‰ ã‚«ãƒ© (æŒ‡å®šãªã—ã«å¤‰æ›´ã•ã‚ŒãŸ)
 
       5. smtputf8_enable = no
 
-         ƒfƒtƒHƒ‹ƒg’l‚ª "no" ‚©‚ç "yes" ‚É•ÏX‚³‚ê‚½
+         ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ãŒ "no" ã‹ã‚‰ "yes" ã«å¤‰æ›´ã•ã‚ŒãŸ
 
-      6. ŒİŠ·ƒ‚[ƒhİ’è•s”õ‚É‘Î‚·‚éŒx
+      6. äº’æ›ãƒ¢ãƒ¼ãƒ‰è¨­å®šä¸å‚™ã«å¯¾ã™ã‚‹è­¦å‘Š
 
          http://www.postfix.org/COMPATIBILITY_README.html
 
@@ -234,9 +234,9 @@ Dovecot (SMTP-Auth)
          postfix: See http://www.postfix.org/COMPATIBILITY_README.html for details
          postfix: To disable backwards compatibility use "postconf compatibility_level=2" and "postfix reload"
 
-         compatibility_level ‚ªƒZƒbƒg‚³‚ê‚Ä‚¢‚È‚¢ or İ’è’l‚É–â‘è‚ ‚è ‚ğ¦‚·Œx
+         compatibility_level ãŒã‚»ãƒƒãƒˆã•ã‚Œã¦ã„ãªã„ or è¨­å®šå€¤ã«å•é¡Œã‚ã‚Š ã‚’ç¤ºã™è­¦å‘Š
 
-   2. /etc/services ‚Ì•ÒW
+   2. /etc/services ã®ç·¨é›†
 
       # diff -U1 /etc/services{.orig,}
       --- /etc/services.orig  2013-06-25 11:31:02.568626704 +0900
@@ -249,66 +249,66 @@ Dovecot (SMTP-Auth)
    3. /etc/postfix/master.cf
 
       submission inet n       -       n       -       -       smtpd
-        -o syslog_name=postfix/submission                                  : syslog ƒŒƒR[ƒh‚ÌƒvƒƒZƒX–¼‚Ì‘O‚É•t‚¯‚ç‚ê‚éƒ[ƒ‹ƒVƒXƒeƒ€‚Ì–¼‘O / submission
-        -o smtpd_tls_security_level=encrypt                                : SMTP TLS ƒZƒLƒ…ƒŠƒeƒBƒŒƒxƒ‹ / encrypt (TLS ˆÃ†‰»‹­§)
-        -o smtpd_sasl_auth_enable=yes                                      : SASL ”FØ / yes (—LŒø)
-        -o smtpd_reject_unlisted_recipient=yes                             : •s–¾‚È‘—MæƒAƒhƒŒƒX‚Ö‚Ì”z‘—‹‘”Û / yes (‹‘”Û‚·‚é)
-      #  -o smtpd_client_restrictions=$mua_client_restrictions             : Ú×•s–¾
-      #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : Ú×•s–¾
-      #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : Ú×•s–¾
-        -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO ƒRƒ}ƒ“ƒh‚É“K—p‚³‚ê‚éƒAƒNƒZƒX§ŒÀ / permit_sasl_authenticated,reject
-      #  -o milter_macro_daemon_name=ORIGINATING                           : Ú×•s–¾ (Postfix 2.3 ‚©‚ç Milter ‚ª—˜—p‰Â”\‚Ì‚½‚ßA‚»‚ÌŠÖ˜A)
+        -o syslog_name=postfix/submission                                  : syslog ãƒ¬ã‚³ãƒ¼ãƒ‰ã®ãƒ—ãƒ­ã‚»ã‚¹åã®å‰ã«ä»˜ã‘ã‚‰ã‚Œã‚‹ãƒ¡ãƒ¼ãƒ«ã‚·ã‚¹ãƒ†ãƒ ã®åå‰ / submission
+        -o smtpd_tls_security_level=encrypt                                : SMTP TLS ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ãƒ¬ãƒ™ãƒ« / encrypt (TLS æš—å·åŒ–å¼·åˆ¶)
+        -o smtpd_sasl_auth_enable=yes                                      : SASL èªè¨¼ / yes (æœ‰åŠ¹)
+        -o smtpd_reject_unlisted_recipient=yes                             : ä¸æ˜ãªé€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹ã¸ã®é…é€æ‹’å¦ / yes (æ‹’å¦ã™ã‚‹)
+      #  -o smtpd_client_restrictions=$mua_client_restrictions             : è©³ç´°ä¸æ˜
+      #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : è©³ç´°ä¸æ˜
+      #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : è©³ç´°ä¸æ˜
+        -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO ã‚³ãƒãƒ³ãƒ‰ã«é©ç”¨ã•ã‚Œã‚‹ã‚¢ã‚¯ã‚»ã‚¹åˆ¶é™ / permit_sasl_authenticated,reject
+      #  -o milter_macro_daemon_name=ORIGINATING                           : è©³ç´°ä¸æ˜ (Postfix 2.3 ã‹ã‚‰ Milter ãŒåˆ©ç”¨å¯èƒ½ã®ãŸã‚ã€ãã®é–¢é€£)
       smtps     inet  n       -       n       -       -       smtpd
-        -o syslog_name=postfix/smtps                                       : syslog ƒŒƒR[ƒh‚ÌƒvƒƒZƒX–¼‚Ì‘O‚É•t‚¯‚ç‚ê‚éƒ[ƒ‹ƒVƒXƒeƒ€‚Ì–¼‘O / smtps
-        -o smtpd_tls_wrappermode=yes                                       : ƒT[ƒo‚ªí‚É TLS ‚ğg‚¤A”ñ•W€ "ƒ‰ƒbƒp[" ƒ‚[ƒh‚Ìw’è / yes (—LŒø)
-        -o smtpd_sasl_auth_enable=yes                                      : SASL ”FØ / yes (—LŒø)
-        -o smtpd_reject_unlisted_recipient=yes                             : •s–¾‚È‘—MæƒAƒhƒŒƒX‚Ö‚Ì”z‘—‹‘”Û / yes (‹‘”Û‚·‚é)
-      #  -o smtpd_client_restrictions=$mua_client_restrictions             : Ú×•s–¾
-      #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : Ú×•s–¾
-      #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : Ú×•s–¾
-        -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO ƒRƒ}ƒ“ƒh‚É“K—p‚³‚ê‚éƒAƒNƒZƒX§ŒÀ / permit_sasl_authenticated,reject
-        -o milter_macro_daemon_name=ORIGINATING                            : Ú×•s–¾ (Postfix 2.3 ‚©‚ç Milter ‚ª—˜—p‰Â”\‚Ì‚½‚ßA‚»‚ÌŠÖ˜A)
+        -o syslog_name=postfix/smtps                                       : syslog ãƒ¬ã‚³ãƒ¼ãƒ‰ã®ãƒ—ãƒ­ã‚»ã‚¹åã®å‰ã«ä»˜ã‘ã‚‰ã‚Œã‚‹ãƒ¡ãƒ¼ãƒ«ã‚·ã‚¹ãƒ†ãƒ ã®åå‰ / smtps
+        -o smtpd_tls_wrappermode=yes                                       : ã‚µãƒ¼ãƒãŒå¸¸ã« TLS ã‚’ä½¿ã†ã€éæ¨™æº– "ãƒ©ãƒƒãƒ‘ãƒ¼" ãƒ¢ãƒ¼ãƒ‰ã®æŒ‡å®š / yes (æœ‰åŠ¹)
+        -o smtpd_sasl_auth_enable=yes                                      : SASL èªè¨¼ / yes (æœ‰åŠ¹)
+        -o smtpd_reject_unlisted_recipient=yes                             : ä¸æ˜ãªé€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹ã¸ã®é…é€æ‹’å¦ / yes (æ‹’å¦ã™ã‚‹)
+      #  -o smtpd_client_restrictions=$mua_client_restrictions             : è©³ç´°ä¸æ˜
+      #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : è©³ç´°ä¸æ˜
+      #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : è©³ç´°ä¸æ˜
+        -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO ã‚³ãƒãƒ³ãƒ‰ã«é©ç”¨ã•ã‚Œã‚‹ã‚¢ã‚¯ã‚»ã‚¹åˆ¶é™ / permit_sasl_authenticated,reject
+        -o milter_macro_daemon_name=ORIGINATING                            : è©³ç´°ä¸æ˜ (Postfix 2.3 ã‹ã‚‰ Milter ãŒåˆ©ç”¨å¯èƒ½ã®ãŸã‚ã€ãã®é–¢é€£)
 
-  4. Postfix ƒŠƒ\[ƒXƒ`ƒ…[ƒjƒ“ƒO
+  4. Postfix ãƒªã‚½ãƒ¼ã‚¹ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°
 
-     ƒpƒ‰ƒ[ƒ^–¼                        | ƒfƒtƒHƒ‹ƒg’l               | ƒ`ƒ…[ƒjƒ“ƒOŒã | •â‘«
+     ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å                        | ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤               | ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°å¾Œ | è£œè¶³
      ------------------------------------+----------------------------+----------------+----------------------------------------------
-     anvil_rate_time_unit                | 60s                        | 60s            | ’PˆÊŠÔ
-     default_process_limit               | 100                        | 300            | qƒvƒƒZƒX‚Ì Å‘å”
-     smtpd_recipient_limit               | 1000                       | 1000           | ”z‘—ˆ—–ˆ‚Ì ‘—MæƒAƒhƒŒƒX‚ÌÅ‘å
-     smtpd_timeout                       | ${stress?10}${stress:300}s | 300s           | SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì—v‹‚ğó‚¯æ‚é‚Ü‚Å‚Ì ‘Ò‹@ŠÔ
-     smtpd_client_connection_count_limit | 50                         | 50             | ’Pˆê‚Ì SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì “¯Å‘åÚ‘±”
-     smtpd_client_message_rate_limit     | 0                          | 120            | ’PˆÊŠÔ‚É‚¨‚¯‚é  ’Pˆê‚Ì SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì”z‘——v‹”‚ÌÅ‘å
-     smtpd_client_recipient_rate_limit   | 0                          |                | ’PˆÊŠÔ‚É‚¨‚¯‚é  ’Pˆê‚Ì SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì‘—MæƒAƒhƒŒƒX‚ÌÅ‘å
-     smtpd_client_connection_rate_limit  | 0                          |                | ’PˆÊŠÔ‚É‚¨‚¯‚é  ’Pˆê‚Ì SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚ÌÚ‘±s‰ñ”‚ÌÅ‘å
-     smtpd_client_event_limit_exceptions | $mynetworks                | $mynetworks    | Ú‘±ƒJƒEƒ“ƒg‚âÚ‘±‘¬“xASMTP —v‹‘¬“x‚Ì§ŒÀ‚©‚çœŠO‚³‚ê‚éƒNƒ‰ƒCƒAƒ“ƒg
+     anvil_rate_time_unit                | 60s                        | 60s            | å˜ä½æ™‚é–“
+     default_process_limit               | 100                        | 300            | å­ãƒ—ãƒ­ã‚»ã‚¹ã® æœ€å¤§æ•°
+     smtpd_recipient_limit               | 1000                       | 1000           | é…é€å‡¦ç†æ¯ã® é€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹ã®æœ€å¤§
+     smtpd_timeout                       | ${stress?10}${stress:300}s | 300s           | SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®è¦æ±‚ã‚’å—ã‘å–ã‚‹ã¾ã§ã® å¾…æ©Ÿæ™‚é–“
+     smtpd_client_connection_count_limit | 50                         | 50             | å˜ä¸€ã® SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã® åŒæ™‚æœ€å¤§æ¥ç¶šæ•°
+     smtpd_client_message_rate_limit     | 0                          | 120            | å˜ä½æ™‚é–“ã«ãŠã‘ã‚‹  å˜ä¸€ã® SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®é…é€è¦æ±‚æ•°ã®æœ€å¤§
+     smtpd_client_recipient_rate_limit   | 0                          |                | å˜ä½æ™‚é–“ã«ãŠã‘ã‚‹  å˜ä¸€ã® SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®é€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹ã®æœ€å¤§
+     smtpd_client_connection_rate_limit  | 0                          |                | å˜ä½æ™‚é–“ã«ãŠã‘ã‚‹  å˜ä¸€ã® SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®æ¥ç¶šè©¦è¡Œå›æ•°ã®æœ€å¤§
+     smtpd_client_event_limit_exceptions | $mynetworks                | $mynetworks    | æ¥ç¶šã‚«ã‚¦ãƒ³ãƒˆã‚„æ¥ç¶šé€Ÿåº¦ã€SMTP è¦æ±‚é€Ÿåº¦ã®åˆ¶é™ã‹ã‚‰é™¤å¤–ã•ã‚Œã‚‹ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆ
 
-  5. stress ƒpƒ‰ƒ[ƒ^‚É‚Â‚¢‚Ä
+  5. stress ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã«ã¤ã„ã¦
 
-     Postfix 2.5 ˆÈ~‚ÅƒTƒ|[ƒg‚³‚ê‚½A‰ß•‰‰×‚É‘Î‚·‚é‹@”\
-     ƒvƒƒZƒX”‚ÌãŒÀ (default_process_limit) ‚É’B‚µ‚½ê‡‚ÉAŠeƒpƒ‰ƒ[ƒ^‚Ì’l‚ğ•ÏX‚·‚é‚±‚Æ‚ª‰Â”\
+     Postfix 2.5 ä»¥é™ã§ã‚µãƒãƒ¼ãƒˆã•ã‚ŒãŸã€éè² è·ã«å¯¾ã™ã‚‹æ©Ÿèƒ½
+     ãƒ—ãƒ­ã‚»ã‚¹æ•°ã®ä¸Šé™ (default_process_limit) ã«é”ã—ãŸå ´åˆã«ã€å„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®å€¤ã‚’å¤‰æ›´ã™ã‚‹ã“ã¨ãŒå¯èƒ½
 
      # ps -ef | grep postfix
       postfix  3614  3597   0   20:48:26 ?           0:00 smtpd -n smtp -t inet -u -o stress=
-      postfix  3616  3597   0   20:48:28 ?           0:00 smtpd -n smtp -t inet -u -o stress=yes   © ãŒÀ’l‚É’B‚µ‚½ê‡ "yes" ‚ª•t—^‚³‚ê‚é
+      postfix  3616  3597   0   20:48:28 ?           0:00 smtpd -n smtp -t inet -u -o stress=yes   â† ä¸Šé™å€¤ã«é”ã—ãŸå ´åˆ "yes" ãŒä»˜ä¸ã•ã‚Œã‚‹
 
-     ƒpƒ‰ƒ[ƒ^–¼                   | ƒfƒtƒHƒ‹ƒg’l                | •â‘«
+     ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å                   | ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤                | è£œè¶³
      -------------------------------+-----------------------------+------------------------------------------------
-     address_verify_poll_count      | ${stress?1}${stress:3}      | ‘—MæƒAƒhƒŒƒXŒŸØ verify ‚É–â‚¢‡‚í‚¹‚é‰ñ”
-     postscreen_command_time_limit  | ${stress?10}${stress:300}s  | postscreen ‹@”\—˜—p‚É SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì—v‹‚ğó‚¯æ‚é‚Ü‚Å‚Ì ‘Ò‹@ŠÔ
-     postscreen_greet_wait          | ${stress?2}${stress:6}s     | postscreen ‹@”\—˜—p‚É Greeting Mesaage ‚ğo‚·‚Ü‚ÅŠÔ
-     smtpd_hard_error_limit         | ${stress?1}${stress:20}     | SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚ÌƒGƒ‰[ (ƒ[ƒ‹”z‘—¸”s‚ÉŠ‚ç‚È‚¢‚à‚Ì) ”‚ÌÅ‘å
-     smtpd_junk_command_limit       | ${stress?1}${stress:100}    | SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚ªÀs‚Å‚«‚éƒWƒƒƒ“ƒNƒRƒ}ƒ“ƒh (NOOPAVRFYAETRNARET “™) ”‚ÌÅ‘å
-     smtpd_per_record_deadline      | ${stress?yes}${stress:no}   | yes ‚Ìê‡AŠeˆ—‚ª“r’†‚Å‚ ‚Á‚Ä‚à smtpd_timeout ‚Ì’l‚ğ’´‚¦‚½ê‡AÚ‘±‚ğØ’f‚·‚é
-     smtpd_starttls_timeout         | ${stress?10}${stress:300}s  | SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì—v‹‚ğó‚¯æ‚é‚Ü‚Å‚Ì ‘Ò‹@ŠÔ (STARTTLS ˆÈ~)
-     smtpd_timeout                  | ${stress?10}${stress:300}s  | SMTP ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì—v‹‚ğó‚¯æ‚é‚Ü‚Å‚Ì ‘Ò‹@ŠÔ
+     address_verify_poll_count      | ${stress?1}${stress:3}      | é€ä¿¡å…ˆã‚¢ãƒ‰ãƒ¬ã‚¹æ¤œè¨¼ verify ã«å•ã„åˆã‚ã›ã‚‹å›æ•°
+     postscreen_command_time_limit  | ${stress?10}${stress:300}s  | postscreen æ©Ÿèƒ½åˆ©ç”¨æ™‚ã« SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®è¦æ±‚ã‚’å—ã‘å–ã‚‹ã¾ã§ã® å¾…æ©Ÿæ™‚é–“
+     postscreen_greet_wait          | ${stress?2}${stress:6}s     | postscreen æ©Ÿèƒ½åˆ©ç”¨æ™‚ã« Greeting Mesaage ã‚’å‡ºã™ã¾ã§æ™‚é–“
+     smtpd_hard_error_limit         | ${stress?1}${stress:20}     | SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã®ã‚¨ãƒ©ãƒ¼ (ãƒ¡ãƒ¼ãƒ«é…é€å¤±æ•—ã«è‡³ã‚‰ãªã„ã‚‚ã®) æ•°ã®æœ€å¤§
+     smtpd_junk_command_limit       | ${stress?1}${stress:100}    | SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãŒå®Ÿè¡Œã§ãã‚‹ã‚¸ãƒ£ãƒ³ã‚¯ã‚³ãƒãƒ³ãƒ‰ (NOOPã€VRFYã€ETRNã€RET ç­‰) æ•°ã®æœ€å¤§
+     smtpd_per_record_deadline      | ${stress?yes}${stress:no}   | yes ã®å ´åˆã€å„å‡¦ç†ãŒé€”ä¸­ã§ã‚ã£ã¦ã‚‚ smtpd_timeout ã®å€¤ã‚’è¶…ãˆãŸå ´åˆã€æ¥ç¶šã‚’åˆ‡æ–­ã™ã‚‹
+     smtpd_starttls_timeout         | ${stress?10}${stress:300}s  | SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®è¦æ±‚ã‚’å—ã‘å–ã‚‹ã¾ã§ã® å¾…æ©Ÿæ™‚é–“ (STARTTLS ä»¥é™)
+     smtpd_timeout                  | ${stress?10}${stress:300}s  | SMTP ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã®è¦æ±‚ã‚’å—ã‘å–ã‚‹ã¾ã§ã® å¾…æ©Ÿæ™‚é–“
 
   6. Postscreen
 
-     Postfix 2.8 ˆÈ~‚ÅƒTƒ|[ƒg‚³‚ê‚½ŠÈ’P‚È Tarpitting ‹@”\
-     S25R + taRgrey ‚ğg‚¤‚Ì‚ÅAŠo‚¦‚é•K—v‚Í‚È‚¢‚ªAPostfix ©‘Ì‚Ìi‰»‚Í•]‰¿‚Å‚«‚é‚©‚à
+     Postfix 2.8 ä»¥é™ã§ã‚µãƒãƒ¼ãƒˆã•ã‚ŒãŸç°¡å˜ãª Tarpitting æ©Ÿèƒ½
+     S25R + taRgrey ã‚’ä½¿ã†ã®ã§ã€è¦šãˆã‚‹å¿…è¦ã¯ãªã„ãŒã€Postfix è‡ªä½“ã®é€²åŒ–ã¯è©•ä¾¡ã§ãã‚‹ã‹ã‚‚
      
-     1. /etc/postfix/main.cf (”²ˆ)
+     1. /etc/postfix/main.cf (æŠœç²‹)
 
         ## Postscreen
         postscreen_access_list = permit_mynetworks,
@@ -327,7 +327,7 @@ Dovecot (SMTP-Auth)
         #
         192.168.1.0/24          reject
 
-     3. /etc/postfix/master.cf (”²ˆ)
+     3. /etc/postfix/master.cf (æŠœç²‹)
 
         ## Postscreen
         #smtp      inet  n       -       n       -       -       smtpd
@@ -336,26 +336,26 @@ Dovecot (SMTP-Auth)
         dnsblog   unix  -       -       n       -     0     dnsblog
         tlsproxy  unix  -       -       n       -     0     tlsproxy
 
-  7. ƒCƒ“ƒXƒ^ƒ“ƒX‚ğ•¡”‹N“®
+  7. ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’è¤‡æ•°èµ·å‹•
 
-     Ql URL (‰ß‹‚Ì‚â‚è•û) : Stray Penguin http://www.asahi-net.or.jp/~aa4t-nngk/postfix-tips.html
+     å‚è€ƒ URL (éå»ã®ã‚„ã‚Šæ–¹) : Stray Penguin http://www.asahi-net.or.jp/~aa4t-nngk/postfix-tips.html
 
      Postfix-deux 
  
-     1. ‰Šú‰»
+     1. åˆæœŸåŒ–
         
         # postmulti -e init
 
-        /etc/postfix/main.cf ‚ÉˆÈ‰º‚Ìs‚ª’Ç‰Á‚³‚ê‚é
+        /etc/postfix/main.cf ã«ä»¥ä¸‹ã®è¡ŒãŒè¿½åŠ ã•ã‚Œã‚‹
         multi_instance_wrapper = ${command_directory}/postmulti -p --
         multi_instance_enable = yes
 
-     2. mta ƒOƒ‹[ƒv‚É‘®‚·‚é po-stfix-deux ‚Æ‚¢‚¤–¼‘O‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğì¬‚·‚é
+     2. mta ã‚°ãƒ«ãƒ¼ãƒ—ã«å±ã™ã‚‹ po-stfix-deux ã¨ã„ã†åå‰ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ä½œæˆã™ã‚‹
 
         # postmulti -I postfix-deux -G mta -e create
         # ln -s /usr/local/64/etc/postfix-deux /etc/postfix-deux
 
-     3. /etc/postfix-deux/main.cf d—v‰ÓŠ‚Ì‚İ”²ˆ
+     3. /etc/postfix-deux/main.cf é‡è¦ç®‡æ‰€ã®ã¿æŠœç²‹
 
         ## Dovecot LDA
         mailbox_command = /usr/local/64/libexec/dovecot/dovecot-lda
@@ -372,7 +372,7 @@ Dovecot (SMTP-Auth)
         syslog_facility = local5
         multi_instance_enable = yes
 
-     4. /etc/postfix-deux/master.cf d—v‰ÓŠ‚Ì‚İ”²ˆ
+     4. /etc/postfix-deux/master.cf é‡è¦ç®‡æ‰€ã®ã¿æŠœç²‹
 
         #smtp      inet  n       -       n       -       -       smtpd
         10025      inet  n       -       n       -       -       smtpd
@@ -380,12 +380,12 @@ Dovecot (SMTP-Auth)
         dovecot   unix  -       n       n       -       -       pipe
             flags=DRhu user=dovecot:dovecot argv=/usr/local/64/libexec/dovecot/dovecot-lda -d ${recipient}
 
-     5. ƒCƒ“ƒXƒ^ƒ“ƒX Postfix-deux ‚Ì‹N“®
+     5. ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ Postfix-deux ã®èµ·å‹•
 
         # postmulti -i postfix-test -e enable
         # postmulti -i postfix-test -p start
 
-     6. ƒRƒ}ƒ“ƒh —á
+     6. ã‚³ãƒãƒ³ãƒ‰ ä¾‹
 
         newaliases : postmulti -i postfix-deux -x newaliases
         postmap    : postmulti -i postfix-deux -x postmap
@@ -442,27 +442,27 @@ skip_addresses = 127.0.0.0/8,::ffff:127.0.0.0//104,::1//128
                 permit
         policy-spf_time_limit = 3600s
 
-  8. ƒLƒ…[‚Ì•ÛŠúŠÔ
+  8. ã‚­ãƒ¥ãƒ¼ã®ä¿æŒæœŸé–“
 
-     1. ‘—M¸”s
+     1. é€ä¿¡å¤±æ•—
 
-        deferred ‚É“ü‚é
+        deferred ã«å…¥ã‚‹
 
-     2. queue_run_delay –ˆ‚É deferred ‚ğƒ`ƒFƒbƒN
+     2. queue_run_delay æ¯ã« deferred ã‚’ãƒã‚§ãƒƒã‚¯
 
-        minimal_backoff_time ‚ğ’´‚¦‚éƒ[ƒ‹‚ª‚ ‚ê‚ÎÄ‘—
-        2 “x–Ú‚Ì¸”s‚Í minimal_backoff_time ‚Ì 2 ”{ ‚ÌŠÔŒã‚ÉÄ‘—
-        3 “x–Ú‚Ì¸”s‚Í minimal_backoff_time ‚Ì 4 ”{ ‚ÌŠÔŒã‚ÉÄ‘—
+        minimal_backoff_time ã‚’è¶…ãˆã‚‹ãƒ¡ãƒ¼ãƒ«ãŒã‚ã‚Œã°å†é€
+        2 åº¦ç›®ã®å¤±æ•—æ™‚ã¯ minimal_backoff_time ã® 2 å€ ã®æ™‚é–“å¾Œã«å†é€
+        3 åº¦ç›®ã®å¤±æ•—æ™‚ã¯ minimal_backoff_time ã® 4 å€ ã®æ™‚é–“å¾Œã«å†é€
 
-     3. maximal_backoff_time ‚ğ’´‚¦‚é‚Ü‚ÅÄ‘—‚ğs
+     3. maximal_backoff_time ã‚’è¶…ãˆã‚‹ã¾ã§å†é€ã‚’è©¦è¡Œ
 
-        maximal_backoff_time ‚ğ’´‚¦‚½ê‡‚Í maximal_backoff_time ‚ÌŠÔŠu‚ÅÄ‘—
+        maximal_backoff_time ã‚’è¶…ãˆãŸå ´åˆã¯ maximal_backoff_time ã®é–“éš”ã§å†é€
 
-     4. maximal_queue_lifetime ‚ğ’´‚¦‚½ê‡‚ÍÄ‘—‚ğ’ú‚ß‚é
+     4. maximal_queue_lifetime ã‚’è¶…ãˆãŸå ´åˆã¯å†é€ã‚’è«¦ã‚ã‚‹
 
-     5. bounce_queue_lifetime ‚ğ’´‚¦‚½‚ç‘—MŒ³‚ÉƒGƒ‰[ƒ[ƒ‹‚ğ‘—M
+     5. bounce_queue_lifetime ã‚’è¶…ãˆãŸã‚‰é€ä¿¡å…ƒã«ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒ¼ãƒ«ã‚’é€ä¿¡
 
-     7. main.cf ”²ˆ
+     7. main.cf æŠœç²‹
 
         queue_run_delay = 120s
         minimal_backoff_time = 300s

@@ -2,7 +2,7 @@ chang.ddo.jp (Oracle VM + Oracle Solaris 11.3 x86)
 
 Dovecot
 
-1. ƒCƒ“ƒXƒg[ƒ‹
+1. ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 
    # groupadd -g 993 dovecot
    # groupadd -g 497 dovenull
@@ -61,7 +61,7 @@ Dovecot
    esac
    exit 0
 
-3. ƒŠƒ“ƒN‚Ìì¬
+3. ãƒªãƒ³ã‚¯ã®ä½œæˆ
 
     chmod 755 /etc/init.d/dovecot
     ln /etc/init.d/dovecot /etc/rc0.d/K01dovecot
@@ -71,9 +71,9 @@ Dovecot
 
 
 
-ˆê’UA‚±‚±‚Ü‚ÅAİ’è“™‚Í Postfix ƒCƒ“ƒXƒg[ƒ‹Œã‚ÉÀ{‚·‚é
+ä¸€æ—¦ã€ã“ã“ã¾ã§ã€è¨­å®šç­‰ã¯ Postfix ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«å¾Œã«å®Ÿæ–½ã™ã‚‹
 
-4. Dovecot İ’è
+4. Dovecot è¨­å®š
 
    1. /usr/local/64/etc/dovecot/dovecot.conf
 

@@ -1,14 +1,14 @@
 kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
-‚·‚×‚Ä /usr/local ˆÈ‰º‚ÉƒCƒ“ƒXƒg[ƒ‹‚·‚é‚±‚Æ
-ƒf[ƒ^‚âƒƒO‚Í /var ˆÈ‰º‚É’u‚­‚±‚Æ
-ƒ‰ƒCƒuƒ‰ƒŠ‚Ío—ˆ‚é‚¾‚¯ƒVƒFƒA[ƒhƒ‰ƒCƒuƒ‰ƒŠ‚É‚·‚é
+ã™ã¹ã¦ /usr/local ä»¥ä¸‹ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ã“ã¨
+ãƒ‡ãƒ¼ã‚¿ã‚„ãƒ­ã‚°ã¯ /var ä»¥ä¸‹ã«ç½®ãã“ã¨
+ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã¯å‡ºæ¥ã‚‹ã ã‘ã‚·ã‚§ã‚¢ãƒ¼ãƒ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã«ã™ã‚‹
 
-1. ƒ‰ƒCƒuƒ‰ƒŠŒŸõƒpƒX (Šm”F)
+1. ãƒ©ã‚¤ãƒ–ãƒ©ãƒªæ¤œç´¢ãƒ‘ã‚¹ (ç¢ºèª)
 
-   ‚¢‚â‚Ë /usr/local/lib ‚­‚ç‚¢‚Íƒ‰ƒCƒuƒ‰ƒŠŒŸõƒpƒX‚Åw’è‚µ‚Ä‚à‚¢‚¢‚Æv‚¤‚ñ‚¾‚æ‚Ë
+   ã„ã‚„ã­ /usr/local/lib ãã‚‰ã„ã¯ãƒ©ã‚¤ãƒ–ãƒ©ãƒªæ¤œç´¢ãƒ‘ã‚¹ã§æŒ‡å®šã—ã¦ã‚‚ã„ã„ã¨æ€ã†ã‚“ã ã‚ˆã­
 
-   1. 32bit —pƒ‰ƒCƒuƒ‰ƒŠŒŸõƒpƒX
+   1. 32bit ç”¨ãƒ©ã‚¤ãƒ–ãƒ©ãƒªæ¤œç´¢ãƒ‘ã‚¹
    # crle
    Configuration file [version 4]: /var/ld/ld.config
      Platform:     32-bit LSB 80386
@@ -18,7 +18,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    Command line:
      crle -c /var/ld/ld.config -l /lib:/usr/lib:/usr/local/gcc4/lib:/usr/local/lib
 
-   2. 64bit —pƒ‰ƒCƒuƒ‰ƒŠŒŸõƒpƒX
+   2. 64bit ç”¨ãƒ©ã‚¤ãƒ–ãƒ©ãƒªæ¤œç´¢ãƒ‘ã‚¹
    # crle -64
    Configuration file [version 4]: /var/ld/64/ld.config
      Platform:     64-bit LSB AMD64
@@ -28,7 +28,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    Command line:
      crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc4/lib/amd64:/usr/local/gcc4/lib
 
-2. •K—vÅ’áŒÀ‚ÌŠJ”­ŠÂ‹«‚Ì€”õ
+2. å¿…è¦æœ€ä½é™ã®é–‹ç™ºç’°å¢ƒã®æº–å‚™
 
    # pkg install ucb
    # pkg install gcc-3
@@ -37,7 +37,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # pkg install --accept /developer/java/jdk-6
    # pkg install /group/feature/developer-gnu
 
-3. ŠJ”­ŠÂ‹«
+3. é–‹ç™ºç’°å¢ƒ
 
    m4 1.4.16
    # wget http://core.ring.gr.jp/archives/GNU/m4/m4-1.4.16.tar.gz
@@ -163,7 +163,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # make
    # make install
 
-   gcc3 (–¢À{)
+   gcc3 (æœªå®Ÿæ–½)
    # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-3.4.6/gcc-3.4.6.tar.gz
    # gzip -cd gcc-3.4.6.tar.gz | tar xf -
    # mkdir obj
@@ -215,7 +215,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 4. gcc4
 
-   ¦/usr/local/binutils/bin ‚ğ PATH ‚©‚çœŠO‚µ‚Ä‚¨‚­‚±‚Æ
+   â€»/usr/local/binutils/bin ã‚’ PATH ã‹ã‚‰é™¤å¤–ã—ã¦ãŠãã“ã¨
 
    gmp
    # wget http://ftp.gnu.org/gnu/gmp/gmp-5.1.3.tar.bz2
@@ -341,7 +341,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 5. gcc 5
 
-   ¦/usr/local/binutils/bin ‚ğ PATH ‚©‚çœŠO‚µ‚Ä‚¨‚­‚±‚Æ
+   â€»/usr/local/binutils/bin ã‚’ PATH ã‹ã‚‰é™¤å¤–ã—ã¦ãŠãã“ã¨
 
    gmp
    # wget http://ftp.gnu.org/gnu/gmp/gmp-6.1.0.tar.bz2

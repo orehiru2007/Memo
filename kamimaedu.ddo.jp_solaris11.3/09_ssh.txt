@@ -54,7 +54,7 @@ ssh
    # make install
    # strip /usr/local/64/bin/openssl
 
-   64bit 1.1.* Œn
+   64bit 1.1.* ç³»
    # export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc4/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
    # wget https://www.openssl.org/source/openssl-1.1.0c.tar.gz
    # tar zxvf openssl-1.1.0c.tar.gz
@@ -93,14 +93,14 @@ ssh
    # make
    # make install
 
-4. ‹N“®ƒXƒNƒŠƒvƒg
+4. èµ·å‹•ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
 
-   1. Solaris ƒ³‚Ì sshd ‚Ì’âŽ~
+   1. Solaris ç´”æ­£ã® sshd ã®åœæ­¢
    # svcadm disable /network/ssh
    # svcs -a | grep ssh
    disabled       18:36:02 svc:/network/ssh:default
 
-   2. ‹N“®ƒXƒNƒŠƒvƒg (/etc/init.d/sshd) ‚Ì“à—e
+   2. èµ·å‹•ã‚¹ã‚¯ãƒªãƒ—ãƒˆ (/etc/init.d/sshd) ã®å†…å®¹
    #!/sbin/sh
    
    sshd=/usr/local/64/sbin/sshd
@@ -134,7 +134,7 @@ ssh
    esac
    exit 0
 
-   3. ‹N“®ƒXƒNƒŠƒvƒg‚ÌƒŠƒ“ƒN‚Ìì¬
+   3. èµ·å‹•ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ãƒªãƒ³ã‚¯ã®ä½œæˆ
    # chmod 755 /etc/init.d/sshd
    # ln -s /etc/init.d/sshd /etc/rc2.d/S99sshd
    # ln -s /etc/init.d/sshd /etc/rc2.d/K03sshd

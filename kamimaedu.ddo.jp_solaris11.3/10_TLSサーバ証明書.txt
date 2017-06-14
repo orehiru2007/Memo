@@ -1,8 +1,8 @@
 kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
-TLS ƒT[ƒoØ–¾‘
+TLS ã‚µãƒ¼ãƒè¨¼æ˜æ›¸
 
-1. ƒvƒ‰ƒCƒx[ƒg CA (Certificate Authority : ”FØ‹Ç) —pİ’èƒtƒ@ƒCƒ‹‚Ìì¬
+1. ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA (Certificate Authority : èªè¨¼å±€) ç”¨è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆ
    # mkdir -p /usr/local/etc/pki/myCA
    # cp -p /usr/local/64/etc/ssl/openssl.cnf /usr/local/etc/pki/myCA/ca.cnf
 
@@ -117,7 +117,7 @@ TLS ƒT[ƒoØ–¾‘
    [ crl_ext ]
    authorityKeyIdentifier=keyid:always,issuer:always
 
-2. ƒvƒ‰ƒCƒx[ƒg CA ‚ğ\’z‚·‚é‚½‚ß‚ÌƒXƒNƒŠƒvƒg‚Ìì¬
+2. ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA ã‚’æ§‹ç¯‰ã™ã‚‹ãŸã‚ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã®ä½œæˆ
    # cp -p /usr/local/etc/ssl/misc/CA.sh /usr/local/etc/pki/myCA/CA.sh
 
    # diff -u /usr/local/etc/pki/myCA/CA.sh{.orig,}
@@ -141,7 +141,7 @@ TLS ƒT[ƒoØ–¾‘
     CAREQ=./careq.pem
     CACERT=./cacert.pem
 
-3. ƒvƒ‰ƒCƒx[ƒg CA ‚Ìì¬
+3. ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA ã®ä½œæˆ
 
    # /usr/local/etc/pki/myCA/CA.sh -newca
    CA certificate filename (or enter to create)
@@ -207,26 +207,26 @@ TLS ƒT[ƒoØ–¾‘
    Write out database with 1 new entries
    Data Base Updated
 
-   ˆÈã‚Å CA ‚É•K—v‚Èƒtƒ@ƒCƒ‹‚ª¶ˆç‚³‚ê‚éB
+   ä»¥ä¸Šã§ CA ã«å¿…è¦ãªãƒ•ã‚¡ã‚¤ãƒ«ãŒç”Ÿè‚²ã•ã‚Œã‚‹ã€‚
    # ls -al /usr/local/etc/pki/myCA
    total 86
-   drwxr-xr-x   6 root     root          15  5Œ 27“ú  19:26 ./
-   drwxr-xr-x   3 root     root           3  5Œ 27“ú  19:19 ../
-   -rwxr-xr-x   1 root     root        5290  5Œ 27“ú  19:25 CA.sh*
-   -rwxr-xr-x   1 root     root        5175  5Œ 27“ú  18:51 CA.sh.orig*
-   -rw-r--r--   1 root     root        3754  5Œ 27“ú  19:22 ca.cnf
-   -rw-r--r--   1 root     root        4806  5Œ 27“ú  19:26 cacert.pem
-   -rw-r--r--   1 root     root        1017  5Œ 27“ú  19:26 careq.pem
-   drwxr-xr-x   2 root     root           2  5Œ 27“ú  19:26 certs/
-   drwxr-xr-x   2 root     root           2  5Œ 27“ú  19:26 crl/
-   -rw-r--r--   1 root     root          96  5Œ 27“ú  19:26 index.txt
-   -rw-r--r--   1 root     root          21  5Œ 27“ú  19:26 index.txt.attr
-   -rw-r--r--   1 root     root           0  5Œ 27“ú  19:26 index.txt.old
-   drwxr-xr-x   2 root     root           3  5Œ 27“ú  19:26 newcerts/
-   drwxr-xr-x   2 root     root           3  5Œ 27“ú  19:26 private/
-   -rw-r--r--   1 root     root          17  5Œ 27“ú  19:26 serial
+   drwxr-xr-x   6 root     root          15  5æœˆ 27æ—¥  19:26 ./
+   drwxr-xr-x   3 root     root           3  5æœˆ 27æ—¥  19:19 ../
+   -rwxr-xr-x   1 root     root        5290  5æœˆ 27æ—¥  19:25 CA.sh*
+   -rwxr-xr-x   1 root     root        5175  5æœˆ 27æ—¥  18:51 CA.sh.orig*
+   -rw-r--r--   1 root     root        3754  5æœˆ 27æ—¥  19:22 ca.cnf
+   -rw-r--r--   1 root     root        4806  5æœˆ 27æ—¥  19:26 cacert.pem
+   -rw-r--r--   1 root     root        1017  5æœˆ 27æ—¥  19:26 careq.pem
+   drwxr-xr-x   2 root     root           2  5æœˆ 27æ—¥  19:26 certs/
+   drwxr-xr-x   2 root     root           2  5æœˆ 27æ—¥  19:26 crl/
+   -rw-r--r--   1 root     root          96  5æœˆ 27æ—¥  19:26 index.txt
+   -rw-r--r--   1 root     root          21  5æœˆ 27æ—¥  19:26 index.txt.attr
+   -rw-r--r--   1 root     root           0  5æœˆ 27æ—¥  19:26 index.txt.old
+   drwxr-xr-x   2 root     root           3  5æœˆ 27æ—¥  19:26 newcerts/
+   drwxr-xr-x   2 root     root           3  5æœˆ 27æ—¥  19:26 private/
+   -rw-r--r--   1 root     root          17  5æœˆ 27æ—¥  19:26 serial
 
-4. ƒT[ƒo—p SSL Ø–¾‘‚Ìì¬
+4. ã‚µãƒ¼ãƒç”¨ SSL è¨¼æ˜æ›¸ã®ä½œæˆ
 
    1. /usr/local/etc/pki/myCA/ca.cnf
       [ usr_cert ]
@@ -243,7 +243,7 @@ TLS ƒT[ƒoØ–¾‘
       # basicConstraints=CA:FALSE
       # nsCertType = client, email, objsign
    
-   2. ”é–§Œ®‚Ì¶ˆç
+   2. ç§˜å¯†éµã®ç”Ÿè‚²
       # mkdir -p /usr/local/etc/pki/Server/private
       # cd /usr/local/etc/pki/Server/private
 
@@ -252,22 +252,22 @@ TLS ƒT[ƒoØ–¾‘
       ....................+++
       ....+++
       e is 65537 (0x10001)
-      Enter pass phrase for server.key:                   ¦ ƒT[ƒo”é–§Œ®‚ÌƒpƒXƒtƒŒ[ƒY‚ğ“ü—Í
-      Verifying - Enter pass phrase for server.key:       ¦ Ä“ü—Í
+      Enter pass phrase for server.key:                   â€» ã‚µãƒ¼ãƒç§˜å¯†éµã®ãƒ‘ã‚¹ãƒ•ãƒ¬ãƒ¼ã‚ºã‚’å…¥åŠ›
+      Verifying - Enter pass phrase for server.key:       â€» å†å…¥åŠ›
 
       # chmod 400 server.key
 
-   3. ”é–§Œ®‚ÌƒpƒXƒ[ƒh‰ğœ
-      ‚±‚Ì‚Ü‚Ü‚¾‚Æ httpd ‹N“®‚ÉƒpƒXƒ[ƒh‚ğu‚©‚ê‚é‚½‚ßAƒpƒXƒ[ƒh‚ğ‚Í‚¸‚·B
+   3. ç§˜å¯†éµã®ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰è§£é™¤
+      ã“ã®ã¾ã¾ã ã¨ httpd èµ·å‹•æ™‚ã«ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’è¨Šã‹ã‚Œã‚‹ãŸã‚ã€ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’ã¯ãšã™ã€‚
  
-      ¦ ¶ˆç‚É "-des3 2048" ‚ÌƒIƒvƒVƒ‡ƒ“‚ğ‚Â‚¯‚È‚¢‚ÄÀs‚µ‚Ä‚àAƒpƒXƒ[ƒh–³‚µ‚Ì”é–§Œ®‚ğ”­s‚·‚é‚±‚Æ‚ª‚Å‚«‚éB
+      â€» ç”Ÿè‚²æ™‚ã« "-des3 2048" ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’ã¤ã‘ãªã„ã¦å®Ÿè¡Œã—ã¦ã‚‚ã€ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ç„¡ã—ã®ç§˜å¯†éµã‚’ç™ºè¡Œã™ã‚‹ã“ã¨ãŒã§ãã‚‹ã€‚
 
       # mv server.key server.key.orig
       # openssl rsa -in server.key.orig -out server.key
-      Enter pass phrase for server.key.orig:              ¦ ƒT[ƒo”é–§Œ®‚ÌƒpƒXƒtƒŒ[ƒY‚ğ“ü—Í
+      Enter pass phrase for server.key.orig:              â€» ã‚µãƒ¼ãƒç§˜å¯†éµã®ãƒ‘ã‚¹ãƒ•ãƒ¬ãƒ¼ã‚ºã‚’å…¥åŠ›
       writing RSA key
    
-   4. CSR (Certificate Signing Request : Ø–¾‘–¼—v‹) ‚Ìì¬
+   4. CSR (Certificate Signing Request : è¨¼æ˜æ›¸ç½²åè¦æ±‚) ã®ä½œæˆ
       # mkdir /usr/local/etc/pki/Server/certs
       # cd /usr/local/etc/pki/Server/certs
 
@@ -292,7 +292,7 @@ TLS ƒT[ƒoØ–¾‘
       A challenge password []:
       An optional company name []:
 
-5. Ø–¾‘‚Ì”­s (ƒvƒ‰ƒCƒx[ƒg CA ‚Å‚Ì–¼)
+5. è¨¼æ˜æ›¸ã®ç™ºè¡Œ (ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA ã§ã®ç½²å)
    # cd /usr/local/etc/pki/Server/certs
 
    # openssl ca -config /usr/local/etc/pki/myCA/ca.cnf -in server.csr -out server.crt
@@ -333,18 +333,18 @@ TLS ƒT[ƒoØ–¾‘
    Write out database with 1 new entries
    Data Base Updated
 
-   Œ‹‰ÊAƒvƒ‰ƒCƒx[ƒg CA ‚É–¼‚³‚ê‚½‰´XØ–¾‘ server.crt ‚ªì¬‚³‚ê‚éB
-   ì¬‚³‚ê‚½Ø–¾‘‚Ì“à—e‚ğŠm”F‚·‚éB
+   çµæœã€ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA ã«ç½²åã•ã‚ŒãŸä¿ºã€…è¨¼æ˜æ›¸ server.crt ãŒä½œæˆã•ã‚Œã‚‹ã€‚
+   ä½œæˆã•ã‚ŒãŸè¨¼æ˜æ›¸ã®å†…å®¹ã‚’ç¢ºèªã™ã‚‹ã€‚
    # openssl x509 -text -in server.crt
 
-6. PEM (Privacy Enhanced Mail Œ`®‚ÌØ–¾‘) ‚Ìì¬
+6. PEM (Privacy Enhanced Mail å½¢å¼ã®è¨¼æ˜æ›¸) ã®ä½œæˆ
    # mkdir /usr/local/etc/pki/Server/pem
    # cd /usr/local/etc/pki/Server/pem
    # cat /usr/local/etc/pki/Server/certs/server.crt /usr/local/etc/pki/Server/private/server.key > server.pem
 
-7. ƒNƒ‰ƒCƒAƒ“ƒg—p SSL Ø–¾‘‚Ìì¬
+7. ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆç”¨ SSL è¨¼æ˜æ›¸ã®ä½œæˆ
 
-   1. /usr/local/etc/pki/myCA/ca.cnf ‚Ì•ÒW
+   1. /usr/local/etc/pki/myCA/ca.cnf ã®ç·¨é›†
       [ usr_cert ]
       # Make CA
       # basicConstraints=CA:true
@@ -359,12 +359,12 @@ TLS ƒT[ƒoØ–¾‘
       basicConstraints=CA:FALSE
       nsCertType = client, email, objsign
    
-   2. ”é–§Œ®‚Ì¶ˆç
+   2. ç§˜å¯†éµã®ç”Ÿè‚²
       # mkdir -p /usr/local/etc/pki/Client/private
       # cd /usr/local/etc/pki/Client/private
       # openssl genrsa -out client.key 2048
       
-   3. CSR (Certificate Signing Request : Ø–¾‘–¼—v‹) ‚Ìì¬
+   3. CSR (Certificate Signing Request : è¨¼æ˜æ›¸ç½²åè¦æ±‚) ã®ä½œæˆ
       # mkdir /usr/local/etc/pki/Client/certs
       # cd /usr/local/etc/pki/Client/certs
 
@@ -389,7 +389,7 @@ TLS ƒT[ƒoØ–¾‘
       A challenge password []:
       An optional company name []:
       
-   4. Ø–¾‘‚Ì”­s (ƒvƒ‰ƒCƒx[ƒg CA ‚Å‚Ì–¼)
+   4. è¨¼æ˜æ›¸ã®ç™ºè¡Œ (ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA ã§ã®ç½²å)
       # cd /usr/local/etc/pki/Client/certs
 
       # openssl ca -config /usr/local/etc/pki/myCA/ca.cnf -in client.csr -out client.crt
@@ -426,17 +426,17 @@ TLS ƒT[ƒoØ–¾‘
       Write out database with 1 new entries
       Data Base Updated
 
-   5. Windows ƒNƒ‰ƒCƒAƒ“ƒg”z•zŒ`® (PKCS#12 : Public-Key Cryptography Standards) ‚Ö•ÏŠ·
+   5. Windows ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé…å¸ƒå½¢å¼ (PKCS#12 : Public-Key Cryptography Standards) ã¸å¤‰æ›
       # cd /usr/local/etc/pki/Client/certs
       # openssl pkcs12 -export -in /usr/local/etc/pki/Client/certs/client.crt -inkey /usr/local/etc/pki/Client/private/client.key -out client.p12
-      Enter Export Password:                                       # ƒCƒ“ƒ|[ƒg—pƒpƒXƒtƒŒ[ƒY
-      Verifying - Enter Export Password:                           # ƒCƒ“ƒ|[ƒg—pƒpƒXƒtƒŒ[ƒY
+      Enter Export Password:                                       # ã‚¤ãƒ³ãƒãƒ¼ãƒˆç”¨ãƒ‘ã‚¹ãƒ•ãƒ¬ãƒ¼ã‚º
+      Verifying - Enter Export Password:                           # ã‚¤ãƒ³ãƒãƒ¼ãƒˆç”¨ãƒ‘ã‚¹ãƒ•ãƒ¬ãƒ¼ã‚º
       
-   6. Windows ƒNƒ‰ƒCƒAƒ“ƒg”z•z—p‚Ìƒvƒ‰ƒCƒx[ƒg CA Ø–¾‘‚Ìì¬
+   6. Windows ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé…å¸ƒç”¨ã®ãƒ—ãƒ©ã‚¤ãƒ™ãƒ¼ãƒˆ CA è¨¼æ˜æ›¸ã®ä½œæˆ
       # cd /usr/local/etc/pki/Client/certs
       # openssl x509 -inform pem -in /usr/local/etc/pki/myCA/cacert.pem -outform der -out cacert.der
       
-   7. Windows ƒNƒ‰ƒCƒAƒ“ƒg‚ÉˆÈ‰º‚ğ”z•z‚µ‚Ü‚·
+   7. Windows ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã«ä»¥ä¸‹ã‚’é…å¸ƒã—ã¾ã™
       cacert.der
       client.p12
 

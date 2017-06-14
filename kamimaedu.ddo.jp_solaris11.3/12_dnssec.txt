@@ -1,20 +1,20 @@
 kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
-1. ‚Í‚¶‚ß‚É
+1. ã¯ã˜ã‚ã«
 
-   DNSSEC ‚É‚ÍˆÈ‰º‚Ì“ñí—Ş‚Ì‘¤–Ê‚ª‚ ‚è‚Ü‚·
-   ƒLƒƒƒbƒVƒ…ƒT[ƒo‚Æ‚µ‚Ä "." ‚Ì KSK (Key Signing Key) ‚ğ“o˜^‚·‚é‚à‚Ì
-   ƒ][ƒ“ŠÇ—ƒT[ƒo‚Æ‚µ‚Ä©g‚Ì ZSK (Zone Signing Key) ‚ğãˆÊƒT[ƒo‚Ì KSK ‚Å–¼‚µŒöŠJ‚·‚é
+   DNSSEC ã«ã¯ä»¥ä¸‹ã®äºŒç¨®é¡ã®å´é¢ãŒã‚ã‚Šã¾ã™
+   ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚µãƒ¼ãƒã¨ã—ã¦ "." ã® KSK (Key Signing Key) ã‚’ç™»éŒ²ã™ã‚‹ã‚‚ã®
+   ã‚¾ãƒ¼ãƒ³ç®¡ç†ã‚µãƒ¼ãƒã¨ã—ã¦è‡ªèº«ã® ZSK (Zone Signing Key) ã‚’ä¸Šä½ã‚µãƒ¼ãƒã® KSK ã§ç½²åã—å…¬é–‹ã™ã‚‹
 
-   ¡‰ñ‚Í“±“ü•Ò‚Æ‚µ‚Ä
-   ƒLƒƒƒbƒVƒ…ƒT[ƒo‚Æ‚µ‚Ä "." ‚Ì KSK (Key Signing Key) ‚ğ“o˜^‚·‚é ‚©‚ç‚µ‚Ü‚·
+   ä»Šå›ã¯å°å…¥ç·¨ã¨ã—ã¦
+   ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã‚µãƒ¼ãƒã¨ã—ã¦ "." ã® KSK (Key Signing Key) ã‚’ç™»éŒ²ã™ã‚‹ ã‹ã‚‰è©¦ã—ã¾ã™
 
-2. DNSSEC ‚É‚Â‚¢‚Ä
+2. DNSSEC ã«ã¤ã„ã¦
 
-   ‚±‚±‚ªˆê”Ô‚í‚©‚èˆÕ‚©‚Á‚½‚©‚à
+   ã“ã“ãŒä¸€ç•ªã‚ã‹ã‚Šæ˜“ã‹ã£ãŸã‹ã‚‚
    http://www.nic.ad.jp/ja/newsletter/No43/0800.html
 
-3. GnuPG ‚ÌƒCƒ“ƒXƒg[ƒ‹
+3. GnuPG ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
 
    2.0.26
    # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.0.26.tar.bz2
@@ -59,7 +59,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # make check
    # make install
 
-4. bind ‚ÌÄƒRƒ“ƒpƒCƒ‹
+4. bind ã®å†ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«
 
    # export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc4/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin
 
@@ -78,20 +78,20 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # make
    # make install
 
-   ¦PATH ‚É /usr/local/binutils/bin /usr/gnu/bin ‚ª‚ ‚éê‡‚ÍŠO‚µ‚Ä‚¨‚­‚±‚Æ
+   â€»PATH ã« /usr/local/binutils/bin /usr/gnu/bin ãŒã‚ã‚‹å ´åˆã¯å¤–ã—ã¦ãŠãã“ã¨
 
-   ¦’Ç‰Á CFLAGS=-DDIG_SIGCHASE
-     dig ƒRƒ}ƒ“ƒh‚Ì +sigchase ƒIƒvƒVƒ‡ƒ“‚ğ—˜—p‚·‚é‚½‚ß (–¼ƒ`ƒF[ƒ“‚Ì’ÇÕ‚ª‰Â”\)
+   â€»è¿½åŠ  CFLAGS=-DDIG_SIGCHASE
+     dig ã‚³ãƒãƒ³ãƒ‰ã® +sigchase ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’åˆ©ç”¨ã™ã‚‹ãŸã‚ (ç½²åãƒã‚§ãƒ¼ãƒ³ã®è¿½è·¡ãŒå¯èƒ½)
 
-5. ƒgƒ‰ƒXƒgƒAƒ“ƒJ[ (ƒ‹[ƒgƒT[ƒo‚Ìƒ][ƒ“–¼Ò‚ÌŒöŠJŒ®) ‚Ì“o˜^
+5. ãƒˆãƒ©ã‚¹ãƒˆã‚¢ãƒ³ã‚«ãƒ¼ (ãƒ«ãƒ¼ãƒˆã‚µãƒ¼ãƒã®ã‚¾ãƒ¼ãƒ³ç½²åè€…ã®å…¬é–‹éµ) ã®ç™»éŒ²
 
-   1. OpenPGP ŒöŠJŒ®‚Ì“üè
+   1. OpenPGP å…¬é–‹éµã®å…¥æ‰‹
 
-      1. •û–@1
+      1. æ–¹æ³•1
       # wget http://data.iana.org/root-anchors/icann.pgp
       # gpg2 --import icann.pgp
 
-      2. •û–@2
+      2. æ–¹æ³•2
       # gpg2 --search-keys --keyserver pgp.mit.edu dnssec@iana.org
       gpg: searching for "dnssec@iana.org" from hkp server pgp.mit.edu
       (1)     DNSSEC Manager <dnssec@iana.org>
@@ -103,34 +103,34 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       gpg: Total number processed: 1
       gpg:               imported: 1
 
-   2. IANA ‚©‚çƒnƒbƒVƒ…’l‚Æ–¼ƒf[ƒ^‚Ì“üè
+   2. IANA ã‹ã‚‰ãƒãƒƒã‚·ãƒ¥å€¤ã¨ç½²åãƒ‡ãƒ¼ã‚¿ã®å…¥æ‰‹
 
-      1. ƒgƒ‰ƒXƒgƒAƒ“ƒJ[‚ÌŒöŠJŒ® (ƒnƒbƒVƒ…’l) ‚Ìæ“¾
+      1. ãƒˆãƒ©ã‚¹ãƒˆã‚¢ãƒ³ã‚«ãƒ¼ã®å…¬é–‹éµ (ãƒãƒƒã‚·ãƒ¥å€¤) ã®å–å¾—
       # wget http://data.iana.org/root-anchors/root-anchors.xml
 
-      2. –¼ƒf[ƒ^
+      2. ç½²åãƒ‡ãƒ¼ã‚¿
       # wget http://data.iana.org/root-anchors/root-anchors.asc
 
-   3. –¼‚ÌŒŸØ
+   3. ç½²åã®æ¤œè¨¼
 
       # gpg2 --verify root-anchors.asc root-anchors.xml
-      gpg: Signature made 2010”N07Œ07“ú 0749•ª10•b JST using DSA key ID 0F6C91D2
+      gpg: Signature made 2010å¹´07æœˆ07æ—¥ 07æ™‚49åˆ†10ç§’ JST using DSA key ID 0F6C91D2
       gpg: Good signature from "DNSSEC Manager <dnssec@iana.org>"
       gpg: WARNING: This key is not certified with a trusted signature!
       gpg:          There is no indication that the signature belongs to the owner.
       Primary key fingerprint: 2FBB 91BC AAEE 0ABE 1F80  31C7 D1AF BCE0 0F6C 91D2
 
-   4. ƒ‹[ƒgƒT[ƒo‚Ì DNSKEY (ŒöŠJŒ®) ‚Ì“üè
+   4. ãƒ«ãƒ¼ãƒˆã‚µãƒ¼ãƒã® DNSKEY (å…¬é–‹éµ) ã®å…¥æ‰‹
 
       # dig . dnskey | grep 257 > rootzone-dnskey
 
-   5. ƒ‹[ƒgƒT[ƒo‚Ì DNSKEY (ŒöŠJŒ®) ‚ÌƒnƒbƒVƒ…’l‚ğo—Í‚µAæ‚Ìƒgƒ‰ƒXƒgƒAƒ“ƒJ[‚ÌŒöŠJŒ® (ƒnƒbƒVƒ…’l) ‚Æ”äŠr‚·‚é
+   5. ãƒ«ãƒ¼ãƒˆã‚µãƒ¼ãƒã® DNSKEY (å…¬é–‹éµ) ã®ãƒãƒƒã‚·ãƒ¥å€¤ã‚’å‡ºåŠ›ã—ã€å…ˆã®ãƒˆãƒ©ã‚¹ãƒˆã‚¢ãƒ³ã‚«ãƒ¼ã®å…¬é–‹éµ (ãƒãƒƒã‚·ãƒ¥å€¤) ã¨æ¯”è¼ƒã™ã‚‹
 
-      1. ƒ‹[ƒgƒT[ƒo‚Ì DNSKEY (ŒöŠJŒ®) ‚ÌƒnƒbƒVƒ…’l‚ğo—Í
+      1. ãƒ«ãƒ¼ãƒˆã‚µãƒ¼ãƒã® DNSKEY (å…¬é–‹éµ) ã®ãƒãƒƒã‚·ãƒ¥å€¤ã‚’å‡ºåŠ›
       # dnssec-dsfromkey -2 -f rootzone-dnskey .
       . IN DS 19036 8 2 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32 F24E8FB5
 
-      2. æ‚Ìƒgƒ‰ƒXƒgƒAƒ“ƒJ[‚ÌŒöŠJŒ® (ƒnƒbƒVƒ…’l) ‚ÌŠm”F
+      2. å…ˆã®ãƒˆãƒ©ã‚¹ãƒˆã‚¢ãƒ³ã‚«ãƒ¼ã®å…¬é–‹éµ (ãƒãƒƒã‚·ãƒ¥å€¤) ã®ç¢ºèª
       #  cat root-anchors.xml
       <?xml version="1.0" encoding="UTF-8"?>
       <TrustAnchor id="AD42165F-3B1A-4778-8F42-D34A1D41FD93" source="http://data.iana.org/root-anchors/root-anchors.xml">
@@ -143,11 +143,11 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       </KeyDigest>cat r	q
       </TrustAnchor>
 
-   6. named.conf ‚Ö‚Ìİ’è’Ç‰Á
+   6. named.conf ã¸ã®è¨­å®šè¿½åŠ 
 
-      rootzone-dnskey ‚©‚çƒL[•”•ª‚ğ”²ˆ‚µAnamed.conf ‚É’Ç‰Á‚·‚é
+      rootzone-dnskey ã‹ã‚‰ã‚­ãƒ¼éƒ¨åˆ†ã‚’æŠœç²‹ã—ã€named.conf ã«è¿½åŠ ã™ã‚‹
 
-      ˆÈ‰ºA/var/named/etc/named.conf ”²ˆ
+      ä»¥ä¸‹ã€/var/named/etc/named.conf æŠœç²‹
       ---------------------------------
       managed-keys {
               . initial-key 257 3 8 "
@@ -162,40 +162,40 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       };
       ---------------------------------
 
-6. “®ìŠm”F
+6. å‹•ä½œç¢ºèª
 
    # dig +dnssec .
    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 6517
    ;; flags: qr rd ra ad; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
 
-   ¦HEADER status ‚ª NOERROR ‚Å‚ ‚èA
-     falgs ‚É ad ‚ªw’è‚³‚ê‚Ä‚é‚±‚Æ‚©‚ç—Ç‚Æ‚·‚é
+   â€»HEADER status ãŒ NOERROR ã§ã‚ã‚Šã€
+     falgs ã« ad ãŒæŒ‡å®šã•ã‚Œã¦ã‚‹ã“ã¨ã‹ã‚‰è‰¯ã¨ã™ã‚‹
 
    # dig +dnssec www.isc.org
    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37049
    ;; flags: qr rd ra ad; QUERY: 1, ANSWER: 2, AUTHORITY: 5, ADDITIONAL: 13
 
-   ¦HEADER status ‚ª NOERROR ‚Å‚ ‚èA
-     falgs ‚É ad ‚ªw’è‚³‚ê‚Ä‚é‚±‚Æ‚©‚ç—Ç‚Æ‚·‚é
+   â€»HEADER status ãŒ NOERROR ã§ã‚ã‚Šã€
+     falgs ã« ad ãŒæŒ‡å®šã•ã‚Œã¦ã‚‹ã“ã¨ã‹ã‚‰è‰¯ã¨ã™ã‚‹
 
-7. ƒtƒ‰ƒO‚É‚Â‚¢‚Ä
+7. ãƒ•ãƒ©ã‚°ã«ã¤ã„ã¦
 
    flags :  description 
-   qr    :  ƒT[ƒo‚©‚ç‚Ì‰“š‚Å‚ ‚é‚±‚Æ‚ğ¦‚·
-   aa    :  Œ ˆĞƒT[ƒo‚©‚ç‚Ì‰“š‚Å‚ ‚é‚±‚Æ‚ğ¦‚· (Authoritative Answer)
-   tc    :  Ø‚èÌ‚Ä (trancate) ‚³‚ê‚½‚±‚Æ‚ğ¦‚· (UDP ’ÊM‚ÌãŒÀ 512byte ‚ğ’´‚¦‚½ê‡‚Í TCP ‚É‚È‚é‚½‚ßAƒlƒbƒgƒ[ƒNŠÂ‹«Ÿ‘æ)
-   rd    :  Ä‹A–â‡‚¹‚ªs‚í‚ê‚½‚±‚Æ‚ğ¦‚· (+norecurse ‚ğw’è‚·‚ê‚ÎA•\¦‚³‚ê‚È‚¢)
-   ra    :  Ä‹A“I–â‚¢‡‚í‚¹‚ğ‹–‰Â‚µ‚Ä‚¢‚é‚±‚Æ‚ğ¦‚·
-   ad    :  ‰ñ“š‚ÉŠÜ‚Ü‚ê‚Ä‚¢‚é–¼‚É‘Î‚·‚éŒŸØŒ‹‰Ê‚ª³“–‚Å‚ ‚é‚±‚Æ‚ğ¦‚·
-   cd    :  ƒNƒ‰ƒCƒAƒ“ƒg‚©‚ç‚Ì DNS –â‚¢‡‚í‚¹‚É CD Bit (Checking Disabled Bit) ‚Ì—L–³‚ğ¦‚·
-            ¦ CD Bit ‚Í DNSSEC ‚É‰ˆ‚Á‚½ˆÃ†‰»‚ğ‚µ‚Ä‚¢‚È‚¢‰ñ“š‚Å‚à‚»‚ê‚ğó‚¯æ‚é|‚ğ DNS ƒT[ƒo‚É’Ê’m‚·‚é 
-   do    :  DNSSEC ‚ÌÆ‰ï‚ªs‚í‚ê‚½‚±‚Æ‚ğ¦‚·
+   qr    :  ã‚µãƒ¼ãƒã‹ã‚‰ã®å¿œç­”ã§ã‚ã‚‹ã“ã¨ã‚’ç¤ºã™
+   aa    :  æ¨©å¨ã‚µãƒ¼ãƒã‹ã‚‰ã®å¿œç­”ã§ã‚ã‚‹ã“ã¨ã‚’ç¤ºã™ (Authoritative Answer)
+   tc    :  åˆ‡ã‚Šæ¨ã¦ (trancate) ã•ã‚ŒãŸã“ã¨ã‚’ç¤ºã™ (UDP é€šä¿¡ã®ä¸Šé™ 512byte ã‚’è¶…ãˆãŸå ´åˆã¯ TCP ã«ãªã‚‹ãŸã‚ã€ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ç’°å¢ƒæ¬¡ç¬¬)
+   rd    :  å†å¸°å•åˆã›ãŒè¡Œã‚ã‚ŒãŸã“ã¨ã‚’ç¤ºã™ (+norecurse ã‚’æŒ‡å®šã™ã‚Œã°ã€è¡¨ç¤ºã•ã‚Œãªã„)
+   ra    :  å†å¸°çš„å•ã„åˆã‚ã›ã‚’è¨±å¯ã—ã¦ã„ã‚‹ã“ã¨ã‚’ç¤ºã™
+   ad    :  å›ç­”ã«å«ã¾ã‚Œã¦ã„ã‚‹ç½²åã«å¯¾ã™ã‚‹æ¤œè¨¼çµæœãŒæ­£å½“ã§ã‚ã‚‹ã“ã¨ã‚’ç¤ºã™
+   cd    :  ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆã‹ã‚‰ã® DNS å•ã„åˆã‚ã›æ™‚ã« CD Bit (Checking Disabled Bit) ã®æœ‰ç„¡ã‚’ç¤ºã™
+            â€» CD Bit ã¯ DNSSEC ã«æ²¿ã£ãŸæš—å·åŒ–ã‚’ã—ã¦ã„ãªã„å›ç­”ã§ã‚‚ãã‚Œã‚’å—ã‘å–ã‚‹æ—¨ã‚’ DNS ã‚µãƒ¼ãƒã«é€šçŸ¥ã™ã‚‹ 
+   do    :  DNSSEC ã®ç…§ä¼šãŒè¡Œã‚ã‚ŒãŸã“ã¨ã‚’ç¤ºã™
 
-8. ƒGƒ‰[ƒƒbƒZ[ƒW
+8. ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 
    dlv.isc.org SOA: no valid signature found
    dlv.isc.org SOA: got insecure response; parent indicates it should be secure
 
-   forwarders ‚Åw’è‚µ‚½ ‚ÌDNS ƒT[ƒo[‚ª dnssec ‚É‘Î‰‚µ‚Ä‚¢‚È‚¢‚½‚ß
+   forwarders ã§æŒ‡å®šã—ãŸ ã®DNS ã‚µãƒ¼ãƒãƒ¼ãŒ dnssec ã«å¯¾å¿œã—ã¦ã„ãªã„ãŸã‚
 
-ˆÈã
+ä»¥ä¸Š

@@ -1,17 +1,17 @@
 kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
-‚·‚×‚Ä /usr/local ˆÈ‰º‚ÉƒCƒ“ƒXƒg[ƒ‹‚·‚é‚±‚Æ
-ƒf[ƒ^‚âƒƒO‚Í /var ˆÈ‰º‚É’u‚­‚±‚Æ
-ƒ‰ƒCƒuƒ‰ƒŠ‚Ío—ˆ‚é‚¾‚¯ƒVƒFƒA[ƒhƒ‰ƒCƒuƒ‰ƒŠ‚É‚·‚é
+ã™ã¹ã¦ /usr/local ä»¥ä¸‹ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹ã“ã¨
+ãƒ‡ãƒ¼ã‚¿ã‚„ãƒ­ã‚°ã¯ /var ä»¥ä¸‹ã«ç½®ãã“ã¨
+ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã¯å‡ºæ¥ã‚‹ã ã‘ã‚·ã‚§ã‚¢ãƒ¼ãƒ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã«ã™ã‚‹
 
-¦‚¹‚Á‚©‚­‚È‚ñ‚ÅA‰Â”\‚ÈŒÀ‚è 64bit ŠÂ‹«‚Æ‚µ‚Ü‚·
+â€»ã›ã£ã‹ããªã‚“ã§ã€å¯èƒ½ãªé™ã‚Š 64bit ç’°å¢ƒã¨ã—ã¾ã™
 
 1. nkf 2.1.3 64bit
 
    # tar zxvf nkf-2.1.4.tar.gz
    # cd nkf-2.1.4
    
-   ¦ Makefile ‚ğˆÈ‰º‚Ì’Ê‚è•ÒW
+   â€» Makefile ã‚’ä»¥ä¸‹ã®é€šã‚Šç·¨é›†
    # diff -U1 Makefile{.orig,}
    --- Makefile.orig       2016-01-20 17:37:16.129862472 +0900
    +++ Makefile    2016-01-20 17:37:36.961492101 +0900
@@ -68,7 +68,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 3. DB
 
    1. 32bit
-   ¦/usr/local/binutils/bin ‚ğ PATH ‚©‚çœŠO‚µ‚Ä‚¨‚­‚±‚Æ
+   â€»/usr/local/binutils/bin ã‚’ PATH ã‹ã‚‰é™¤å¤–ã—ã¦ãŠãã“ã¨
    # tar zxvf db-5.3.28.tar.gz
    # cd db-5.3.28/build_unix
    # CC=gcc \
@@ -78,7 +78,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # make install
 
    2. 64bit
-   ¦/usr/local/binutils/bin ‚ğ PATH ‚©‚çœŠO‚µ‚Ä‚¨‚­‚±‚Æ
+   â€»/usr/local/binutils/bin ã‚’ PATH ã‹ã‚‰é™¤å¤–ã—ã¦ãŠãã“ã¨
    # tar zxvf db-5.3.28.tar.gz
    # cd db-5.3.28/build_unix
    # CFLAGS=-m64 \
@@ -88,23 +88,23 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # make
    # make install
 
-5. vim (ƒ³—˜—p)
+5. vim (ç´”æ­£åˆ©ç”¨)
 
    # pkg install /editor/vim
 
-6. libpcap (ƒ³—˜—p)
+6. libpcap (ç´”æ­£åˆ©ç”¨)
 
    # pkg install /system/library/libpcap
 
-7. tcpdump (ƒ³—˜—p)
+7. tcpdump (ç´”æ­£åˆ©ç”¨)
 
    # pkg install /diagnostic/tcpdump
 
-8. sudo (ƒ³—˜—p)
+8. sudo (ç´”æ­£åˆ©ç”¨)
 
    # pkg install /security/sudo
 
-9. less (ƒ³—˜—p)
+9. less (ç´”æ­£åˆ©ç”¨)
 
    # pkg install /text/less
 
@@ -120,8 +120,8 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
     # make
     # make install
 
-    http://cvs.savannah.gnu.org/viewvc/jwhois/jwhois/example/jwhois.conf ‚©‚çAÅV‚Ì jwhois.conf ‚ğƒ_ƒEƒ“ƒ[ƒh‚µ
-    /usr/local/etc/jwhois.conf ‚É”z’u‚·‚é‚±‚Æ
+    http://cvs.savannah.gnu.org/viewvc/jwhois/jwhois/example/jwhois.conf ã‹ã‚‰ã€æœ€æ–°ã® jwhois.conf ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã—
+    /usr/local/etc/jwhois.conf ã«é…ç½®ã™ã‚‹ã“ã¨
 
 11. Python 32bit
 
@@ -167,11 +167,11 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 13. Nmap
 
-    ƒ³‚ğ—˜—p
+    ç´”æ­£ã‚’åˆ©ç”¨
 
 14. bash
 
-    ¦2014/9,10 ‚É”­¶‚µ‚½AÆã« (ShellShock CVE-2014-6271) ‚Ö‚Ì‘Î‰
+    â€»2014/9,10 ã«ç™ºç”Ÿã—ãŸã€è„†å¼±æ€§ (ShellShock CVE-2014-6271) ã¸ã®å¯¾å¿œ
 
     # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3.30.tar.gz
     # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-031
@@ -204,7 +204,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
     # make
     # make install
 
-    Šm”F
+    ç¢ºèª
     # env x='() { :;}; echo vulnerable' /usr/bin/bash -c "echo this is a test"
     vulnerable
     this is a test
@@ -212,7 +212,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
     # env x='() { :;}; echo vulnerable' /usr/local/bin/bash -c "echo this is a test"
     this is a test
 
-    “ü‚ê‘Ö‚¦
+    å…¥ã‚Œæ›¿ãˆ
     # cd /usr/bin
     # mv bash bash.old
     # chmod 444 bash.old

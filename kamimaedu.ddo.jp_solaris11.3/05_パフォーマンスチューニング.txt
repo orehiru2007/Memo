@@ -1,10 +1,10 @@
 kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
-ƒpƒtƒH[ƒ}ƒ“ƒXƒ`ƒ…[ƒjƒ“ƒO‚Æ‚©‚à‚ë‚à‚ë
+ãƒ‘ãƒ•ã‚©ãƒ¼ãƒãƒ³ã‚¹ãƒãƒ¥ãƒ¼ãƒ‹ãƒ³ã‚°ã¨ã‹ã‚‚ã‚ã‚‚ã‚
 
-1. ƒtƒ@ƒCƒ‹ƒfƒBƒXƒNƒŠƒvƒ^”
+1. ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿æ•°
 
-   1. Œ»óŠm”F
+   1. ç¾çŠ¶ç¢ºèª
 
       # ulimit -Hn
       65536
@@ -23,11 +23,11 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       max user processes              (-u) 29995
       virtual memory          (kbytes, -v) unlimited
 
-   2. •ÏX
+   2. å¤‰æ›´
 
       # diff -U1 /etc/system{.orig,}
-      --- /etc/system.orig    2014”N  9Œ 12“ú (‹à)
-      +++ /etc/system 2014”N  9Œ 12“ú (‹à)
+      --- /etc/system.orig    2014å¹´  9æœˆ 12æ—¥ (é‡‘)
+      +++ /etc/system 2014å¹´  9æœˆ 12æ—¥ (é‡‘)
       @@ -91,1 +91,6 @@
       
       +set noexec_user_stack = 1
@@ -35,11 +35,11 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       +set rlim_fd_max = 262144
       +set rlim_fd_cur = 262144
 
-2. ƒpƒXƒ[ƒh‹K‘¥
+2. ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰è¦å‰‡
 
    # diff -U1 /etc/default/passwd{.orig,}
-   --- /etc/default/passwd.orig    2014”N  9Œ 12“ú (‹à)
-   +++ /etc/default/passwd 2014”N  9Œ 12“ú (‹à)
+   --- /etc/default/passwd.orig    2014å¹´  9æœˆ 12æ—¥ (é‡‘)
+   +++ /etc/default/passwd 2014å¹´  9æœˆ 12æ—¥ (é‡‘)
    @@ -4,3 +4,3 @@
     MINWEEKS=
    -PASSLENGTH=6
@@ -52,76 +52,76 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    +DICTIONLIST=/usr/share/lib/dict/words
    +DICTIONDBDIR=/var/passwd
 
-   1. Tips 1 Šeƒpƒ‰ƒ[ƒ^
-   MAXWEEKS    : —LŒøŠúŒÀ (T’PˆÊ)                                              ƒfƒtƒHƒ‹ƒg: w’è‚È‚µ
-   MINWEEKS    : •ÏX‹Ö~ŠúŠÔ (T’PˆÊ)                                          ƒfƒtƒHƒ‹ƒg: w’è‚È‚µ
-   PASSLENGTH  : Å’á•¶š”                                                     ƒfƒtƒHƒ‹ƒg: 6
-   NAMECHECK   : ‘å•¶š¬•¶š‚Ì‹æ•Ê                                             ƒfƒtƒHƒ‹ƒg: YES ‹æ•Ê‚·‚é
-   HISTORY     : •Û‘¶‚·‚é‹ŒƒpƒXƒ[ƒh‚Ì—š—ğ                                     ƒfƒtƒHƒ‹ƒg: 0 •Û‘¶‚µ‚È‚¢
-   MINDIFF     : ŒÃ‚¢ƒpƒXƒ[ƒh‚ÆV‚µ‚¢ƒpƒXƒ[ƒh‚ÅˆÙ‚È‚é•K—v‚ª‚ ‚é•¶š‚ÌÅ¬” ƒfƒtƒHƒ‹ƒg: 3 
-   MINALPHA    : "‰pš" ‚ÌÅ¬” ¦‘å•¶š¬•¶š‚Í‹æ•Ê‚µ‚È‚¢                     ƒfƒtƒHƒ‹ƒg: 2
-   MINNONALPHA : "‰pš" ˆÈŠO‚Ì•¶š "”šE“Áê•¶š" ‚ÌÅ¬”                    ƒfƒtƒHƒ‹ƒg: 1
-   MAXREPEATS  : “¯‚¶•¶š‚ğ‘±‚¯‚Ä‚à‚æ‚¢‰ñ”                                     ƒfƒtƒHƒ‹ƒg: 0 ƒ`ƒFƒbƒN–³‚µ
-   MINSPECIAL  : "“Áê•¶š" (‰pšE”šˆÈŠO‚Ì•¶š) ‚ÌÅ¬”                     ƒfƒtƒHƒ‹ƒg: 0 ƒ`ƒFƒbƒN–³‚µ
-   MINDIGIT    : "”š" ‚ÌÅ¬”                                                ƒfƒtƒHƒ‹ƒg: 0 ƒ`ƒFƒbƒN–³‚µ
-   WHITESPACE  : ‹ó”’•¶š‚ğg—p‚Å‚«‚é‚©‚Ç‚¤‚©‚Ìw’è                             ƒfƒtƒHƒ‹ƒg: YES ‰Â”\
+   1. Tips 1 å„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+   MAXWEEKS    : æœ‰åŠ¹æœŸé™ (é€±å˜ä½)                                              ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: æŒ‡å®šãªã—
+   MINWEEKS    : å¤‰æ›´ç¦æ­¢æœŸé–“ (é€±å˜ä½)                                          ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: æŒ‡å®šãªã—
+   PASSLENGTH  : æœ€ä½æ–‡å­—æ•°                                                     ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 6
+   NAMECHECK   : å¤§æ–‡å­—å°æ–‡å­—ã®åŒºåˆ¥                                             ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: YES åŒºåˆ¥ã™ã‚‹
+   HISTORY     : ä¿å­˜ã™ã‚‹æ—§ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®å±¥æ­´                                     ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 0 ä¿å­˜ã—ãªã„
+   MINDIFF     : å¤ã„ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã¨æ–°ã—ã„ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã§ç•°ãªã‚‹å¿…è¦ãŒã‚ã‚‹æ–‡å­—ã®æœ€å°æ•° ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 3 
+   MINALPHA    : "è‹±å­—" ã®æœ€å°æ•° â€»å¤§æ–‡å­—å°æ–‡å­—ã¯åŒºåˆ¥ã—ãªã„                     ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 2
+   MINNONALPHA : "è‹±å­—" ä»¥å¤–ã®æ–‡å­— "æ•°å­—ãƒ»ç‰¹æ®Šæ–‡å­—" ã®æœ€å°æ•°                    ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 1
+   MAXREPEATS  : åŒã˜æ–‡å­—ã‚’ç¶šã‘ã¦ã‚‚ã‚ˆã„å›æ•°                                     ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 0 ãƒã‚§ãƒƒã‚¯ç„¡ã—
+   MINSPECIAL  : "ç‰¹æ®Šæ–‡å­—" (è‹±å­—ãƒ»æ•°å­—ä»¥å¤–ã®æ–‡å­—) ã®æœ€å°æ•°                     ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 0 ãƒã‚§ãƒƒã‚¯ç„¡ã—
+   MINDIGIT    : "æ•°å­—" ã®æœ€å°æ•°                                                ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: 0 ãƒã‚§ãƒƒã‚¯ç„¡ã—
+   WHITESPACE  : ç©ºç™½æ–‡å­—ã‚’ä½¿ç”¨ã§ãã‚‹ã‹ã©ã†ã‹ã®æŒ‡å®š                             ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ: YES å¯èƒ½
 
-   ¦MINNONALPHA ‚ğw’è‚µ‚½ê‡AMINDIGIT ‚Í—˜—p•s‰Â
-   ¦MINNONALPHA ‚ğw’è‚µ‚½ê‡AMINSPECIAL ‚Í—˜—p•s‰Â
-   ¦MINDIGIT or MINSPECIAL ‚ğw’è‚µ‚½ê‡AMINNONALPHA ‚Í—˜—p•s‰Â
+   â€»MINNONALPHA ã‚’æŒ‡å®šã—ãŸå ´åˆã€MINDIGIT ã¯åˆ©ç”¨ä¸å¯
+   â€»MINNONALPHA ã‚’æŒ‡å®šã—ãŸå ´åˆã€MINSPECIAL ã¯åˆ©ç”¨ä¸å¯
+   â€»MINDIGIT or MINSPECIAL ã‚’æŒ‡å®šã—ãŸå ´åˆã€MINNONALPHA ã¯åˆ©ç”¨ä¸å¯
 
-   2. ƒfƒtƒHƒ‹ƒgƒpƒXƒ[ƒh‚Ì‹K‘¥
-                                                                                  |—Ç‚¢—á     |ˆ«‚¢—á
+   2. ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®è¦å‰‡
+                                                                                  |è‰¯ã„ä¾‹     |æ‚ªã„ä¾‹
    -------------------------------------------------------------------------------+-----------+----------
-   ­‚È‚­‚Æ‚à6•¶šˆÈã‚Ì’·‚³‚Å‚ ‚é‚±‚Æ                                            |abc987+-   |abc+-
-   “¯ˆêí‚Ì•¶š‚Ì‚İ‚Å‚Í‚¾‚ß‚ÅC‰p¬•¶šC‰p‘å•¶šC”šC“Áê‹L†‚ğ¬İ‚³‚¹‚é‚±‚Æ |abc987defg |abcgfed
-   ­‚È‚­‚Æ‚à2•¶š‚Í‰p•¶š‚Å‚ ‚é‚±‚Æ                                              |ab123467   |a123987
-   ­‚È‚­‚Æ‚à1•¶š‚Í”š‚©“Áê•¶š‚Å‚ ‚é‚±‚Æ                                      |abc9gfed   |abcdefg
-   ŒÃ‚¢ƒpƒXƒ[ƒh‚Æ‚Í3•¶šˆÈãˆÙ‚È‚é‚±‚Æ                                          |           |       
-   ƒƒOƒCƒ“–¼‚Æ“¯‚¶‚Å‚Í‚¾‚ß                                                       |           |       
+   å°‘ãªãã¨ã‚‚6æ–‡å­—ä»¥ä¸Šã®é•·ã•ã§ã‚ã‚‹ã“ã¨                                            |abc987+-   |abc+-
+   åŒä¸€ç¨®ã®æ–‡å­—ã®ã¿ã§ã¯ã ã‚ã§ï¼Œè‹±å°æ–‡å­—ï¼Œè‹±å¤§æ–‡å­—ï¼Œæ•°å­—ï¼Œç‰¹æ®Šè¨˜å·ã‚’æ··åœ¨ã•ã›ã‚‹ã“ã¨ |abc987defg |abcgfed
+   å°‘ãªãã¨ã‚‚2æ–‡å­—ã¯è‹±æ–‡å­—ã§ã‚ã‚‹ã“ã¨                                              |ab123467   |a123987
+   å°‘ãªãã¨ã‚‚1æ–‡å­—ã¯æ•°å­—ã‹ç‰¹æ®Šæ–‡å­—ã§ã‚ã‚‹ã“ã¨                                      |abc9gfed   |abcdefg
+   å¤ã„ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã¨ã¯3æ–‡å­—ä»¥ä¸Šç•°ãªã‚‹ã“ã¨                                          |           |       
+   ãƒ­ã‚°ã‚¤ãƒ³åã¨åŒã˜ã§ã¯ã ã‚                                                       |           |       
 
-3. ƒpƒXƒ[ƒhƒAƒ‹ƒSƒŠƒYƒ€•ÏX
+3. ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚¢ãƒ«ã‚´ãƒªã‚ºãƒ å¤‰æ›´
 
-   1. ‰ß‹‚ÌŒ©‰ğ (‚»‚¤v‚Á‚Ä‚¢‚½‚±‚Æ‚ªA©•ª‚É‚à‚ ‚è‚Ü‚µ‚½‚æBB)
-   Solaris11 ‚Å‚ÍƒfƒtƒHƒ‹ƒg‚ÌˆÃ†‰»•û®‚ª SHA-256 ‚ªÌ—p‚³‚ê‚Ä‚¢‚Ü‚·‚ª
-   ‘¼‚ÌƒVƒXƒeƒ€‚Æ‚Ì‰ºˆÊŒİŠ·‚ğl—¶‚µAMD5 ‚Æ‚µ‚Ü‚·
+   1. éå»ã®è¦‹è§£ (ãã†æ€ã£ã¦ã„ãŸã“ã¨ãŒã€è‡ªåˆ†ã«ã‚‚ã‚ã‚Šã¾ã—ãŸã‚ˆã€‚ã€‚)
+   Solaris11 ã§ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®æš—å·åŒ–æ–¹å¼ãŒ SHA-256 ãŒæ¡ç”¨ã•ã‚Œã¦ã„ã¾ã™ãŒ
+   ä»–ã®ã‚·ã‚¹ãƒ†ãƒ ã¨ã®ä¸‹ä½äº’æ›ã‚’è€ƒæ…®ã—ã€MD5 ã¨ã—ã¾ã™
 
    # diff -U1 /etc/security/policy.conf{.orig,}
-   --- /etc/security/policy.conf.orig      2013”N  4Œ 23“ú (‰Î)
-   +++ /etc/security/policy.conf   2013”N  4Œ 23“ú (‰Î)
+   --- /etc/security/policy.conf.orig      2013å¹´  4æœˆ 23æ—¥ (ç«)
+   +++ /etc/security/policy.conf   2013å¹´  4æœˆ 23æ—¥ (ç«)
    @@ -29,3 +29,3 @@
     #
    -CRYPT_DEFAULT=5
    +CRYPT_DEFAULT=1
 
-   2. 2014/9 “_‚ÌŒ©‰ğ
-   Solaris11 ‚Å‚ÍƒfƒtƒHƒ‹ƒgˆÃ†‰»•û®‚É SHA-256 ‚ğÌ—p‚µ‚Ä‚¢‚Ü‚·‚ª
-   ‘¼ƒVƒXƒeƒ€ (RHEL 6A7 ‚ª SHA512 ‚ğÌ—p‚µ‚Ä‚¢‚é) ‚Æ‚ÌŒİŠ·‚ğl—¶‚µASHA512 ‚Æ‚·‚é
+   2. 2014/9 æ™‚ç‚¹ã®è¦‹è§£
+   Solaris11 ã§ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæš—å·åŒ–æ–¹å¼ã« SHA-256 ã‚’æ¡ç”¨ã—ã¦ã„ã¾ã™ãŒ
+   ä»–ã‚·ã‚¹ãƒ†ãƒ  (RHEL 6ã€7 ãŒ SHA512 ã‚’æ¡ç”¨ã—ã¦ã„ã‚‹) ã¨ã®äº’æ›ã‚’è€ƒæ…®ã—ã€SHA512 ã¨ã™ã‚‹
 
    # diff -U1 /etc/security/policy.conf{.orig,}
-   --- /etc/security/policy.conf.orig      2014”N  9Œ  9“ú (‰Î)
-   +++ /etc/security/policy.conf   2014”N  9Œ  9“ú (‰Î)
+   --- /etc/security/policy.conf.orig      2014å¹´  9æœˆ  9æ—¥ (ç«)
+   +++ /etc/security/policy.conf   2014å¹´  9æœˆ  9æ—¥ (ç«)
    @@ -41,3 +41,3 @@
     #
    -CRYPT_DEFAULT=5
    +CRYPT_DEFAULT=6
     #
 
-4. ƒVƒXƒeƒ€“®ì‚ÌŠÄ‹
+4. ã‚·ã‚¹ãƒ†ãƒ å‹•ä½œã®ç›£è¦–
 
    # svcadm -v enable svc:/system/sar:default
    # svcs -a | grep sar
    online         14:32:03 svc:/system/sar:default
 
    # diff -U1 /var/spool/cron/crontabs/sys{.orig,}
-   --- /var/spool/cron/crontabs/sys.orig   2013”N  4Œ 23“ú (‰Î)
-   +++ /var/spool/cron/crontabs/sys        2013”N  4Œ 23“ú (‰Î)
+   --- /var/spool/cron/crontabs/sys.orig   2013å¹´  4æœˆ 23æ—¥ (ç«)
+   +++ /var/spool/cron/crontabs/sys        2013å¹´  4æœˆ 23æ—¥ (ç«)
    @@ -8,1 +8,3 @@
     # 5 18 * * 1-5 /usr/lib/sa/sa2 -s 8:00 -e 18:01 -i 1200 -A
    +0,10,20,30,40,50 * * * * /usr/lib/sa/sa1 1 1
    +53 23 * * * /usr/lib/sa/sa2 -A
 
-5. ƒL[ƒ{[ƒh (Ì‚ÍƒL[ƒ{[ƒh‚©‚ç‚Ì Break M†‚ğó•t‚È‚¢‚æ‚¤‚É‚µ‚Ä‚¢‚Ü‚µ‚½‚ªA¡‰ñ‚ÍŠm”F‚Ì‚İ‚Å‚·)
+5. ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ (æ˜”ã¯ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‹ã‚‰ã® Break ä¿¡å·ã‚’å—ä»˜ãªã„ã‚ˆã†ã«ã—ã¦ã„ã¾ã—ãŸãŒã€ä»Šå›ã¯ç¢ºèªã®ã¿ã§ã™)
 
    # svcprop -p keymap keymap
    keymap/console_beeper_freq integer 900
@@ -132,15 +132,15 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    keymap/repeat_rate integer 40
    keymap/layout astring Japanese
 
-   —á: ƒL[ƒ{[ƒhƒŒƒCƒAƒEƒg‚ğ“ú–{Œê‚É•ÏX‚·‚éê‡
+   ä¾‹: ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’æ—¥æœ¬èªã«å¤‰æ›´ã™ã‚‹å ´åˆ
    # svccfg -s keymap:default setprop keymap/layout = astring: "Japanese"
    # svcadm refresh keymap
    # svcadm restart keymap
 
-6. ƒVƒ“ƒOƒ‹ƒ†[ƒUƒ‚[ƒhİ’è (ƒpƒXƒ[ƒh“ü—Í‚ğ–³‚­‚·)
+6. ã‚·ãƒ³ã‚°ãƒ«ãƒ¦ãƒ¼ã‚¶ãƒ¢ãƒ¼ãƒ‰è¨­å®š (ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å…¥åŠ›ã‚’ç„¡ãã™)
 
    # echo "PASSREQ=NO" > /etc/default/sulogin
 
-7. Linux ‚Ì netstat -lanput ‚Ì‚æ‚¤‚Èƒ‚ƒm
+7. Linux ã® netstat -lanput ã®ã‚ˆã†ãªãƒ¢ãƒ
 
    # for pid in `ps -aeo pid | grep -v PID`; do pfiles ${pid} | egrep "^${pid}:|sockname:"; done 

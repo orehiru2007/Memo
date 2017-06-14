@@ -1,11 +1,11 @@
 kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
-1. ƒƒOƒCƒ“‚ÌŠÄ¸Asu ‚ÌŠÄ¸
+1. ãƒ­ã‚°ã‚¤ãƒ³ã®ç›£æŸ»ã€su ã®ç›£æŸ»
 
-   1. ƒƒOƒCƒ“‚ÌŠÄ¸ /etc/default/login
+   1. ãƒ­ã‚°ã‚¤ãƒ³ã®ç›£æŸ» /etc/default/login
    # diff -u /etc/default/login{.orig,}
-   --- /etc/default/login.orig     2013”N  5Œ 15“ú (…)
-   +++ /etc/default/login  2013”N  5Œ 15“ú (…)
+   --- /etc/default/login.orig     2013å¹´  5æœˆ 15æ—¥ (æ°´)
+   +++ /etc/default/login  2013å¹´  5æœˆ 15æ—¥ (æ°´)
    @@ -16,7 +16,7 @@
     # any of the currently enabled /dev/vt/# virtual terminal devices.
     # Comment this line out to allow remote login by root.
@@ -31,16 +31,16 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    -#SYSLOG_FAILED_LOGINS=5
    +SYSLOG_FAILED_LOGINS=3
 
-   2. su ‚ÌŠÄ¸ (ƒfƒtƒHƒ‹ƒg‚Å—LŒø‚Ì‚½‚ß—v“_‚Ì‚İ) /etc/default/su
+   2. su ã®ç›£æŸ» (ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§æœ‰åŠ¹ã®ãŸã‚è¦ç‚¹ã®ã¿) /etc/default/su
    SULOG=/var/adm/sulog
    SYSLOG=YES
 
-2. ‚»‚Ì‘¼ƒƒOİ’è
+2. ãã®ä»–ãƒ­ã‚°è¨­å®š
 
    1. /etc/syslog.conf
    # diff -U1 /etc/syslog.conf{.orig,}
-   --- /etc/syslog.conf.orig       2014”N  9Œ  9“ú (‰Î)
-   +++ /etc/syslog.conf    2014”N  9Œ  9“ú (‰Î)
+   --- /etc/syslog.conf.orig       2014å¹´  9æœˆ  9æ—¥ (ç«)
+   +++ /etc/syslog.conf    2014å¹´  9æœˆ  9æ—¥ (ç«)
    @@ -10,3 +10,3 @@
     *.err;kern.notice;auth.notice                  /dev/sysmsg
    -*.err;kern.debug;daemon.notice;auth.none;mail.crit     /var/adm/messages
@@ -53,7 +53,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    +mail.debug                     ifdef(`LOGHOST', /var/log/maillog, @loghost)
    +daemon.debug                   ifdef(`LOGHOST', /var/log/daemonlog, @loghost)
 
-   2. ƒƒOƒtƒ@ƒCƒ‹‚Ìì¬
+   2. ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆ
    # touch /var/log/maillog
    # chmod 644 /var/log/maillog
    # chgrp sys /var/log/maillog
@@ -61,18 +61,18 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # chmod 644 /var/log/daemonlog
    # chgrp sys /var/log/daemonlog
 
-   3. syslog ‚ÌÄ‹N“®
+   3. syslog ã®å†èµ·å‹•
    # svcadm refresh system/system-log
 
-   4. ƒƒO‚Ìƒ[ƒe[ƒg
+   4. ãƒ­ã‚°ã®ãƒ­ãƒ¼ãƒ†ãƒ¼ãƒˆ
 
-   ƒ[ƒ‹ƒƒO‚Íˆê“ú‚²‚Æ 180“úŠÔ•Û‘¶
+   ãƒ¡ãƒ¼ãƒ«ãƒ­ã‚°ã¯ä¸€æ—¥ã”ã¨ 180æ—¥é–“ä¿å­˜
    # logadm -w /var/log/mail.log -p 1d -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`'
 
-   Daemon ‚ÌƒƒO‚Íˆê“ú‚²‚Æ 180“úŠÔ•Û‘¶
+   Daemon ã®ãƒ­ã‚°ã¯ä¸€æ—¥ã”ã¨ 180æ—¥é–“ä¿å­˜
    # logadm -w /var/log/daemon.log -p 1d -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`'
 
-   ƒƒOƒCƒ“‹L˜^ƒƒO‚Í 1TŠÔ‚²‚Æ 4¢‘ã•Û‘¶
+   ãƒ­ã‚°ã‚¤ãƒ³è¨˜éŒ²ãƒ­ã‚°ã¯ 1é€±é–“ã”ã¨ 4ä¸–ä»£ä¿å­˜
    # logadm -w /var/log/auth.log -p 1w -C 4 -a 'kill -HUP `cat /var/run/syslog.pid`'
 
    # cat /etc/logadm.conf
@@ -81,18 +81,18 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    /var/log/daemonlog -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`' -p 1d
    /var/log/authlog -C 4 -a 'kill -HUP `cat /var/run/syslog.pid`' -p 1w
 
-3. rsyslog ‚Ì“±“ü
+3. rsyslog ã®å°å…¥
 
-   1. rsyslog ‚ÌƒCƒ“ƒXƒg[ƒ‹
+   1. rsyslog ã®ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«
    # pkg install rsyslog
 
-   2. system-log ƒT[ƒrƒXƒCƒ“ƒXƒ^ƒ“ƒX‚Ìó‘ÔŠm”F
+   2. system-log ã‚µãƒ¼ãƒ“ã‚¹ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®çŠ¶æ…‹ç¢ºèª
    # svcs system-log
    STATE          STIME    FMRI
    disabled       16:26:09 svc:/system/system-log:rsyslog
    online         16:26:10 svc:/system/system-log:default
 
-   3. syslog ‚Ì–³Œø‰»Arsyslog ‚Ì—LŒø‰»
+   3. syslog ã®ç„¡åŠ¹åŒ–ã€rsyslog ã®æœ‰åŠ¹åŒ–
    # svcadm disable /system/system-log:default
    # svcadm enable /system/system-log:rsyslog
 
@@ -123,12 +123,12 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    $UDPServerAddress *     # listen to all IP addresses
    $UDPServerRun 514       # start a UDP syslog server at standard port 514
 
-   5. /etc/logadm.conf (d—v‰ÓŠ‚Ì‚İ”²ˆ)
+   5. /etc/logadm.conf (é‡è¦ç®‡æ‰€ã®ã¿æŠœç²‹)
    /var/log/mail.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
    /var/log/daemon.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
    /var/log/auth.log -C 30 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
 
-   5. /etc/logadm.conf (ÅI)
+   5. /etc/logadm.conf (æœ€çµ‚)
    /var/log/mail.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
    /var/log/mail_deux.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
    /var/log/daemon.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
