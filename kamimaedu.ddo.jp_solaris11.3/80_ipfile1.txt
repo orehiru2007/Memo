@@ -1,0 +1,179 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.1 x86)
+
+ipfilter ローカル FireWall の構築
+
+1. 確認
+   # pkg info | grep ipf
+          名前: network/ipfilter
+          説明: ipfilter(5) IP Packet filtering software.  Allows specifying
+          FMRI: pkg://solaris/network/ipfilter@0.5.11,5.11-0.175.1.0.0.24.2:20120919T184422Z
+
+   # modinfo | egrep ipf
+   280 fffffffff8d36000  39ab0 101   1  ipf (IP Filter: v4.1.9)
+
+2. ipfilter 構成ファイルの作成
+
+   # svccfg -s ipfilter:default setprop firewall_config_default/policy = astring: "custom" 
+   # svccfg -s ipfilter:default listprop firewall_config_default/policy
+   firewall_config_default/policy  astring  custom
+
+   # svccfg -s ipfilter:default setprop firewall_config_default/custom_policy_file = astring: "/etc/ipf/ipf.conf" 
+   # svccfg -s ipfilter:default listprop firewall_config_default/custom_policy_file
+   firewall_config_default/custom_policy_file  astring  /etc/ipf/ipf.conf
+
+   # svcadm refresh ipfilter:default
+
+3. /etc/ipf/ipf.conf の編集
+   #
+   # lo0
+   #
+   pass out quick on lo0
+   #pass in quick on lo0
+   
+   #
+   # out packet:
+   #
+   pass out quick on net0 proto tcp/udp all keep state
+   pass out quick on net0 proto icmp all keep state
+   
+   #
+   # in packet:
+   #
+   
+   # attack by local IP packet
+   block in log quick on net0 from 127.0.0.0/8 to any
+   block in log quick on net0 from 10.0.0.0/8 to any
+   block in log quick on net0 from 169.254.0.0/16 to any
+   block in log quick on net0 from 172.16.0.0/12 to any
+   #block in log quick on net0 from 192.168.0.0/16 to any
+   
+   # attack by invalid IP option and too-short IP fragment
+   block in log quick on net0 all with opt lsrr
+   block in log quick on net0 all with opt ssrr
+   block in log quick from any to any with ipopts
+   block in log quick on net0 proto tcp all with short
+   
+   # accept
+   pass in quick on net0 proto icmp from any to any
+   pass in quick on net0 proto tcp from any to any port = 21  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 22  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 25  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 80  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 143 flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 443 flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 587 flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 993 flags S/SA keep state
+   
+   #
+   # default rule
+   #
+   
+   # deny all
+   #block out log on net0 all
+   block in log on net0 all
+
+3. ipfilter の有効化
+   # svcadm enable ipfilter
+   # svcs ipfilter
+   STATE          STIME    FMRI
+   offline*       18:27:35 svc:/network/ipfilter:default
+
+   # ps -ef | grep ipmon | grep -v grep
+       root  4739     1   0   10:00:46 ?           0:00 /usr/sbin/ipmon -Ds
+
+4. 稼働状況の確認方法
+   # ipfstat -i
+   # ipfstat net0
+
+5. ルール変更後の反映方法
+   # ipf -Fa -f /etc/ipf/ipf.conf
+
+6. ipfilter を無効にする方法
+   # ipf -Fa
+   # svcadm disable ipfilter
+
+7. ログ取得の設定
+
+   1. /etc/rsyslog.conf
+   # if you experience problems, check
+   # http://www.rsyslog.com/doc/troubleshoot.html for assistance
+   
+   # rsyslog v3: load input modules
+   # If you do not load inputs, nothing happens!
+   
+   #$ModLoad immark        # provides --MARK-- message capability
+   #$ModLoad imuxsock      # can be used for rate-limiting and flow-control
+   $ModLoad imsolaris      # for Solaris kernel logging
+   
+   # Use default timestamp format
+   $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+   
+   mail.*                                          -/var/log/mail.log
+   &~
+   auth.*                                          -/var/log/auth.log
+   &~
+   daemon.*                                        -/var/log/daemon.log
+   &~
+   local0.warning                                  /var/log/ipf/ipf.log
+   &~
+   *.*                                             /var/adm/messages
+   #:fromhost-ip, isequal, "127.0.0.1"             /var/adm/messages
+   &~
+   
+   # High priority messages to the console
+   #*.err;kern.notice;auth.notice                  /dev/sysmsg
+   # Next highest priority to the messages file
+   #*.err;kern.debug;daemon.notice;mail.crit       /var/adm/messages
+   
+   # Preserve traditional Solaris syslog defaults
+   #*.alert;kern.err;daemon.err                    :omusrmsg:operator
+   #*.alert                                                :omusrmsg:root
+   
+   # Log anything (except auth, cron, daemon & mail) of level info or higher.
+   #*.info;mail.none;auth.none;cron.none           -/var/log/misc.log
+   
+   # Log all the auth, daemon & mail messages in one place.
+   #auth.*                                         -/var/log/auth.log
+   #daemon.*                                       -/var/log/daemon.log
+   #mail.*                                         -/var/log/mail.log
+   
+   # Everybody gets emergency messages
+   #*.emerg                                                :omusrmsg:*
+   
+   # Remote Logging (we use TCP for reliable delivery)
+   # An on-disk queue is created for this action. If the remote host is
+   # down, messages are spooled to disk and sent when it is up again.
+   #$WorkDirectory /var/spool/rsyslog      # where to place spool files
+   #$ActionQueueFileName uniqName  # unique name prefix for spool files
+   #$ActionQueueMaxDiskSpace 1g    # 1gb space limit (use as much as possible)
+   #$ActionQueueSaveOnShutdown on  # save messages to disk on shutdown
+   #$ActionQueueType LinkedList    # run asynchronously
+   #$ActionResumeRetryCount -1     # infinite retries if host is down
+   # remote host is: name/ip:port, e.g. 192.168.0.1:514, port optional
+   #*.* @@remote-host:514
+   
+   
+   # ######### Receiving Messages from Remote Hosts ##########
+   # TCP Syslog Server:
+   # provides TCP syslog reception and GSS-API
+   $ModLoad imtcp.so       # load module
+   $InputTCPServerRun 514  # start up TCP listener at port 514
+   
+   # UDP Syslog Server:
+   $ModLoad imudp.so       # provides UDP syslog reception
+   $UDPServerAddress *     # listen to all IP addresses
+   $UDPServerRun 514       # start a UDP syslog server at standard port 514
+
+   2. ログファイルの作成と rsyslogd の再起動
+   # mkdir /var/log/ipf
+   # touch /var/log/ipf/ipf/ipf.log
+   # chmod 644 /var/log/ipf/ipf.log
+   # pkill -HUP rsyslogd
+
+   3. ログローテートの登録
+   # logadm -w /var/log/ipf/ipf.log -C 4 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+   # cat /etc/logadm.conf (関係箇所のみ抜粋)
+   /var/log/ipf/ipf.log -C 4 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+

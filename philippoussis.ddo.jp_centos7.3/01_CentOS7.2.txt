@@ -1,0 +1,719 @@
+philippoussis.ddo.jp CentOS release 7.2 (1511) / Oracle VirtualBox
+
+1. インストール
+
+   色々あったけど、"Server with GUI" でインストールしました
+
+2. リポジトリ追加
+
+   1. RPMforge
+
+      ## yum install rpmforge-release
+
+      # mkdir /usr/local/src/rpmforge ; cd /usr/local/src/rpmforge
+      # wget http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
+      # rpm -Uvh rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
+
+   2. EPEL (beta 版)
+
+      # yum install epel-release
+
+      ## mkdir /usr/local/src/epel ; cd /usr/local/src/epel
+      ## wget http://ftp-srv2.kddilabs.jp/Linux/distributions/fedora/epel/beta/7/x86_64/epel-release-7-0.2.noarch.rpm
+      ## rpm -Uvh epel-release-7-0.2.noarch.rpm
+
+   3. nkf
+
+      # yum install nkf -y
+
+      ## mkdir /usr/local/src/nkf ; cd /usr/local/src/nkf
+      ## wget http://mirror.centos.org/centos/6/os/x86_64/Packages/nkf-2.0.8b-6.2.el6.x86_64.rpm
+      ## rpm -ivh nkf-2.0.8b-6.2.el6.x86_64.rpm 
+
+3. SElinux 無効化
+   
+   # cat /etc/selinux/config
+   SELINUX=disabled
+
+4. カーネルパラメータ (/etc/sysctl.d/99-sysctl.conf に追記)
+   
+   kernel.core_pattern = /var/tmp/core-%e.%p    ※1
+   fs.suid_dumpable = 2                         ※2
+   vm.panic_on_oom = 2                          ※3
+   kernel.sysrq = 1                             ※4
+   kernel.unknown_nmi_panic = 1                 ※5
+   kernel.panic_on_oops = 1                     ※6
+   kernel.panic_on_unrecovered_nmi = 1          ※7
+   kernel.panic = 60                            ※8
+
+   ※1 : core ファイルの出力先指定
+   ※2 : root だけが読み出し可能な形でダンプを出力
+   ※3 : 0 (デフォルト) OOM Killer を動作させる
+         1 次のように動作させる
+           - システム全体がメモリ枯渇状態のとき、システムパニックさせる
+           - CPUSETS 機能または mempolicy 機能でメモリ量を設定したプロセスが設定メモリ量を超えたとき、OOM Killer を動作させる
+         2 OOM Killer を動作させず、システムパニックさせる
+   ※4 : マジック SysRq キー を有効化
+   ※5 : NMI ボタンの panic 動作
+   ※6 : Oops の panic 動作
+   ※7 : アンコレクタブルエラーの panic 動作
+   ※8 : カーネルパニックが発生してから、60秒後、自動で再起動する
+
+5. VBoxGuestAdd-in のインストール
+
+   # yum install kernel-devel gcc libdrm-devel -y
+
+   割愛
+
+6. ネットワーク設定確認
+
+   1. インストール直後
+
+      # ip addr
+      1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+          link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+          inet 127.0.0.1/8 scope host lo
+             valid_lft forever preferred_lft forever
+          inet6 ::1/128 scope host
+             valid_lft forever preferred_lft forever
+      2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+          link/ether 08:00:27:f1:b7:00 brd ff:ff:ff:ff:ff:ff
+      3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+          link/ether 08:00:27:07:4f:30 brd ff:ff:ff:ff:ff:ff
+          inet 192.168.56.101/24 brd 192.168.56.255 scope global dynamic enp0s8
+             valid_lft 754sec preferred_lft 754sec
+          inet6 fe80::a00:27ff:fe07:4f30/64 scope link
+             valid_lft forever preferred_lft forever
+      4: enp0s9: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+          link/ether 08:00:27:9f:5b:53 brd ff:ff:ff:ff:ff:ff
+          inet 10.0.4.15/24 brd 10.0.4.255 scope global dynamic enp0s9
+             valid_lft 83691sec preferred_lft 83691sec
+          inet6 fe80::a00:27ff:fe9f:5b53/64 scope link
+             valid_lft forever preferred_lft forever
+
+   2. ip addr コマンド対応表
+
+      廃止予定のコマンド | iproute2 で実装されているコマンド
+      -------------------+------------------------------------------------------------------------------------
+      arp                | ip n (ip neighbor)
+      ifconfig           | ip a (ip addr), ip link, ip -s (ip -stats)
+      iptunnel           | ip tunnel
+      iwconfig           | iw
+      nameif             | ip link, ifrename
+      netstat            | ss, ip route (for netstat-r), ip -s link (for netstat -i), ip maddr (for netstat-g)
+      route              | ip r (ip route)
+
+   3. IP アドレスの付与 (例)
+
+      # ip link set enp0s3 up
+      # ip addr add 172.17.238.109/16 dev enp0s3
+      # ip route add default via 172.17.254.1
+
+      # ifconfig enp0s8 up
+      # ifconfig enp0s8 192.168.56.109/24
+
+   4. ネットワーク設定
+
+      1. Network Manager の設定方法 (nmtui にて)
+
+         # export LANG=C
+         # nmtui
+
+         説明不要です
+
+      2. Network Manager の設定方法 (nmcli にて)
+
+         1. ホスト名の指定、確認
+
+            # nmcli general hostname rafter.ddo.jp
+
+            # nmcli general hostname
+            rafter.ddo.jp
+
+         2. ...
+
+   5. ネットワーク設定 (旧来の方式)
+
+      1. NetworkManager
+          
+         あえて停止しません
+
+      2. /etc/NetworkManager/NetworkManager.conf
+
+         [main]
+         plugins=ifcfg-rh
+         dns=none
+
+      3. /etc/sysconfig/network
+
+         NETWORKING=yes
+         NOZEROCONF=yes
+         GATEWAY=192.168.1.1
+
+      4. /etc/hostname
+
+         rafter.ddo.jp
+
+      5. /etc/sysconfig/network-scripts/ifcfg-*
+
+         # cat /etc/sysconfig/network-scripts/ifcfg-enp0s3
+         TYPE=Ethernet
+         BOOTPROTO=none
+         IPADDR0=172.17.238.109
+         PREFIX0=16
+         NAME=enp0s3
+         #UUID=52vi /e75de06-1754-40a4-8903-bd3c6453f97a
+         DEVICE=enp0s3
+         ONBOOT=yes
+         NM_CONTROLLED=no
+         IPV4_FAILURE_FATAL=no
+         #IPV6INIT=no
+         #IPV6_AUTOCONF=no
+         #IPV6_DEFROUTE=no
+         #IPV6_PEERDNS=no
+         #IPV6_PEERROUTES=no
+         #IPV6_FAILURE_FATAL=no
+
+         # cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
+         TYPE=Ethernet
+         BOOTPROTO=none
+         IPADDR0=192.168.56.109
+         PREFIX0=24
+         NAME=enp0s8
+         UUID=bb481b9d-0be2-40cf-9696-f54a8d360972
+         DEVICE=enp0s8
+         ONBOOT=yes
+         NM_CONTROLLED=no
+         IPV4_FAILURE_FATAL=no
+         #IPV6INIT=no
+         #IPV6_AUTOCONF=no
+         #IPV6_DEFROUTE=no
+         #IPV6_PEERDNS=no
+         #IPV6_PEERROUTES=no
+         #IPV6_FAILURE_FATAL=no
+
+         # cat /etc/sysconfig/network-scripts/ifcfg-enp0s9
+         TYPE=Ethernet
+         BOOTPROTO=dhcp
+         DEFROUTE=yes
+         NAME=enp0s9
+         #UUID=1f0f0699-0473-437f-86d0-81d53ce5d458
+         DEVICE=enp0s9
+         ONBOOT=yes
+         PEERDNS=yes
+         PEERROUTES=yes
+         NM_CONTROLLED=no
+         IPV4_FAILURE_FATAL=no
+         #IPV6INIT=no
+         #IPV6_AUTOCONF=no
+         #IPV6_DEFROUTE=no
+         #IPV6_PEERDNS=no
+         #IPV6_PEERROUTES=no
+         #IPV6_FAILURE_FATAL=no
+         
+      6. /etc/hosts
+
+         # cat /etc/hosts
+         127.0.0.1       localhost
+         192.168.1.108   rafter rafter.ddo.jp
+         192.168.56.108  rafter2 rafter2.ddo.jp
+
+      7. IPv6 の無効化
+
+         # cat /etc/sysctl.d/99-sysctl.conf
+         net.ipv6.conf.all.disable_ipv6 = 1
+         net.ipv6.conf.default.disable_ipv6 = 1
+
+         反映
+         # sysctl -p
+
+         確認
+         [root@rafter ~]# ip addr show
+         1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+             link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+             inet 127.0.0.1/8 scope host lo
+                valid_lft forever preferred_lft forever
+         2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+             link/ether 08:00:27:46:04:81 brd ff:ff:ff:ff:ff:ff
+             inet 192.168.1.108/24 brd 192.168.1.255 scope global enp0s3
+                valid_lft forever preferred_lft forever
+         3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+             link/ether 08:00:27:d8:fb:16 brd ff:ff:ff:ff:ff:ff
+             inet 192.168.56.108/24 brd 192.168.56.255 scope global enp0s8
+                valid_lft forever preferred_lft forever
+
+      8. virbr0 の削除
+
+         # virsh net-destroy default
+         # virsh net-autostart default --disable
+         # virsh net-list --all
+          名前               状態     自動起動  永続
+         ----------------------------------------------------------
+          default              停止状態 いいえ (no) はい (yes)
+
+7. systemd コマンド対応表
+
+   操作               | SysV Init                | Systemd
+   -------------------+--------------------------+----------------------------------------------
+   起動               | /etc/init.d/sshd start   | systemctl start sshd
+   終了               | /etc/init.d/sshd stop    | systemctl stop sshd
+   強制終了           | PID 探して "kill -KILL   | systemctl kill -s 9 sshd
+   再起動             | /etc/init.d/sshd restart | systemctl restart sshd
+   設定反映           | /etc/init.d/sshd reload  | systemctl reload sshd
+   状態取得           | /etc/init.d/sshd status  | systemctl status sshd
+   自動起動を有効     | chkconfig sshd on        | systemctl enable sshd
+   自動起動を無効     | chkconfig sshd off       | systemctl disable sshd
+   自動起動の状態確認 | chkconfig --list sshd    | systemctl is-enabled sshd (status でも可)
+   サービス一覧の表示 | chkconfig --list         | systemctl list-unit-files
+
+   稼働中のサービス
+   systemctl list-units --type=service
+
+   定義されているサービス一覧
+   systemctl list-unit-files --type=service
+
+   サービス状態
+   systemctl status sshd
+
+8. firewalld 設定 ※CentOS 7 からは iptables から firewalld に移行した模様、詳細な検証結果は別途
+
+   1. 例: VNC サービス (tcp/5900 - 5903) を許可
+
+      # firewall-cmd --zone=public --add-service=vnc-server
+      # firewall-cmd --zone=public --add-service=vnc-server --permanent
+
+   2. とりあえず無効化
+
+      # systemctl stop firewalld.service
+      # systemctl disable firewalld.service
+
+9. VNC
+
+   1. VNC をユーザプロセスとして動作させる方式 (CentOS 7 推奨)
+
+      1. インストール
+      # yum install tigervnc tigervnc-server 
+
+      2. /etc/sysconfig/vncservers 確認
+      # cat /etc/sysconfig/vncservers
+      # THIS FILE HAS BEEN REPLACED BY /lib/systemd/system/vncserver@.service
+      /lib/systemd/system/vncserver@.service
+
+      3. 設定ファイルのコピー、編集
+      # cp /lib/systemd/system/vncserver@.service /etc/systemd/system/vncserver@:1.service 
+      # cat /etc/systemd/system/vncserver@:1.service | egrep -v "(^#|^$)"
+      [Unit]
+      Description=Remote desktop service (VNC)
+      After=syslog.target network.target
+      [Service]
+      Type=forking
+      ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
+      ExecStart=/sbin/runuser -l masuda -c "/usr/bin/vncserver %i"
+      PIDFile=/home/masuda/.vnc/%H%i.pid
+      ExecStop=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
+      [Install]
+      WantedBy=multi-user.target
+
+      4. 設定の有効化
+      # systemctl daemon-reload
+      # systemctl enable vncserver@:1.service
+
+      5. vncpassword 設定
+      # su – masuda (前述の設定ファイル内で指定したユーザ)
+      $ vncpasswd
+      Password:
+      Verify: 
+      
+      6. 起動
+      # systemctl start vncserver@:1.service
+
+   2. xinetd 経由で動作させる (XDM/GDM セッション) → 失敗
+
+      -------------------
+      Jan 12 15:18:51 phililppoussis xinetd[6045]: START: rfb pid=10916 from=::ffff:127.0.0.1
+      Jan 12 15:18:51 phililppoussis kernel: Xvnc[10916]: segfault at 0 ip 00000000005286d7 sp 00007ffedd7d5590 error 4 in Xc[400000+239000]
+      Jan 12 15:18:51 phililppoussis xinetd[6045]: EXIT: rfb signal=11 pid=10916 duration=0(sec)
+      -------------------
+
+      原因不明
+
+      1. xinetd のインストール
+      # yum install xinetd
+
+      2. xinetd の有効化
+      # systemctl enable xinetd
+
+      3. /etc/xinetd.d/vnc-server の作成
+      # cat /etc/xinetd.d/vnc-server
+      service rfb
+      {
+          disable         = no
+          nice            = 10
+          flags           = REUSE
+          socket_type     = stream
+          wait            = no
+          user            = nobody
+          server          = /usr/bin/Xvnc
+          server_args     = -inetd -query localhost -once --PasswordFile=/etc/vnc_passwd -geometry 1024x768 -depth 16 --securitytypes=none
+          log_on_success  += DURATION
+          log_on_failure  += HOST
+      }
+
+      4. 確認
+      # systemctl status xinetd
+      # chkconfig --list 
+      # systemctl list-unit-files
+
+      5. /etc/gdm/custom.conf
+      # diff -U1 /etc/gdm/custom.conf{.orig,}
+      --- /etc/gdm/custom.conf.orig   2014-08-21 13:29:11.335564764 +0900
+      +++ /etc/gdm/custom.conf        2014-08-25 17:55:34.777051738 +0900
+      @@ -3,8 +3,15 @@
+       [daemon]
+      +RemoteGreeter=/usr/libexec/gdmgreeter
+      +GtkModulesList=
+      +AddGtkModules=false
+      
+       [security]
+      +AllowRoot=true
+      +AllowRemoteRoot=true
+      
+       [xdmcp]
+      +Enable=true
+      
+       [greeter]
+      +IncludeAll=false
+
+      6. GDM 再起動
+      # init 3 ; init 5
+
+10. telnet 設定 (root ログインの許可)
+
+    # yum -y install telnet-server
+    # systemctl enable telnet.socket
+    # systemctl start telnet.socket
+ 
+    # diff -U1 /etc/securetty{.orig,}
+    --- /etc/securetty.orig 2014-08-25 19:05:29.408989043 +0900
+    +++ /etc/securetty      2014-08-25 19:05:34.529759785 +0900
+    @@ -39 +39,13 @@
+     xvc0
+    +pts/0
+    +pts/1
+    +pts/2
+    +pts/3
+    +pts/4
+    +pts/5
+    +pts/6
+    +pts/7
+    +pts/8
+    +pts/9
+    +pts/10
+    +pts/11
+ 
+11. ランレベルの変更
+
+    # rm /etc/systemd/system/default.target
+    # ln -s /lib/systemd/system/runlevel3.target /etc/systemd/system/default.target
+
+    # systemctl disable graphical.target
+    # systemctl enable multi-user.target
+
+12. フォルダ名の変更 (英語名とする)
+
+    # LANG=C xdg-user-dirs-gtk-update
+
+13. Cron の設定
+
+    cron が実行しそこねた (サーバが時刻に停止していた 等) 定期ジョブ を anacron がフォローする！
+    そんなふうに考えていた時期が俺にもありました
+
+    cron の特徴
+    - 日付、曜日、時、分 の粒度で指定時刻にジョブを実行する
+    - 実行しそこねた (サーバが時刻に停止していた 等) ジョブを再実行する機能なし
+    - 設定場所は /etc/crontab, /etc/cron.d/以下のファイル, 各ユーザの crontab ファイル など、複数
+    - デーモンプロセス (crond) が常駐して指定時刻にジョブを起動する
+
+    anacron の特徴
+    - ジョブの実行間隔を 1日単位で指定する ※1回/1日以上には設定不可、ジョブの実行時刻を明示指定する機能なし
+    - 実行しそこねた (サーバが時刻に停止していた 等) ジョブを再実行する機能あり
+    - 設定場所は /etc/anacrontab のみで、root ユーザのみ設定可能
+    - ジョブの実行タイミングにランダムな遅延を挿入することが可能、複数サーバで同時刻に一斉にジョブが起動される問題を回避可能。。。
+    - デーモンプロセスは存在しない、定期的に anacron コマンドを実行する仕組みを別途用意する必要あり
+
+    # yum -y remove cronie-anacron 
+    # yum -y install cronie-noanacron 
+
+    # cat /etc/cron.d/dailyjobs
+    # Run the daily, weekly, and monthly jobs if cronie-anacron is not installed
+    SHELL=/bin/bash
+    PATH=/sbin:/bin:/usr/sbin:/usr/bin
+    MAILTO=root
+    
+    # run-parts
+    50 23 * * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.daily
+    01 0 * * 0 root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.weekly
+    01 0 1 * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.monthly
+
+14. ABRT (クラッシュレポートツール) の停止
+
+    # systemctl list-unit-files --type=service | egrep abrt
+    abrt-ccpp.service                           enabled
+    abrt-oops.service                           enabled
+    abrt-pstoreoops.service                     disabled
+    abrt-vmcore.service                         enabled
+    abrt-xorg.service                           enabled
+    abrtd.service                               enabled
+
+    # systemctl stop abrt-ccpp.service
+    # systemctl stop abrt-oops.service
+    # systemctl stop abrt-vmcore.service
+    # systemctl stop abrt-xorg.service
+    # systemctl stop abrtd.service
+
+    # systemctl disable abrt-ccpp.service
+    # systemctl disable abrt-oops.service
+    # systemctl disable abrt-vmcore.service
+    # systemctl disable abrt-xorg.service
+    # systemctl disable abrtd.service
+
+    # systemctl list-unit-files --type=service | egrep abrt
+    abrt-ccpp.service                           disabled
+    abrt-oops.service                           disabled
+    abrt-pstoreoops.service                     disabled
+    abrt-vmcore.service                         disabled
+    abrt-xorg.service                           disabled
+    abrtd.service                               disabled
+
+15. ntpd
+
+    # yum -y install ntp ntpdate
+    # systemctl disable chronyd
+
+    # systemctl enable ntpd
+    # systemctl start ntpd
+
+    # cat /etc/ntp.conf
+    driftfile /var/lib/ntp/drift
+    server ntp.nict.jp
+    server ntp.jst.mfeed.ad.jp
+    server 127.127.1.0
+    fudge 127.127.1.0 stratum 10
+
+16. logwatch
+
+    1. インストール
+    # yum install -y logwatch
+
+    2. /etc/logwatch/conf/logwatch.conf
+    # cat /usr/share/logwatch/default.conf/logwatch.conf | egrep -v "(^#|^$)" >> /etc/logwatch/conf/logwatch.conf
+
+    # cat /etc/logwatch/conf/logwatch.conf
+    # Local configuration options go here (defaults are in /usr/share/logwatch/default.conf/logwatch.conf)
+    LogDir = /var/log
+    TmpDir = /var/cache/logwatch
+    Output = stdout
+    Format = text
+    Encode = none
+    MailTo = root
+    MailFrom = Logwatch
+    Range = yesterday
+    Detail = Low
+    Service = All
+    Service = "-zz-network"     # Prevents execution of zz-network service, which
+                                # prints useful network configuration info.
+    Service = "-zz-sys"         # Prevents execution of zz-sys service, which
+                                # prints useful system configuration info.
+    Service = "-eximstats"      # Prevents execution of eximstats service, which
+                                # is a wrapper for the eximstats program.
+    mailer = "/usr/sbin/sendmail -t"
+
+    3. 動作確認
+    # logwatch --output stdout
+    # logwatch --mailto root
+
+    4. 定期実行
+    # ls /etc/cron.daily/0logwatch
+    /etc/cron.daily/0logwatch
+
+    # cat /etc/cron.d/dailyjobs
+    # Run the daily, weekly, and monthly jobs if cronie-anacron is not installed
+    SHELL=/bin/bash
+    PATH=/sbin:/bin:/usr/sbin:/usr/bin
+    MAILTO=root
+    
+    # run-parts
+    50 23 * * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.daily
+    01 0 * * 0 root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.weekly
+    01 0 1 * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.monthly
+
+17. journald チューニング
+
+    journald について : http://www.school.ctc-g.co.jp/columns/nakai/nakai56.html
+
+    RHEL 7 から採用された journald (systemd のシステムログ管理サービス) のデフォルト設定では
+    大量のメッセージがシステムログに出力された場合、以降のメッセージのシステムログへの出力を抑制するため、変更する
+
+    1. /etc/systemd/journald.conf 編集
+
+       # diff -U0 /etc/systemd/journald.conf{.orig,}
+       --- /etc/systemd/journald.conf.orig     2015-06-29 21:20:29.144163604 +0900
+       +++ /etc/systemd/journald.conf  2015-06-29 21:21:07.502636618 +0900
+       @@ -17 +17 @@
+       -#RateLimitBurst=1000
+       +RateLimitBurst=0
+
+       # systemctl restart systemd-journald.service
+       # systemctl status systemd-journald.service
+
+    2. /etc/rsyslog.conf 編集 (重要箇所のみ)
+
+       $imjournalRatelimitInterval 0 を追記
+
+       # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
+       $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+       $ModLoad imjournal # provides access to the systemd journal
+       $imjournalRatelimitInterval 0
+       $WorkDirectory /var/lib/rsyslog
+       $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+       $IncludeConfig /etc/rsyslog.d/*.conf
+       $OmitLocalLogging on
+       $IMJournalStateFile imjournal.state
+       mail.*                                                  -/var/log/maillog
+       &~
+       local3.*                                                -/var/log/dovecot.log
+       &~
+       local4.*                                                -/var/log/dovecot_deliver.log
+       &~
+       local5.*                                                -/var/log/maillog_deux
+       &~
+       cron.*                                                  /var/log/cron
+       &~
+       local7.*                                                /var/log/boot.log
+       &~
+       authpriv.*                                              /var/log/secure
+       &~
+       uucp,news.crit                                          /var/log/spooler
+       &~
+       :msg,contains,"iptables DROP"                           -/var/log/iptables.log
+       &~
+       :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
+       &~
+
+       # systemctl restart rsyslog
+
+18. X Winodow の後入れ
+
+    # yum -y groupinstall "GNOME Desktop"
+
+    # cat .bashrc
+    # .bashrc
+    
+    # User specific aliases and functions
+    
+    alias rm='rm -i'
+    alias cp='cp -i'
+    alias mv='mv -i'
+    alias startx='LANG=ja_JP.UTF-8 startx'
+    
+    # Source global definitions
+    if [ -f /etc/bashrc ]; then
+            . /etc/bashrc
+    fi
+
+19. 日本語入力 
+
+    [ アプリケーション ] > [ システムツール ] > [ 設定 ] > [ 地域と言語 ] から
+    "日本語 (かな漢字)" を追加すること
+
+    入力方式の切替は "Windows キー" + "スペース" にて行う
+
+20. xrdp
+
+    1. EPEL 確認
+
+       # rpm -qa | grep epel
+       epel-release-7-5.noarch
+
+    2. /etc/yum.repos.d/xrdp.repo 作成
+
+       # cat /etc/yum.repos.d/xrdp.repo
+       [xrdp]
+       name=xrdp
+       baseurl=http://li.nux.ro/download/nux/dextop/el7/x86_64/
+       enabled=1
+       gpgcheck=0
+
+    3. インストール、起動
+
+       # yum -y install xrdp tigervnc-server
+
+       # systemctl start xrdp.service
+       # systemctl enable xrdp.service
+
+    4. 不具合対応
+
+       1. bpp (bits per pixel) の変更
+
+          connecting to sesman ip 127.0.0.1 port 3350
+          sesman connect ok
+          sending login info to session manager, please wait…
+          xrdp_mm_process_login_response: login succesful for display 10
+          VNC started connecting
+          VNC error – only supporting 8, 15, 16 and 24 bpp rdp connections
+
+          # diff -U0 /etc/xrdp/xrdp.ini{.orig,}
+          --- /etc/xrdp/xrdp.ini.orig     2016-01-13 18:09:30.368540788 +0900
+          +++ /etc/xrdp/xrdp.ini  2016-01-13 18:09:43.328541053 +0900
+          @@ -9 +9 @@
+          -max_bpp=32
+          +max_bpp=24
+          [root@phililppoussis xrdp]#
+
+       2. locale 指定 (日本語化)
+
+          # diff -U0 /etc/xrdp/startwm.sh{.orig,}
+          --- /etc/xrdp/startwm.sh.orig   2016-01-13 18:13:13.844545372 +0900
+          +++ /etc/xrdp/startwm.sh        2016-01-13 18:13:27.494545652 +0900
+          @@ -85,0 +86 @@
+          +export LANG=ja_JP.UTF-8
+
+
+21. ボリュームラベル
+
+    # diff -U0 /etc/mtools.conf{.orig,}
+    --- /etc/mtools.conf.orig       2016-03-09 13:53:01.744269256 +0900
+    +++ /etc/mtools.conf    2016-03-09 13:53:03.658269403 +0900
+    @@ -79,0 +80 @@
+    +MTOOLS_SKIP_CHECK=1
+
+    # df -khT
+    ファイルシス            タイプ   サイズ  使用  残り 使用% マウント位置
+    /dev/mapper/VG-root     ext4        20G  3.9G   15G   21% /
+    devtmpfs                devtmpfs   905M     0  905M    0% /dev
+    tmpfs                   tmpfs      920M  144K  920M    1% /dev/shm
+    tmpfs                   tmpfs      920M  8.8M  912M    1% /run
+    tmpfs                   tmpfs      920M     0  920M    0% /sys/fs/cgroup
+    /dev/sda2               xfs        509M  241M  268M   48% /boot
+    /dev/sda1               vfat       512M  9.5M  503M    2% /boot/efi
+    /dev/mapper/VG-var      xfs        5.0G  261M  4.8G    6% /var
+    10.57.20.122:/vol/vol98 nfs        500G  192K  500G    1% /var2
+    tmpfs                   tmpfs      184M   12K  184M    1% /run/user/0
+
+    # diff -U0 /etc/fstab{.orig,}
+    --- /etc/fstab.orig     2016-03-09 14:24:38.582414171 +0900
+    +++ /etc/fstab  2016-03-09 14:25:14.666416928 +0900
+    @@ -10,2 +10,2 @@
+    -UUID=e680e208-9119-48b3-b36c-62794a9b449b /boot                   xfs     defaults        0 0
+    -UUID=86C8-871E          /boot/efi               vfat    umask=0077,shortname=winnt 0 0
+    +/dev/sda2               /boot                   xfs     defaults        0 0
+    +/dev/sda1               /boot/efi               vfat    umask=0077,shortname=winnt 0 0
+
+    # cat /etc/fstab | egrep -v "(^#|^$)"
+    /dev/mapper/VG-root     /                       ext4    defaults        1 1
+    /dev/sda2               /boot                   xfs     defaults        0 0
+    /dev/sda1               /boot/efi               vfat    umask=0077,shortname=winnt 0 0
+    /dev/mapper/VG-var      /var                    xfs     defaults        0 0
+    /dev/mapper/VG-swap     swap                    swap    defaults        0 0
+    10.57.20.122:/vol/vol98 /var2                   nfs     defaults        0 0
+

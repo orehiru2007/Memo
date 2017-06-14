@@ -1,0 +1,158 @@
+kamimaedu.ddo.jp (VMware + Solaris 10 64bit 10/09 x86)
+
+WordPress って流行ってるらしいね・・・
+そろそろ 俺昼 復活の時かなぁ の続き
+
+1. MySQL チューニング
+
+   # cat /usr/local/etc/my.cnf | egrep -v "(^#|^$)"
+   [client]
+   port            = 3306
+   socket          = /tmp/mysql.sock
+   default-character-set=utf8
+
+   [mysqld]
+   port            = 3306
+   socket          = /tmp/mysql.sock
+   skip-external-locking
+   key_buffer_size = 16M
+   max_allowed_packet = 1M
+   table_open_cache = 64
+   sort_buffer_size = 4M
+   join_buffer_size = 2M
+   net_buffer_length = 8K
+   read_buffer_size = 4M
+   read_rnd_buffer_size = 1M
+   myisam_sort_buffer_size = 8M
+   old_passwords=1
+   default-character-set=utf8
+   long_query_time=1
+   table_cache=1024
+   query_cache_limit=1M
+   query_cache_min_res_unit=4k
+   query_cache_size=32M
+   query_cache_type=1
+   sort_buffer=1M
+   record_buffer=1M
+   log-bin=mysql-bin
+   binlog_format=mixed
+   server-id       = 1
+   innodb_file_per_table
+   innodb_data_home_dir = /usr/local/mysql/data
+   innodb_data_file_path = ibdata1:10M:autoextend
+   innodb_log_group_home_dir = /usr/local/mysql/data
+   innodb_buffer_pool_size = 32M
+   innodb_additional_mem_pool_size = 8M
+   innodb_log_file_size = 32M
+   innodb_log_files_in_group=8
+   innodb_flush_log_at_trx_commit=2
+   innodb_log_buffer_size = 8M
+   innodb_flush_log_at_trx_commit = 1
+   innodb_lock_wait_timeout = 50
+
+   [mysqldump]
+   quick
+   max_allowed_packet = 16M
+
+   [mysql]
+   no-auto-rehash
+
+   [myisamchk]
+   key_buffer_size = 20M
+   sort_buffer_size = 20M
+   read_buffer = 2M
+   write_buffer = 2M
+
+   [mysqlhotcopy]
+   interactive-timeout
+
+   [mysql.server]
+   default-character-set=utf8
+
+   [mysqld_safe]
+   default-character-set=utf8
+
+   [mysql]
+   default-character-set=utf8
+
+2. WordPress
+
+   1. WordPress のダウンロード (※WordPress 日本語版のページより最新版をダウンロード)
+      
+      URL : http://ja.wordpress.org/latest-ja.tar.gz
+
+   2. MySQL root パスワードの設定
+
+      # mysqladmin -u root password password
+      # mysqladmin reload
+
+   3. MySQL に WordPress 用のデータベースとユーザの作成
+
+      データベース名 : wpdb
+      ユーザ名       : wpuser
+      パスワード     : password
+
+      # mysql -u root -ppassword
+
+      mysql> create database wpdb;
+      Query OK, 1 row affected (0.03 sec)
+      
+      mysql> grant all on wpdb.* to wpuser@localhost identified by 'password';
+      Query OK, 0 rows affected (0.04 sec)
+      
+      mysql> use mysql;
+      Reading table information for completion of table and column names
+      You can turn off this feature to get a quicker startup with -A
+      Database changed
+
+      mysql> select user,host,password from user where user='wpuser';
+      +--------+-----------+-------------------------------------------+
+      | user   | host      | password                                  |
+      +--------+-----------+-------------------------------------------+
+      | wpuser | localhost | *2470C0C06DEE42FD1618BB99005ADCA2EC9D1E19 |
+      +--------+-----------+-------------------------------------------+
+      1 row in set (0.00 sec)
+
+   4. WordPress のインストール
+
+      # wget http://ja.wordpress.org/wordpress-3.1-ja.tar.gz
+      # tar zxvf wordpress-3.1-ja.tar.gz
+      # cp -Rp wordpress /usr/local/apache2/htdocs/wp
+
+   5. wp-config.php の設定内容
+
+      # diff -u /usr/local/apache2/htdocs/wp/wp-config.php{.orig,} | nkf -e
+      --- /usr/local/apache2/htdocs/wp/wp-config.php.orig     2011-03-28 10:09:37.266653454 +0900
+      +++ /usr/local/apache2/htdocs/wp/wp-config.php  2011-03-28 10:11:09.120864652 +0900
+      @@ -21,13 +21,13 @@
+      
+       // ** MySQL 設定 - こちらの情報はホスティング先から入手してください。 ** //
+       /** WordPress のためのデータベース名 */
+      -define('DB_NAME', 'database_name_here');
+      +define('DB_NAME', 'wpdb');
+      
+       /** MySQL データベースのユーザー名 */
+      -define('DB_USER', 'username_here');
+      +define('DB_USER', 'wpuser');
+      
+       /** MySQL データベースのパスワード */
+      -define('DB_PASSWORD', 'password_here');
+      +define('DB_PASSWORD', 'password');
+      
+       /** MySQL のホスト名 */
+       define('DB_HOST', 'localhost');
+      @@ -73,7 +73,7 @@
+        * wp-content/languages にインストールされている必要があります。例えば de_DE.mo を
+        * wp-content/languages にインストールし WPLANG を 'de_DE' に設定することでドイツ語がサポートされます。
+        */
+      -define('WPLANG', 'ja');
+      +define('WPLANG', 'ja_UTF');
+      
+       /**
+        * 開発者へ: WordPress デバッグモード
+
+   6. ブログ名/初期パスワードの設定
+
+      URL : http://kamimaedu.ddo.jp/wp/wp-admin/install.php
+
+

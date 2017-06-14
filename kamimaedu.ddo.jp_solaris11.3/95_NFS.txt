@@ -1,0 +1,58 @@
+kamimaedu (Oracle VM + Oracle Solaris 11.2 X86)
+
+NFS Server
+
+1. NFS サービスの有効果
+
+   # svcadm enable network/nfs/server
+
+2. NFS 用ファイルシステムの切り出し
+
+   1. 作業前
+   # zfs list
+   NAME                              USED  AVAIL  REFER  MOUNTPOINT
+   rpool                            65.1G  32.9G  4.64M  /rpool
+   rpool/ROOT                       35.2G  32.9G    31K  legacy
+   rpool/ROOT/solaris_201507        35.2G  32.9G  26.5G  /
+   rpool/ROOT/solaris_201507/var    4.07G  32.9G  1.88G  /var
+   rpool/VARSHARE                   2.65M  32.9G  2.52M  /var/share
+   rpool/VARSHARE/pkg                 63K  32.9G    32K  /var/share/pkg
+   rpool/VARSHARE/pkg/repositories    31K  32.9G    31K  /var/share/pkg/repositories
+   rpool/VARSHARE/zones               31K  32.9G    31K  /system/zones
+   rpool/dump                       4.06G  34.9G  2.00G  -
+   rpool/export                     23.7G  32.9G    32K  /export
+   rpool/export/home                23.7G  32.9G  21.7M  /export/home
+   rpool/export/home/tawatari       1.55G  32.9G  1.54G  /export/home/tawatari
+   rpool/swap                       2.03G  33.9G  1.00G  -
+
+   2. rpool/export/home/nfs (NFS 用ファイルシステム) の切り出し
+   # zfs create rpool/export/home/nfs
+
+   # zfs list
+   NAME                              USED  AVAIL  REFER  MOUNTPOINT
+   rpool                            65.1G  32.9G  4.64M  /rpool
+   rpool/ROOT                       35.2G  32.9G    31K  legacy
+   rpool/ROOT/solaris_201507        35.2G  32.9G  26.5G  /
+   rpool/ROOT/solaris_201507/var    4.07G  32.9G  1.88G  /var
+   rpool/VARSHARE                   2.65M  32.9G  2.52M  /var/share
+   rpool/VARSHARE/pkg                 63K  32.9G    32K  /var/share/pkg
+   rpool/VARSHARE/pkg/repositories    31K  32.9G    31K  /var/share/pkg/repositories
+   rpool/VARSHARE/zones               31K  32.9G    31K  /system/zones
+   rpool/dump                       4.06G  34.9G  2.00G  -
+   rpool/export                     23.7G  32.9G    32K  /export
+   rpool/export/home                23.7G  32.9G  21.7M  /export/home
+   rpool/export/home/nfs            22.1G  32.9G  22.1G  /export/home/nfs
+   rpool/export/home/tawatari       1.55G  32.9G  1.54G  /export/home/tawatari
+   rpool/swap                       2.03G  33.9G  1.00G  -
+
+   3. NFS 共有オプションの指定
+   # zfs set share=name=nfs,path=/export/home/nfs,prot=nfs,sec=sys,root=@172.17.0.0/16,rw=@172.17.0.0/16 rpool/export/home/nfs
+   # zfs set sharenfs=on rpool/export/home/nfs
+
+   # zfs get share
+   NAME                                               PROPERTY  VALUE  SOURCE
+   rpool/export/home/nfs                              share     name=nfs,path=/export/home/nfs,prot=nfs,sec=sys,root=@172.17.0.0/16,rw=@172.17.0.0/16  local
+
+
+
+

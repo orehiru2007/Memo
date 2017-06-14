@@ -1,0 +1,117 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+Courier-imap
+
+1. Courier-Unicode
+
+   # tar jxvf courier-unicode-1.4.tar.bz2
+   # cd courier-unicode-1.4
+   # CFLAGS=-m64 \
+   > CXXFLAGS=-m64 \
+   > CPPFLAGS="-I/usr/local/64/include" \
+   > LDFLAGS="-L/usr/local/64/lib  -R/usr/local/64/lib/" \
+   > ./configure --prefix=/usr/local/64 \
+   > --build=x86_64-pc-solaris2.10
+   # make
+   # make install
+
+2. Courier-authlib 64bit
+
+   0.66.4
+   # groupadd -g 143 courier
+   # useradd -u 143 -g 143 -s /bin/false courier
+   # tar jxvf courier-authlib-0.66.4.tar.bz2
+   # cd courier-authlib-0.66.4
+   # CFLAGS=-m64 \
+   > CXXFLAGS=-m64 \
+   > CPPFLAGS="-I/usr/local/64/include" \
+   > LDFLAGS="-L/usr/local/64/lib  -R/usr/local/64/lib/" \
+   > ./configure --prefix=/usr/local/64 \
+   > --build=x86_64-pc-solaris2.10 \
+   > --without-authmysql
+   # make
+   # make install
+
+   # cp /usr/local/64/etc/authlib/authdaemonrc.dist /usr/local/64/etc/authlib/authdaemonrc
+   # cp courier-authlib.sysvinit /etc/init.d/courier-authlib
+   # mkdir -p /var/lock/subsys
+   # chmod 755 /etc/init.d/coucarier-authlib
+
+2. Courier-imap 64bit
+
+   4.16.2
+   # tar jxvf courier-imap-4.16.2.tar.bz2
+   # cd courier-imap-4.16.2
+   # CFLAGS=-m64 \
+   > CXXFLAGS=-m64 \
+   > CPPFLAGS=-I/usr/local/64/include \
+   > LDFLAGS="-L/usr/local/gcc4/lib/amd64/ -L/usr/local/64/lib -L/usr/local/gcc4/lib -L/usr/local/64/lib/courier-authlib" \
+   > ./configure --prefix=/usr/local/64 --sysconfdir=/usr/local/64/etc/courier-imap \
+   > --disable-root-check --enable-workarounds-for-imap-client-bugs \
+   > --with-ssl --with-waitfunc=wait3 --enable-unicode --without-ipv6 \
+   > --build=x86_64-pc-solaris2.10
+   # make
+   # make check
+   # make install
+   # make install-configure
+   # cp packaging/systemd/courier-imap.sysvinit /etc/init.d/courier-imap
+   # chmod 755 /etc/init.d/courier-imap
+
+3. リンクの作成
+
+   # ln /etc/init.d/courier-imap /etc/rc0.d/K01courier-imap
+   # ln /etc/init.d/courier-imap /etc/rc1.d/K01courier-imap
+   # ln /etc/init.d/courier-imap /etc/rcS.d/K01courier-imap
+   # ln /etc/init.d/courier-imap /etc/rc2.d/S99courier-imap
+   # ln /etc/init.d/courier-authlib /etc/rc0.d/K01courier-authlib
+   # ln /etc/init.d/courier-authlib /etc/rc1.d/K01courier-authlib
+   # ln /etc/init.d/courier-authlib /etc/rcS.d/K01courier-authlib
+   # ln /etc/init.d/courier-authlib /etc/rc2.d/S99courier-authlib
+
+4. ユーザ作成時の Maildir の作成
+
+   # /usr/local/64/bin/maildirmake /etc/skel/Maildir
+
+5. /usr/local/64/etc/courier-imap/imapd チューニング
+
+   IMAP_MAILBOX_SANITY_CHECK=0 : ホームディレクトリと Maildir の権限の整合性確認を無効とする
+   IMAP_USELOCKS=0             : アクセス時にロックを無効とする (多重アクセスに弱いが、不具合の経験なし)
+   IMAP_ENHANCEDIDLE=0         : 拡張 IDLE (新着メール受信時に IMAP 側から通知) を無効とする
+
+6. TIPS
+
+   # diff -U1 /usr/local/64/etc/courier-imap/imapd{.dist,}
+   --- /usr/local/64/etc/courier-imap/imapd.dist   2013-05-08 11:32:38.563863157 +0900
+   +++ /usr/local/64/etc/courier-imap/imapd        2013-05-08 11:35:23.944441014 +0900
+   @@ -171,3 +171,3 @@
+   # 
+   # -IMAP_MAILBOX_SANITY_CHECK=1
+   # +IMAP_MAILBOX_SANITY_CHECK=0
+
+   @@ -268,3 +268,3 @@
+   
+   -IMAP_USELOCKS=1
+   +IMAP_USELOCKS=0
+   
+   @@ -431,3 +431,3 @@
+   
+   -IMAPDSTART=NO
+   +IMAPDSTART=YES
+
+   # diff -U1 /usr/local/64/etc/courier-imap/imapd-ssl{.dist,}
+   --- /usr/local/64/etc/courier-imap/imapd-ssl.dist       2012-08-15 15:56:53.060584935 +0900
+   +++ /usr/local/64/etc/courier-imap/imapd-ssl    2012-12-13 16:16:15.980579275 +0900
+   @@ -74,3 +74,3 @@
+   
+   -IMAPDSSLSTART=NO
+   +IMAPDSSLSTART=YES
+   
+   @@ -259,3 +259,3 @@
+   
+   -TLS_CERTFILE=/usr/local/64/share/imapd.pem
+   +TLS_CERTFILE=/usr/local/etc/pki/Server/pem/server.pem
+   
+   @@ -273,3 +273,3 @@
+   
+   -TLS_TRUSTCERTS=/etc/ssl/cert.pem
+   +#TLS_TRUSTCERTS=/etc/ssl/cert.pem

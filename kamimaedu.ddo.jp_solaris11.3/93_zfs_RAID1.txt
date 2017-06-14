@@ -1,0 +1,89 @@
+goran (Oracle VM + Oracle Solaris 11 11/11 x86)
+
+ZFS で RAID1 を構成する
+
+1. zpool 状態確認
+
+   # zpool status
+     pool: rpool
+    state: ONLINE
+     scan: none requested
+   config:
+   
+           NAME        STATE     READ WRITE CKSUM
+           rpool       ONLINE       0     0     0
+             c3t0d0s0  ONLINE       0     0     0
+
+2. Oracle VM から割り当てられている HDD の状態確認
+
+   # format
+   Searching for disks...done
+   
+   
+   AVAILABLE DISK SELECTIONS:
+          0. c3t0d0 <ATA-VBOX HARDDISK-1.0 cyl 3913 alt 2 hd 255 sec 63>
+             /pci@0,0/pci8086,2829@d/disk@1,0
+          1. c3t1d0 <ATA-VBOX HARDDISK-1.0 cyl 3914 alt 2 hd 255 sec 63>
+             /pci@0,0/pci8086,2829@d/disk@2,0
+
+   # format > 0 > p > p
+   partition> p
+   Current partition table (original):
+   Total disk cylinders available: 3913 + 2 (reserved cylinders)
+   
+   Part      Tag    Flag     Cylinders        Size            Blocks
+     0       root    wm       1 - 3912       29.97GB    (3912/0/0) 62846280
+     1 unassigned    wm       0               0         (0/0/0)           0
+     2     backup    wu       0 - 3912       29.98GB    (3913/0/0) 62862345
+     3 unassigned    wm       0               0         (0/0/0)           0
+     4 unassigned    wm       0               0         (0/0/0)           0
+     5 unassigned    wm       0               0         (0/0/0)           0
+     6 unassigned    wm       0               0         (0/0/0)           0
+     7 unassigned    wm       0               0         (0/0/0)           0
+     8       boot    wu       0 -    0        7.84MB    (1/0/0)       16065
+     9 unassigned    wm       0               0         (0/0/0)           0
+
+3. Software RAID 1 の構成
+
+   1. ミラーディスク (c3t1d0s2) のフォーマット
+   # prtvtoc /dev/rdsk/c3t0d0s2 | fmthard -s - /dev/rdsk/c3t1d0s2
+
+   環境依存かもしれませんが、上記コマンドでは両ディスクのサイズがイコールではない旨のエラーが出ました
+   /dev/rdsk/c3t1d0s2 に対して手動で format を実行しています
+
+   2. ミラーディスク (c3t1d0s0) の rpool への参加
+   # zpool attach -f rpool c3t0d0s0 c3t1d0s0
+   Make sure to wait until resilver is done before rebooting. 
+
+   3. 確認
+   # zpool status rpool
+     pool: rpool
+    state: ONLINE
+   status: One or more devices is currently being resilvered.  The pool will
+           continue to function, possibly in a degraded state.
+   action: Wait for the resilver to complete.
+     scan: resilver in progress since Thu Sep 27 13:15:27 2012
+       1.66G scanned out of 19.8G at 6.21M/s, 0h49m to go
+       1.66G resilvered, 8.35% done
+   config:
+   
+           NAME          STATE     READ WRITE CKSUM
+           rpool         ONLINE       0     0     0
+             mirror-0    ONLINE       0     0     0
+               c3t0d0s0  ONLINE       0     0     0
+               c3t1d0s0  ONLINE       0     0     0  (resilvering)
+   
+   errors: No known data errors
+
+   4. GRUB のインストール
+
+   同期が終了したことを確認後、ミラーディスク (c3t1d0s0) に GRUB のインストールを行う
+   # installgrub /boot/grub/stage1 /boot/grub/stage2 /dev/rdsk/c3t1d0s0
+
+4. ホットスペアディスクの登録
+
+   Oracle VM から c0t2d0s0 をホットスペアディスクとして割り当てる
+
+   # prtvtoc /dev/rdsk/c3t0d0s2 | fmthard -s - /dev/rdsk/c3t2d0s2
+   # zpool add -f rpool spare c3t2d0s0
+

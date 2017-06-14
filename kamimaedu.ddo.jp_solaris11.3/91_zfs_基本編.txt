@@ -1,0 +1,291 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.1 x86)
+
+ZFS 基本編
+
+1. 現状確認
+
+   Solaris11.1 
+
+   1. format c3t0d0 → p → p
+      partition> p
+      Current partition table (original):
+      Total disk sectors available: 209698749 + 16384 (reserved sectors)
+      
+      Part      Tag    Flag     First Sector         Size         Last Sector
+        0  BIOS_boot    wm               256      256.00MB          524543
+        1        usr    wm            524544       99.74GB          209698782
+        2 unassigned    wm                 0           0               0
+        3 unassigned    wm                 0           0               0
+        4 unassigned    wm                 0           0               0
+        5 unassigned    wm                 0           0               0
+        6 unassigned    wm                 0           0               0
+        8   reserved    wm         209698783        8.00MB          209715166
+
+   2. zfs list (情報表示)
+      # zfs list -t all
+      NAME                             USED  AVAIL  REFER  MOUNTPOINT
+      rpool                           24.4G  73.5G  4.58M  /rpool
+      rpool/ROOT                      21.3G  73.5G    31K  legacy
+      rpool/ROOT/solaris              21.3G  73.5G  19.8G  /
+      rpool/ROOT/solaris@install      55.7M      -  1.92G  -
+      rpool/ROOT/solaris/var          1.47G  73.5G  1.43G  /var
+      rpool/ROOT/solaris/var@install  39.2M      -  97.0M  -
+      rpool/VARSHARE                    96K  73.5G    96K  /var/share
+      rpool/dump                      2.06G  73.6G  2.00G  -
+      rpool/export                    8.93M  73.5G    32K  /export
+      rpool/export/home               8.89M  73.5G    32K  /export/home
+      rpool/export/home/tawatari      8.86M  73.5G  8.86M  /export/home/tawatari
+      rpool/swap                      1.03G  73.6G  1.00G  -
+
+   3. /etc/vfstab
+      #device         device          mount           FS      fsck    mount   mount
+      #to mount       to fsck         point           type    pass    at boot options
+      #
+      /devices        -               /devices        devfs   -       no      -
+      /proc           -               /proc           proc    -       no      -
+      ctfs            -               /system/contract ctfs   -       no      -
+      objfs           -               /system/object  objfs   -       no      -
+      sharefs         -               /etc/dfs/sharetab       sharefs -       no      -
+      fd              -               /dev/fd         fd      -       no      -
+      swap            -               /tmp            tmpfs   -       yes     -
+      
+      /dev/zvol/dsk/rpool/swap        -               -               swap    -       no      -
+
+2. スナップショット機能
+
+   1. スナップショットの作成
+      # zfs snapshot rpool/export/home@snapshot
+
+      # zfs list -t all
+      NAME                             USED  AVAIL  REFER  MOUNTPOINT
+      rpool                           24.4G  73.5G  4.58M  /rpool
+      rpool/ROOT                      21.3G  73.5G    31K  legacy
+      rpool/ROOT/solaris              21.3G  73.5G  19.8G  /
+      rpool/ROOT/solaris@install      55.7M      -  1.92G  -
+      rpool/ROOT/solaris/var          1.47G  73.5G  1.43G  /var
+      rpool/ROOT/solaris/var@install  39.2M      -  97.0M  -
+      rpool/VARSHARE                    96K  73.5G    96K  /var/share
+      rpool/dump                      2.06G  73.6G  2.00G  -
+      rpool/export                    8.93M  73.5G    32K  /export
+      rpool/export/home               8.89M  73.5G    32K  /export/home
+      rpool/export/home@snapshot          0      -    32K  -
+      rpool/export/home/tawatari      8.86M  73.5G  8.86M  /export/home/tawatari
+      rpool/swap                      1.03G  73.6G  1.00G  -
+
+   2. ある時点のスナップショットへの切り戻し
+      # zfs rollback rpool/export/home@snapshot
+
+   3. スナップショットの削除
+      # zfs destroy rpool/export/home@snapshot
+
+4. /export/home 配下のバックアップリストア
+
+   - バックアップ
+     # mkdir /backup
+     # zfs snapshot rpool/export/home@snapshot
+     # zfs send rpool/export/home@snapshot > /backup/export_home.img
+     # zfs destroy rpool/export/home@snapshot
+
+   - リストア
+     # zfs receive -F rpool/export/home < /backup/export_home.img
+     # zfs destroy rpool/export/home@snapshot
+
+5. 番外 Solaris 11 で NFS サーバの構築
+
+   1. OS の認識するディスクデバイスの確認
+
+      # format
+      Searching for disks...done
+      
+      AVAILABLE DISK SELECTIONS:
+             0. c8t0d0 <VMware-Virtual disk-1.0-100.00GB>
+                /pci@0,0/pci15ad,1976@10/sd@0,0
+
+   2. ZFS プールの確認
+
+      # zpool list
+      NAME    SIZE  ALLOC   FREE  CAP  DEDUP  HEALTH  ALTROOT
+      rpool  99.5G  24.3G  75.2G  24%  1.00x  ONLINE  -
+
+   3. ルートプール (rpool) で利用しているディスクブロックの確認
+
+      # zpool status
+        pool: rpool
+       state: ONLINE
+        scan: none requested
+      config:
+      
+              NAME      STATE     READ WRITE CKSUM
+              rpool     ONLINE       0     0     0
+                c8t0d0  ONLINE       0     0     0
+      
+      errors: No known data errors
+
+   4. ZFS プールのマウント状態の確認
+
+      # zfs list -t all
+      NAME                             USED  AVAIL  REFER  MOUNTPOINT
+      rpool                           24.4G  73.5G  4.58M  /rpool
+      rpool/ROOT                      21.3G  73.5G    31K  legacy
+      rpool/ROOT/solaris              21.3G  73.5G  19.8G  /
+      rpool/ROOT/solaris/var          1.47G  73.5G  1.43G  /var
+      rpool/VARSHARE                    96K  73.5G    96K  /var/share
+      rpool/dump                      2.06G  73.6G  2.00G  -
+      rpool/export                    8.93M  73.5G    32K  /export
+      rpool/export/home               8.89M  73.5G    32K  /export/home
+      rpool/export/home/tawatari      8.86M  73.5G  8.86M  /export/home/tawatari
+      rpool/swap                      1.03G  73.6G  1.00G  -
+
+   5. NFS 設定
+
+      1. サービス状態の確認
+
+         # svcs -a | grep nfs
+         disabled        9月_06 svc:/network/nfs/cbd:default
+         disabled        9月_06 svc:/network/nfs/mapid:default
+         disabled        9月_06 svc:/network/nfs/client:default
+         disabled        9月_06 svc:/network/nfs/rquota:default
+         disabled       18:38:35 svc:/network/nfs/server:default
+         online          9月_06 svc:/network/nfs/fedfs-client:default
+         online         18:35:50 svc:/network/nfs/status:default
+         online         18:35:51 svc:/network/nfs/nlockmgr:default
+
+      2. NFS 用ファイルシステムの切り出し
+
+         # zfs create rpool/export/home/nfs
+
+         # zfs list
+         NAME                         USED  AVAIL  REFER  MOUNTPOINT
+         rpool                       24.4G  73.5G  4.58M  /rpool
+         rpool/ROOT                  21.3G  73.5G    31K  legacy
+         rpool/ROOT/solaris          21.3G  73.5G  19.8G  /
+         rpool/ROOT/solaris/var      1.47G  73.5G  1.43G  /var
+         rpool/VARSHARE                96K  73.5G    96K  /var/share
+         rpool/dump                  2.06G  73.6G  2.00G  -
+         rpool/export                8.96M  73.5G    32K  /export
+         rpool/export/home           8.93M  73.5G    33K  /export/home
+         rpool/export/home/nfs         31K  73.5G    31K  /export/home/nfs
+         rpool/export/home/tawatari  8.86M  73.5G  8.86M  /export/home/tawatari
+         rpool/swap                  1.03G  73.6G  1.00G  -
+
+      3. NFS 共有オプションの設定
+
+         # zfs set share=name=nfs,path=/export/home/nfs,prot=nfs,sec=sys,rw=@192.168.1.0/24,root=@192.168.1.0/24 rpool/export/home/nfs
+         name=nfs,path=/export/home/nfs,prot=nfs
+
+      4. NFS 共有の有効化
+
+         # zfs set sharenfs=on rpool/export/home/nfs
+
+      5. サービス状態の確認
+
+         # svcs -a | grep nfs
+         disabled        9月_06 svc:/network/nfs/cbd:default
+         disabled        9月_06 svc:/network/nfs/client:default
+         online          9月_06 svc:/network/nfs/fedfs-client:default
+         online         18:35:50 svc:/network/nfs/status:default
+         online         18:35:51 svc:/network/nfs/nlockmgr:default
+         online         19:01:04 svc:/network/nfs/mapid:default
+         online         19:01:05 svc:/network/nfs/rquota:default
+         online         19:01:05 svc:/network/nfs/server:default
+
+   6. 状態確認
+
+      # zfs get share
+      NAME                            PROPERTY  VALUE  SOURCE
+      rpool/export/home/nfs           share     name=nfs,path=/export/home/nfs,prot=nfs  local
+
+      # zfs get sharenfs
+      NAME                            PROPERTY   VALUE  SOURCE
+      rpool                           share.nfs  off    default
+      rpool/ROOT                      sharenfs   off    default
+      rpool/ROOT/solaris              share.nfs  off    default
+      rpool/ROOT/solaris@install      share.nfs  -      -
+      rpool/ROOT/solaris/var          share.nfs  off    default
+      rpool/ROOT/solaris/var@install  share.nfs  -      -
+      rpool/VARSHARE                  share.nfs  off    default
+      rpool/dump                      share.nfs  -      -
+      rpool/export                    share.nfs  off    default
+      rpool/export/home               share.nfs  off    default
+      rpool/export/home/nfs           share.nfs  on     local
+      rpool/export/home/nfs%nfs       share.nfs  on     inherited from rpool/export/home/nfs
+      rpool/export/home/tawatari      share.nfs  off    default
+      rpool/swap                      share.nfs  -      -
+
+      # share
+      nfs     /export/home/nfs        nfs     sec=sys,rw
+
+   7. その他オプション
+
+      1. 重複排除の有効化
+
+         # zfs set dedup=on rpool/export/home/nfs
+         
+         # zfs get dedup
+         NAME                            PROPERTY  VALUE  SOURCE
+         rpool                           dedup     off    default
+         rpool/ROOT                      dedup     off    default
+         rpool/ROOT/solaris              dedup     off    default
+         rpool/ROOT/solaris@install      dedup     -      -
+         rpool/ROOT/solaris/var          dedup     off    default
+         rpool/ROOT/solaris/var@install  dedup     -      -
+         rpool/VARSHARE                  dedup     off    default
+         rpool/dump                      dedup     off    local
+         rpool/export                    dedup     off    default
+         rpool/export/home               dedup     off    default
+         rpool/export/home/nfs           dedup     on     local
+         rpool/export/home/nfs%nfs       dedup     -      -
+         rpool/export/home/tawatari      dedup     off    default
+         rpool/swap                      dedup     off    local
+
+      2. クォータ
+
+         # zfs list
+         NAME                         USED  AVAIL  REFER  MOUNTPOINT
+         rpool                       24.4G  73.5G  4.58M  /rpool
+         rpool/ROOT                  21.3G  73.5G    31K  legacy
+         rpool/ROOT/solaris          21.3G  73.5G  19.8G  /
+         rpool/ROOT/solaris/var      1.47G  73.5G  1.43G  /var
+         rpool/VARSHARE                98K  73.5G    98K  /var/share
+         rpool/dump                  2.06G  73.6G  2.00G  -
+         rpool/export                8.96M  73.5G    32K  /export
+         rpool/export/home           8.93M  73.5G    33K  /export/home
+         rpool/export/home/nfs         31K  73.5G    31K  /export/home/nfs
+         rpool/export/home/tawatari  8.86M  73.5G  8.86M  /export/home/tawatari
+         rpool/swap                  1.03G  73.6G  1.00G  -
+         
+         # zfs set quota=5g rpool/export/home/nfs
+         
+         # zfs get quota
+         NAME                            PROPERTY  VALUE  SOURCE
+         rpool                           quota     none   default
+         rpool/ROOT                      quota     none   default
+         rpool/ROOT/solaris              quota     none   default
+         rpool/ROOT/solaris@install      quota     -      -
+         rpool/ROOT/solaris/var          quota     none   default
+         rpool/ROOT/solaris/var@install  quota     -      -
+         rpool/VARSHARE                  quota     none   default
+         rpool/dump                      quota     -      -
+         rpool/export                    quota     none   default
+         rpool/export/home               quota     none   default
+         rpool/export/home/nfs           quota     5G     local
+         rpool/export/home/nfs%nfs       quota     -      -
+         rpool/export/home/tawatari      quota     none   default
+         rpool/swap                      quota     -      -
+         
+         # zfs list
+         NAME                         USED  AVAIL  REFER  MOUNTPOINT
+         rpool                       24.4G  73.5G  4.58M  /rpool
+         rpool/ROOT                  21.3G  73.5G    31K  legacy
+         rpool/ROOT/solaris          21.3G  73.5G  19.8G  /
+         rpool/ROOT/solaris/var      1.47G  73.5G  1.43G  /var
+         rpool/VARSHARE                98K  73.5G    98K  /var/share
+         rpool/dump                  2.06G  73.6G  2.00G  -
+         rpool/export                8.96M  73.5G    32K  /export
+         rpool/export/home           8.93M  73.5G    33K  /export/home
+         rpool/export/home/nfs         31K  5.00G    31K  /export/home/nfs
+         rpool/export/home/tawatari  8.86M  73.5G  8.86M  /export/home/tawatari
+         rpool/swap                  1.03G  73.6G  1.00G  -
+
+
+

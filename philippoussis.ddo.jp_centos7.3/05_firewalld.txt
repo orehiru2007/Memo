@@ -1,0 +1,94 @@
+philippoussis.ddo.jp CentOS release 7.3 (1611) / Oracle VirtualBox
+
+firewalld
+
+参考 URL
+https://everyday-growth.com/?p=1952
+http://www.kakiro-web.com/linux/firewalld.html
+http://kernhack.hatenablog.com/entry/2015/05/31/173835
+http://dan-project.blog.so-net.ne.jp/2015-09-13-1
+https://www.imd-net.com/column/13339/
+
+1. 状況
+
+   > 8. firewalld 設定 ※CentOS 7 からは iptables から firewalld に移行した模様、詳細な検証結果は別途
+   > 
+   >    1. 例: VNC サービス (tcp/5900 - 5903) を許可
+   > 
+   >       # firewall-cmd --zone=public --add-service=vnc-server
+   >       # firewall-cmd --zone=public --add-service=vnc-server --permanent
+   > 
+   >    2. とりあえず無効化
+   > 
+   >       # systemctl stop firewalld.service
+   >       # systemctl disable firewalld.service
+
+2. 切り戻し
+
+   1. iptables 停止
+
+      # systemctl stop iptables
+      # systemctl disable iptables
+
+   2. firewalld 起動
+
+      # systemctl start firewalld
+      # systemctl enable firewalld
+      # systemctl status firewalld
+
+3. ゾーンの説明
+
+   ゾーン                      | 許可サービス                                         | 説明
+   ----------------------------+------------------------------------------------------+------------------------------------------------
+   block ( 変更不可 )          | 無し                                                 | 全てのパケットを破棄 (with icmp-host-prohibited) ※戻りパケットは許可される
+   dmz                         | ssh                                                  | DMZ 用に定義されたゾーン
+   drop ( 変更不可 )           | 無し                                                 | 全てのパケットを破棄 ※戻りパケットも許可されない
+   external                    | ssh                                                  | マスカレードが有効となっている
+   home                        | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 自宅用
+   internal                    | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 内部ネットワーク用
+   public                      | ssh、dhcpv6-client                                   | デフォルトゾーン
+   trusted ( 変更不可 )        | すべて許可                                           | 
+   work                        | dhcpv6-client、ipp-client、ssh                       | 職場用
+
+4. デフォルトゾーンの確認
+
+   # firewall-cmd --get-default-zone
+   public
+
+   # firewall-cmd --zone=public --list-all
+   public
+     target: default
+     icmp-block-inversion: no
+     interfaces:
+     sources:
+     services: dhcpv6-client ssh
+     ports:
+     protocols:
+     masquerade: no
+     forward-ports:
+     sourceports:
+     icmp-blocks:
+     rich rules:
+
+5. 設定
+
+   1. custom zone の作成
+   # firewall-cmd --permanent --new-zone=custom
+   # firewall-cmd --reload
+
+   # firewall-cmd --zone=custom --list-all
+
+   2. custom をデフォルトゾーンに指定
+   # firewall-cmd --set-default-zone=custom
+
+   3. Source の指定
+   # firewall-cmd --permanent --add-source=10.23.203.111/32 --zone=custom
+
+   4. ssh を許可
+   # firewall-cmd --permanent --add-service=ssh --zone=custom
+   # firewall-cmd --permanent --zone=custom --add-port=22/tcp
+
+
+   4. custom ゾーンを、インターフェイス enp0s3 への割り当て
+   # firewall-cmd --zone=custom --change-interface=enp0s3
+

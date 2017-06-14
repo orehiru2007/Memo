@@ -1,0 +1,223 @@
+philippoussis.ddo.jp CentOS release 7.2 (1511) / Oracle VirtualBox
+
+CentOS 7 UEFI 環境 バックアップ、リストア手順
+
+1. バックアップ
+
+   0. grub2-efi-modules の導入
+
+      grub2-mkconfig コマンド、efibootmgr コマンドが使用可能とするため、grub2-efi-modules をインストールしておくこと
+
+      # yum install grub2-efi-modules
+
+   1. ネットワーク環境
+   
+      -----------------------+----------------------------------------------------+-----------------------
+                             |                                                    |
+      +----------------------+-----------------------+    +-----------------------+----------------------+
+      | philippoussis.ddo.jp (10.23.203.111)         |    | NetApp NFS (10.57.20.122:/vol/vol98)         |
+      |  /dev/sda2               /boot      xfs      |    |   sda2_boot.dump.gz                          |
+      |  /dev/sda1               /boot/efi  vfat     |    |   boot_efi2.tar                              |
+      |  /dev/mapper/VG-var      /var       xfs      |    |   VG_var.dump.gz                             |
+      |  /dev/mapper/VG-root     /          ext4     |    |   VG_root.dump.gz                            |
+      +----------------------------------------------+    +----------------------------------------------+
+   
+      # df -khT
+      ファイルシス            タイプ   サイズ  使用  残り 使用% マウント位置
+      /dev/mapper/VG-root     ext4        18G  7.8G  9.0G   47% /
+      devtmpfs                devtmpfs   905M     0  905M    0% /dev
+      tmpfs                   tmpfs      920M     0  920M    0% /dev/shm
+      tmpfs                   tmpfs      920M  8.7M  912M    1% /run
+      tmpfs                   tmpfs      920M     0  920M    0% /sys/fs/cgroup
+      /dev/mapper/VG-var      xfs        5.0G  284M  4.8G    6% /var
+      /dev/sda2               xfs        509M  351M  159M   69% /boot
+      /dev/sda1               vfat       512M  9.5M  503M    2% /boot/efi
+      tmpfs                   tmpfs      184M     0  184M    0% /run/user/0
+      10.57.20.122:/vol/vol98 nfs        500G  191M  500G    1% /var2
+   
+   2. 情報取得
+   
+      gdisk -l /dev/sda > /var2/gdisk_-l.txt
+      fdisk -l /dev/sda > /var2/fdisk_-l.txt
+      df -kT > /var2/df_-kT.txt
+      cp /etc/fstab /var2/fstab
+      pvdisplay > /var2/pvdisplay.txt
+      vgdisplay > /var2/vgdisplay.txt
+      lvdisplay > /var2/lvdisplay.txt
+      mount > /var2/mount.txt
+   
+   3. バックアップ
+   
+      1. バックアップ前処理
+      mkdir -p /mnt/snap/snap0
+      chattr +d /mnt/snap
+   
+      2. /boot/efi (vfat) バックアップ
+      cd /boot/efi ; tar cvf /var2/boot_efi2.tar ./*
+   
+      3. boot (xfs) バックアップ
+      xfsdump -J -l0 - /dev/sda2 | gzip > /var2/sda2_boot.dump.gz
+   
+      4. var (xfs) バックアップ
+      lvcreate --snapshot --size=1GB --name snap0 /dev/VG/var
+      mount -o nouuid /dev/VG/snap0 /mnt/snap/snap0
+      xfsdump -J -l0 - /mnt/snap/snap0 | gzip > /var2/VG_var.dump.gz
+      umount /mnt/snap/snap0
+      lvremove /dev/VG/snap0 -f
+   
+      5. root (ext4) バックアップ
+      lvcreate --snapshot --size=1GB --name snap1 /dev/VG/root
+      dump -0auf - /dev/VG/snap1 | gzip > /var2/VG_root.dump.gz
+      lvremove /dev/VG00/snap1 -f
+
+2. リストア
+
+   1. CentOS7 インストール DVD (CentOS-7-x86_64-DVD-1511.iso) から、起動する
+
+   2. レスキューモードを起動する [ Troubleshooting ] > [ Rescue a CentOS system ] > [ 3) Skip to shell ] 
+
+      1. キーボードを日本語配列に変更する
+      # localectl set-keymap jp106
+
+      2. ネットワーク設定
+      # ifconfig enp0s3 192.168.56.109 netmask 255.255.255.0
+      # ifconfig enp0s8 10.23.203.111 netmask 255.255.0.0
+      # route add default gw 10.23.1.1
+
+      3. 既存 LVM の認識
+      # lvm vgchagne -ay
+
+   3. ファイルシステムの作成
+
+      ------------------
+      Number  Start (sector)    End (sector)  Size       Code  Name
+         1            2048         1050623   512.0 MiB   EF00  EFI System Partition
+         2         1050624         2099199   512.0 MiB   0700  Microsoft basic data
+         3         2099200        58738687   27.0 GiB    8E00  Linux LVM
+      ------------------
+
+      # gdisk /dev/sda
+      m (help)
+      p (表示)
+      d (全領域を削除)
+      n 1 [Enter] +512M EF00
+      n 2 [Enter] +512M 0700
+      n 3 [Enter] [Enter] 8E00
+      p (表示)
+      w y (書き込み＆終了)
+
+   4. LVM 設定
+ 
+      1. LVM 管理データベースの作成
+      # lvm vgscan
+
+      2. 物理ボリュームの登録
+      # lvm pvcreate /dev/sda3
+
+      3. ボリュームグループの作成
+      # lvm vgcreate -s4m VG /dev/sda3
+
+      4. 論理ボリュームの作成
+      # lvm lvcreate --size 20GB --name root VG
+      # lvm lvcreate --size 10GB --name var VG
+
+   5. ファイルシステムの作成
+
+      1. /boot/efi (vfat)
+      # mkfs.vfat -v -n /boot/efi -c -F32 -s2 /dev/sda1
+
+      2. root (ext4)
+      # mke2fs -j -L / /dev/VG/root
+
+      3. /boot, /var (xfs) 
+      # mkfs.xfs -L /boot /dev/sda2
+      # mkfs.xfs -L /var /dev/VG/var
+
+      4. swap
+      # mkswap /dev/VG/swap
+
+   6. リストア
+
+      # mkdir /tmp/mnt
+      # mkdir /tmp/backup
+      # mount -t nfs -o nolock 10.57.20.122:vol/vol98 /tmp/backup
+
+      1. /boot/efi (vfat) のリストア
+      # mount /dev/sda1 /tmp/mnt ; cd /tmp/mnt
+      # tar xvf /tmp/backup/boot_efi2.tar
+
+      2. root (ext4) のリストア
+      # mount /dev/VG/root /tmp/mnt ; cd /tmp/mnt
+      # gzip -cd /tmp/backup/VG_root.dump.gz | restore rvf -
+      # cd / ; umount /tmp/mnt
+
+      3. boot (xfs) のリストア
+      # mount /dev/sda2 /tmp/mnt ; cd /tmp/mnt
+      # gzip -cd /tmp/backup/sda2_boot.dump.gz | xfsrestore -J - /tmp/mnt
+      # cd / ; umount /tmp/mnt
+
+      4. var (xfs) のリストア
+      # mount /dev/VG/var /tmp/mnt ; cd /tmp/mnt
+      # gzip -cd /tmp/backup/VG_var.dump.gz | xfsrestore -J - /tmp/mnt
+      # cd / ; umount /tmp/mnt
+
+   7. chroot 環境の準備
+
+      # mount /dev/VG/root /tmp/mnt
+      # mount /dev/VG/var /tmp/mnt/var
+      # mount /dev/sda2 /tmp/mnt/boot
+      # mount /dev/sda1 /tmp/mnt/boot/efi
+      
+      # mount -t proc proc /tmp/mnt/proc
+      # mount --bind /dev  /tmp/mnt/dev
+      # mount -t sysfs sysfs /tmp/mnt/sys
+
+      # chroot /tmp/mnt
+
+   8. UEFI ブート
+
+      # efibootmgr -v
+      BootCurrent: 0000
+      BootOrder: 0000,0001,0002
+      Boot0000* EFI DVD/CDROM ACPI(a0341d0,0)PCI(1,1)ATAPI(1,0,0)
+      Boot0001* EFI Hard Drive        ACPI(a0341d0,0)PCI(d,0)SATA(0,0,0)
+      Boot0002* EFI Internal Shell    MM(b,3fc4f000,3ffbefff)FvFile(7c04a583-9e3e-4f1c-ad65-e05268d0b4d1)
+
+      # efibootmgr -c -d /dev/sda -p 1 -l '\EFI\centos\shim.efi' -L 'CentOS Linux'
+      # efibootmgr -o 0003,0000,0001,0002
+      # efibootmgr -t 1   #タイムアウトの設定
+
+      # efibootmgr -v
+      BootCurrent: 0000
+      Timeout: 1 seconds
+      BootOrder: 0003,0000,0001,0002
+      Boot0000* EFI DVD/CDROM ACPI(a0341d0,0)PCI(1,1)ATAPI(1,0,0)
+      Boot0001* EFI Hard Drive        ACPI(a0341d0,0)PCI(d,0)SATA(0,0,0)
+      Boot0002* EFI Internal Shell    MM(b,3fc4f000,3ffbefff)FvFile(7c04a583-9e3e-4f1c-ad65-e05268d0b4d1)
+      Boot0003* CentOS Linux  HD(1,800,693bda33-1557-4439-93f3-f8dcc58d46eb)File(\EFI\centos\shim.efi)
+
+   9. grub2 ブート設定ファイルの再作成
+   # grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+   ※"/run/lvm/lvmetad.socket: connect failed:No such file or directory" は無視する
+
+   10. 初期 RAM ディスク再作
+   # cd /boot
+   # mv initramfs-3.10.0-327.13.1.el7.x86_64.img initramfs-3.10.0-327.13.1.el7.x86_64.img.old
+   # dracut -f initramfs-3.10.0-327.13.1.el7.x86_64.img 3.10.0-327.13.1.el7.x86_64
+
+   11. 再起動
+   # sync; sync; sync
+   # exit
+   # exit
+
+3. grub2-install について
+
+   UEFI では、ブートローダーは /boot/efi 配下に存在しているため、バックアップしている場合、grub2-install の実施は不要ですが
+   Oracle Virtualbox では、grub2-install で作成されるブートローダと、Oracle Virtualbox の UEFI エミュレーションになんらかの不整合があるようで、起動に失敗します
+
+   念のため、以下に grub2-install の手順を残します
+
+   # grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+   # grub2-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=centos --recheck
+
+4. TIPS

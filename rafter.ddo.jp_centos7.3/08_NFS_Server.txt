@@ -1,0 +1,138 @@
+rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
+
+NFS Server
+
+1. インストール
+
+   # yum -y install nfs-utils
+
+2. /etc/idmapd.conf 編集
+
+   # diff -U1 /etc/idmapd.conf{.orig,}
+   --- /etc/idmapd.conf.orig       2015-01-30 15:32:47.093891775 +0900
+   +++ /etc/idmapd.conf    2015-01-30 15:33:10.506140628 +0900
+   @@ -4,3 +4,3 @@
+    # The default is the host's DNS domain name.
+   -#Domain = local.domain.edu
+   +Domain = ddo.jp
+
+3. ディレクトリ作成
+
+   # mkdir /home/exports
+   # chown -R nfsnobody 
+
+4. /etc/exports 編集
+
+   # cat /etc/exports
+   /home/exports 192.168.1.0/24(rw,sync,no_root_squash,no_all_squash)
+
+   rw              : 読み書きを許可する
+   sync            : ディスクへの書込みが完了するまで応答を待つ (確実な書込み)
+   no_root_squash  : root 特権アクセスを許可する
+   no_all_squash   : ユーザ ID、グループ ID を nobody に書き換えない
+
+5. 使用ポートの固定
+
+   1. /etc/sysconfig/nfs 設定内容
+
+      # diff -U1 /etc/sysconfig/nfs{.orig,}
+      --- /etc/sysconfig/nfs.orig     2015-01-30 17:18:36.826116452 +0900
+      +++ /etc/sysconfig/nfs  2015-01-30 17:19:37.466104643 +0900
+      @@ -38 +38,7 @@
+       BLKMAPDARGS=""
+      +
+      +MOUNTD_PORT=892
+      +STATD_PORT=662
+      +LOCKD_TCPPORT=32803
+      +LOCKD_UDPPORT=32769
+
+      MOUNTD_PORT=port   : mountd (rpc.mountd) が使用する TCP と UDP ポートを制御します。
+      STATD_PORT=port    : 状態 (rpc.statd) が使用する TCP と UDP ポートを制御します。
+      LOCKD_TCPPORT=port : nlockmgr (lockd) が使用する TCP ポートを制御します。
+      LOCKD_UDPPORT=port : nlockmgr (lockd) が使用する UDP ポートを制御します
+
+   2. 確認
+
+      # rpcinfo -p
+         program vers proto   port  service
+          100000    4   tcp    111  portmapper
+          100000    3   tcp    111  portmapper
+          100000    2   tcp    111  portmapper
+          100000    4   udp    111  portmapper
+          100000    3   udp    111  portmapper
+          100000    2   udp    111  portmapper
+          100024    1   udp  44085  status
+          100024    1   tcp  53684  status
+          100005    1   udp  20048  mountd
+          100005    1   tcp  20048  mountd
+          100005    2   udp  20048  mountd
+          100005    2   tcp  20048  mountd
+          100005    3   udp  20048  mountd
+          100005    3   tcp  20048  mountd
+          100003    3   tcp   2049  nfs
+          100003    4   tcp   2049  nfs
+          100227    3   tcp   2049  nfs_acl
+          100003    3   udp   2049  nfs
+          100003    4   udp   2049  nfs
+          100227    3   udp   2049  nfs_acl
+          100021    1   udp  32769  nlockmgr
+          100021    3   udp  32769  nlockmgr
+          100021    4   udp  32769  nlockmgr
+          100021    1   tcp  32803  nlockmgr
+          100021    3   tcp  32803  nlockmgr
+          100021    4   tcp  32803  nlockmgr
+          100011    1   udp    875  rquotad
+          100011    2   udp    875  rquotad
+          100011    1   tcp    875  rquotad
+          100011    2   tcp    875  rquotad
+
+   3. iptables に許可すべきポート一覧
+
+      NFS 用に TCP と UDP ポート 2049 を許可します。
+      TCP と UDP ポート 111 (rpcbind/sunrpc) を許可します。
+      TCP と MOUNTD_PORT="port" で指定された UDP ポートを許可します。
+      TCP と STATD_PORT="port" で指定された UDP ポートを許可します。
+      LOCKD_TCPPORT="port" で指定された TCP ポートを許可します。
+      LOCKD_UDPPORT="port"で指定された UDP ポートを指定します
+
+6. 必要サービスの起動
+
+   # systemctl restart rpcbind
+   # systemctl start nfs-server
+   # systemctl start nfs-idmap
+
+7. 自動起動
+
+   # systemctl enable rpcbind
+   # systemctl enable nfs-server
+
+   # systemctl list-unit-files (確認)
+
+8. NFS クライアント側
+
+   1. インストール
+
+      # yum -y install nfs-utils
+
+   2. /etc/idmapd.conf 編集
+
+      # diff -U1 /etc/idmapd.conf{.orig,}
+      --- /etc/idmapd.conf.orig       2015-01-30 15:32:47.093891775 +0900
+      +++ /etc/idmapd.conf    2015-01-30 15:33:10.506140628 +0900
+      @@ -4,3 +4,3 @@
+       # The default is the host's DNS domain name.
+      -#Domain = local.domain.edu
+      +Domain = ddo.jp
+
+   3. 必要サービスの起動
+
+      # systemctl status rpcbind
+
+      # systemctl restart rpcbind
+      # systemctl start nfs-idmap
+      # systemctl start nfs-mountd
+
+   4. 自動起動
+
+      # systemctl enable rpcbind
+

@@ -1,0 +1,144 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.1 x86)
+
+http://www.getemono.com/contents/sol10/SolarisInstallMemo-x64.txt
+cppunit
+
+Squid
+
+1. インストール
+
+   # wget http://www.squid-cache.org/Versions/v3/3.5/squid-3.5.13.tar.gz
+   # tar zxvf squid-3.5.13.tar.gz
+   # cd squid-3.5.13
+   # CC="gcc -m64" \
+   > CFLAGS=-m64 \
+   > CXXFLAGS=-m64 \
+   > CPPFLAGS="-I/usr/local/64/include" \
+   > LDFLAGS="-L/usr/local/64/lib -L/usr/local/gcc4/lib/amd64 -R/usr/local/64/lib -R/usr/local/gcc4/lib/amd64" \
+   > ./configure --prefix=/usr/local/64 \
+   > --with-large-files \
+   > --enable-snmp \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-gnu-ld --with-ld=/usr/local/binutils/bin/ld
+   # make
+
+   お手上げです
+
+2. インストール
+
+   # pkg install SUNWsquid
+
+   # svcadm enable svc:/network/http:squid
+   # svcs network/http:squid
+
+3. 動作確認
+
+   # /usr/squid/bin/squidclient http://www.yahoo.co.jp
+
+4. /etc/squid/squid.conf
+
+   #
+   # Recommended minimum configuration:
+   #
+   
+   # Example rule allowing access from your local networks.
+   # Adapt to list your (internal) IP networks from where browsing
+   # should be allowed
+   acl localnet src 10.0.0.0/8     # RFC1918 possible internal network
+   acl localnet src 172.16.0.0/12  # RFC1918 possible internal network
+   acl localnet src 192.168.0.0/16 # RFC1918 possible internal network
+   acl localnet src fc00::/7       # RFC 4193 local private network range
+   acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
+   acl SSL_ports port 443
+   acl Safe_ports port 80          # http
+   acl Safe_ports port 21          # ftp
+   acl Safe_ports port 443         # https
+   acl Safe_ports port 70          # gopher
+   acl Safe_ports port 210         # wais
+   acl Safe_ports port 1025-65535  # unregistered ports
+   acl Safe_ports port 280         # http-mgmt
+   acl Safe_ports port 488         # gss-http
+   acl Safe_ports port 591         # filemaker
+   acl Safe_ports port 777         # multiling http
+   acl CONNECT method CONNECT
+   
+   #
+   # Recommended minimum Access Permission configuration:
+   #
+   # Deny requests to certain unsafe ports
+   http_access deny !Safe_ports
+   
+   # Deny CONNECT to other than secure SSL ports
+   http_access deny CONNECT !SSL_ports
+   
+   # Only allow cachemgr access from localhost
+   http_access allow localhost manager
+   http_access deny manager
+   
+   # We strongly recommend the following be uncommented to protect innocent
+   # web applications running on the proxy server who think the only
+   # one who can access services on "localhost" is a local user
+   #http_access deny to_localhost
+   
+   #
+   # INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
+   #
+   
+   # Example rule allowing access from your local networks.
+   # Adapt localnet in the ACL section to list your (internal) IP networks
+   # from where browsing should be allowed
+   http_access allow localnet
+   http_access allow localhost
+   
+   # And finally deny all other access to this proxy
+   http_access deny all
+   
+   # Squid normally listens to port 3128
+   http_port 8080
+   
+   # Uncomment and adjust the following to add a disk cache directory.
+   #cache_dir ufs /var/squid/cache/squid 100 16 256
+   
+   # Leave coredumps in the first cache dir
+   coredump_dir /var/squid/cache/squid
+   
+   #
+   # Add any of your own refresh_pattern entries above these.
+   #
+   refresh_pattern ^ftp:           1440    20%     10080
+   refresh_pattern ^gopher:        1440    0%      1440
+   refresh_pattern -i (/cgi-bin/|\?) 0     0%      0
+   refresh_pattern .               0       20%     4320
+   
+   cache_effective_user webservd
+   
+   # パフォーマンスチューニング
+   cache_mem 256 MB
+   udp_incoming_address 0.0.0.0
+   dns_v4_first on
+   
+   # クライアントおよびプロキシ情報を隠蔽する
+   forwarded_for off
+   request_header_access X-Forwarded-For deny all
+   request_header_access Via deny all
+   #request_header_access Referer deny all
+   request_header_access Cache-Control deny all
+   
+   # ホスト名を匿名にする
+   visible_hostname unknown
+   
+   # Apache combined 形式でログを出力する
+   logformat combined %>a %ui %un [%tl] "%rm %ru HTTP/%rv" >Hs %<st "%{Referer}>h" "%{User-Agent}>h" %Ss:%Sh
+   access_log /var/squid/logs/access.log combined
+   
+   # Custom acl
+
+5. ログ ローテート
+
+   3. ログローテートの登録
+   # logadm -w /var/squid/logs/access.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+   # logadm -w /var/squid/logs/cache.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+   # cat /etc/logadm.conf (関係箇所のみ抜粋)
+   /var/squid/logs/access.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+   /var/squid/logs/cache.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d

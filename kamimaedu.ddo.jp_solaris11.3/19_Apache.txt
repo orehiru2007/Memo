@@ -1,0 +1,109 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+1. APR
+
+   # wget http://ftp.yz.yamagata-u.ac.jp/pub/network/apache/apr/apr-1.5.2.tar.gz
+   # tar zxvf apr-1.5.2.tar.gz
+   # cd apr-1.5.2
+   # CC="gcc -m64" \
+   # ./configure --prefix=/usr/local/64
+   # make
+   # make test
+   # make install
+
+   ※/usr/local/binutils/bin を PATH に含めること
+   
+2. APR-Utils
+
+   # wget http://ftp.jaist.ac.jp/pub/apache//apr/apr-util-1.5.4.tar.gz
+   # tar -xvzf apr-util-1.5.4.tar.gz
+   # cd apr-util-1.5.4
+   # CC="gcc -m64" \
+   # ./configure --prefix=/usr/local/64 --with-apr=/usr/local/64
+   # make
+   # make test
+   # make install
+
+3. Apache 2.4.23
+
+   # wget http://ftp.riken.jp/net/apache/httpd/httpd-2.4.23.tar.gz
+   # tar zxvf httpd-2.4.23.tar.gz
+   # cd httpd-2.4.23
+   # CC="gcc -m64" \
+   > CPPFLAGS=-I/usr/local/64/include \
+   > LDFLAGS="-L/usr/local/64/lib -R/usr/local/64/lib" \
+   > ./configure --enable-ssl \
+   > --enable-module=all \
+   > --enable-shared=max \
+   > --enable-so \
+   > --with-ssl=/usr/local \
+   > --with-apr=/usr/local/64 \
+   > --with-apr-util=/usr/local/64 \
+   > --prefix=/usr/local/httpd-2.4.23
+   # make
+   # make install
+   # ln -s /usr/local/httpd-2.4.23 /usr/local/apache2
+
+   # mkdir -p /var/www/html
+   # mkdir /var/www/cgi-bin
+   # mv /usr/local/apache2/logs /usr/local/apache2/logs.orig
+   # ln -s /usr/local/apache2/logs /var/log/apache
+
+   :%s/\/usr\/local\/httpd-2.4.25\/htdocs/\/var\/www\/html/g
+
+4. 起動設定
+
+   # svcadm -v disable /network/http:apache22
+   svc:/network/http:apache22 disabled.
+
+   # cp -p /usr/local/apache2/bin/apachectl /etc/init.d/apache
+   # ln /etc/init.d/apache /etc/rc0.d/K16apache
+   # ln /etc/init.d/apache /etc/rc1.d/K16apache
+   # ln /etc/init.d/apache /etc/rcS.d/K16apache
+   # ln /etc/init.d/apache /etc/rc2.d/S50apache
+
+5. ログ
+
+   1. ローテート
+   # logadm -w apache2 -p 1d -C 180 -a '/usr/local/apache2/bin/apachectl graceful' '/var/log/apache/*{access,error,ssl_request}_log'
+
+   2. ログフォーマット (/usr/local/apache2/conf/httpd.conf 重要箇所のみ抜粋)
+   LogFormat "%h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"" combined
+   LogFormat "%h %l %u %t \"%r\" %>s %b" common
+   LogFormat "%{Referer}i -> %U" referer
+   LogFormat "%{User-agent}i" agent
+   LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\"" forwarded
+   
+   CustomLog "logs/access_log" combined
+
+6. TIPS リダイレクト
+
+   1. モジュールの有効化
+   LoadModule proxy_http_module modules/mod_proxy_http.so
+   LoadModule rewrite_module modules/mod_rewrite.so
+
+   2. リダイレクト (URL 書き換え)
+   <VirtualHost 172.17.238.93:80>
+       ServerName kamimaedu.ddo.jp
+       DocumentRoot "/var/www/html"
+       RewriteEngine On
+       RewriteCond %{HTTP_HOST} ^kamimaedu\.ddo\.jp
+       RewriteRule ^/?ir/stock/info/164soukai/(.*)$ http://srdb.jp/4062/$1 [R=301,L]
+   </VirtualHost>
+
+   ※リダイレクト先が 外部ドメインの場合、http:// からのフルパスで記述した場合、自動で Redirect 処理となるため注意が必要
+   ※参考 URL : https://qwerty.work/blog/2012/02/htaccessurl-rewrite.php
+
+   3. リダイレクト (リバースプロキシ)
+   <VirtualHost 172.17.238.93:80>
+       ServerName kamimaedu.ddo.jp
+       DocumentRoot "/var/www/html"
+       SSLProxyEngine On
+       ProxyRequests Off
+       ProxyPreserveHost Off
+       ProxyPass /ir/stock/info/164soukai http://srdb.jp/4062
+       ProxyPassReverse /ir/stock/info/164soukai http://srdb.jp/4062
+   </VirtualHost>
+
+
+

@@ -1,0 +1,134 @@
+groupadd -g 68 postfix
+groupadd -g 69 postdrop
+useradd -u 68 -g 68 -d /etc/postfix postfix
+wget http://mirror.postfix.jp/postfix-release/official/postfix-3.0.3.tar.gz
+tar zxvf postfix-3.0.3.tar.gz
+cd postfix-3.0.3
+patch -p1 <../postfix-3.0.3-sleep.patch
+make -f Makefile.init makefiles shared=yes dynamicmaps=yes \
+OPT='-m64 -O3 -pipe -s -march=native -mtune=native' \
+DEBUG='' \
+CCARGS='-DDEF_COMMAND_DIR=\"/var/postfix/sbin\" \
+-DDEF_CONFIG_DIR=\"/usr/local/64/etc/postfix\" \
+-DDEF_COMMAND_DIR=\"/usr/local/64/sbin\" \
+-DDEF_DAEMON_DIR=\"/usr/local/64/libexec/postfix\" \
+-DDEF_DATA_DIR=\"/var/lib/postfix\" \
+-DDEF_MAILQ_PATH=\"/usr/local/64/bin/mailq\" \
+-DDEF_MANPAGE_DIR=\"/usr/local/man\" \
+-DDEF_NEWALIAS_PATH=\"/usr/local/64/bin/newaliases\" \
+-DDEF_QUEUE_DIR=\"/var/spool/postfix\" \
+-DDEF_SENDMAIL_PATH=\"/usr/local/64/sbin/sendmail\" \
+-DDEF_META_DIR=\"/usr/local/64/etc/postfix\" \
+-DUSE_TLS -DUSE_SASL_AUTH -DUSE_CYRUS_SASL -DHAS_DB -DHAS_PCRE -DDEF_SERVER_SASL_TYPE=\"dovecot\" \
+-I/usr/local/64/include/openssl/ -I/usr/local/64/include/sasl -I/usr/local/64/include' \
+AUXLIBS="-L/usr/local/64/lib -R/usr/local/64/lib -lssl -lcrypto -lz -lm -lsasl2 -ldb -lpcre"
+make
+#make install
+
+
+# diff -urN postfix-3.0.3.orig/src/smtpd/smtpd_check.c postfix-3.0.3/src/smtpd/smtpd_check.c
+--- postfix-3.0.3.orig/src/smtpd/smtpd_check.c  2015-02-09 02:02:51.000000000 +0900
++++ postfix-3.0.3/src/smtpd/smtpd_check.c       2015-10-19 19:35:02.415547200 +0900
+@@ -208,6 +208,7 @@
+ #include <valid_utf8_hostname.h>
+ #include <midna_domain.h>
+ #include <mynetworks.h>
++#include <iostuff.h>
+
+ /* DNS library. */
+
+@@ -4046,6 +4047,7 @@
+     ARGV   *list;
+     int     found;
+     int     saved_recursion = state->recursion++;
++       VSTRING *buf;
+
+     if (msg_verbose)
+        msg_info(">>> START %s RESTRICTIONS <<<", reply_class);
+@@ -4136,6 +4138,36 @@
+                reject_server_error(state);
+            } else
+                sleep(atoi(*++cpp));
++           } else {
++                  /* sleep(atoi(*++cpp)); */
++                  int sleep_time = atoi(*++cpp);
++                  int i;
++                  for ( i = 0; i < sleep_time; i++ ) {
++                        /* sleep( 1 ); */
++                        if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
++                          int ch = VSTREAM_GETC(state->client);
++                          if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost connection */
++                                vstream_ungetc(state->client, ch);
++                                buf = vstring_alloc(100);
++                                vstring_sprintf(buf, "lost connection after %d sec", i);
++                                log_whatsup(state, "sleep", STR(buf));
++                                vstring_free(buf);
++                                status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
++                                break;
++                          }
++                          else { /* pipelining */
++                                vstream_ungetc(state->client, ch);
++                                buf = vstring_alloc(100);
++                                vstring_sprintf(buf, "pipelining after %d sec", i);
++                                log_whatsup(state, "sleep", STR(buf));
++                                vstring_free(buf);
++                                sleep( sleep_time - i );
++                                break;
++                          }
++                        }
++                  }
++                }
++
+        } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
+            status = reject_plaintext_session(state);
+        }
+
+
+
+make -f Makefile.init makefiles shared=yes dynamicmaps=yes \
+OPT='-m64 -O3 -pipe -s -march=native -mtune=native' \
+DEBUG='' \
+CCARGS='-DDEF_COMMAND_DIR=\"/var/postfix/sbin\" -DDEF_CONFIG_DIR=\"/usr/local/64/etc/postfix\"'
+
+
+make -f Makefile.init makefiles shared=yes dynamicmaps=yes \
+OPT='-m64 -O3 -pipe -s -march=native -mtune=native' \
+DEBUG='' \
+CCARGS='-DDEF_COMMAND_DIR=\"/var/postfix/sbin\" \
+-DDEF_CONFIG_DIR=\"/usr/local/64/etc/postfix\"'
+
+
+
+
+           } else {
+                 /* sleep(atoi(*++cpp)); */
+                 int sleep_time = atoi(*++cpp);
+                 int i;
+                 for ( i = 0; i < sleep_time; i++ ) {
+                       /* sleep( 1 ); */
+                       if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
+                         int ch = VSTREAM_GETC(state->client);
+                         if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost connection */
+                               vstream_ungetc(state->client, ch);
+                               buf = vstring_alloc(100);
+                               vstring_sprintf(buf, "lost connection after %d sec", i);
+                               log_whatsup(state, "sleep", STR(buf));
+                               vstring_free(buf);
+                               status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
+                               break;
+                         }
+                         else { /* pipelining */
+                               vstream_ungetc(state->client, ch);
+                               buf = vstring_alloc(100);
+                               vstring_sprintf(buf, "pipelining after %d sec", i);
+                               log_whatsup(state, "sleep", STR(buf));
+                               vstring_free(buf);
+                               sleep( sleep_time - i );
+                               break;
+                         }
+                       }
+                 }
+               }
+        } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
+            status = reject_plaintext_session(state);
+        }

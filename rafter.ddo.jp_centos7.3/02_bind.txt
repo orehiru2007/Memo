@@ -1,0 +1,134 @@
+rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
+
+DNS サーバ
+
+1. パッケージ確認
+
+   # rpm -qa | grep ^bind
+   bind-9.9.4-14.el7.x86_64
+   bind-chroot-9.9.4-14.el7.x86_64
+
+2. 起動設定、動作確認
+
+   # systemctl enable named
+   # systemctl status named
+   named.service - Berkeley Internet Name Domain (DNS)
+      Loaded: loaded (/usr/lib/systemd/system/named.service; enabled)
+      Active: active (running) since 火 2014-08-26 09:17:16 JST; 2h 15min ago
+     Process: 4073 ExecStart=/usr/sbin/named -u named $OPTIONS (code=exited, status=0/SUCCESS)
+     Process: 4072 ExecStartPre=/usr/sbin/named-checkconf -z /etc/named.conf (code=exited, status=0/SUCCESS)
+    Main PID: 4076 (named)
+      CGroup: /system.slice/named.service
+              └─4076 /usr/sbin/named -u named
+
+3. /etc/named.conf
+   options {
+           //listen-on port 53 { 127.0.0.1; };
+           //listen-on-v6 port 53 { ::1; };
+           version                 "unknown";
+           directory               "/var/named";
+           dump-file               "/var/named/data/cache_dump.db";
+           statistics-file         "/var/named/data/named_stats.txt";
+           memstatistics-file      "/var/named/data/named_mem_stats.txt";
+           pid-file                "/run/named/named.pid";
+           allow-query             { any; };
+           allow-transfer          { 192.168.72.0/24; };
+           notify                  yes;
+           auth-nxdomain           no;
+           empty-zones-enable      no;
+   
+           /* DNS SEC */
+           dnssec-enable           yes;
+           dnssec-validation       yes;
+           dnssec-lookaside        auto;
+           managed-keys-directory  "/var/named/dynamic";
+           session-keyfile         "/run/named/session.key";
+   
+           /* Path to ISC DLV key */
+           bindkeys-file           "/etc/named.iscdlv.key";
+   
+   };
+   
+   logging {
+           channel "default-log" {
+                   file "log/default.log" versions 10 size 10m;
+                   print-time yes;
+                   print-category yes;
+                   print-severity yes;
+                   severity info;
+           };
+           channel "queries-log" {
+                   file "log/queries.log" versions 10 size 10m;
+                   severity info;
+                   print-time yes;
+                   print-severity yes;
+                   print-category yes;
+           };
+           category default {
+                   "default-log";
+                   "default_syslog";
+                   "default_debug";
+                   "default_stderr";
+           };
+           channel default_debug {
+                   file "data/named.run";
+                   severity dynamic;
+           };
+           category queries { "queries-log"; };
+           category lame-servers { null; };
+           category security { null; };
+           category update-security { null; };
+   };
+   
+   view "internal" {
+           allow-query { any; };
+           match-clients {
+                   127.0.0.1/32;
+                   192.168.1.0/24;
+           };
+           recursion yes;
+   
+           zone "." IN {
+                   type hint;
+                   file "named.ca";
+           };
+   
+           zone "0.0.127.in-addr.arpa" IN {
+                   type master;
+                   file "0.0.127.in-addr.arpa";
+                   allow-update { none; };
+           };
+   
+           zone "1.168.192.in-addr.arpa" IN {
+                   type master;
+                   file "1.168.192.in-addr.arpa";
+                   allow-update { none; };
+           };
+   
+           zone "rafter.ddo.jp" IN {
+                   type master;
+                   file "rafter.ddo.jp";
+                   allow-update { none; };
+           };
+   };
+   
+   view "external" {
+           allow-query { any; };
+           match-clients { any; };
+           recursion no;
+   
+           zone "rafter.ddo.jp" IN {
+                   type master;
+                   file "rafter.ddo.jp";
+                   allow-update { none; };
+           };
+   
+           zone "1.168.192.in-addr.arpa" IN {
+                   type master;
+                   file "1.168.192.in-addr.arpa";
+                   allow-update { none; };
+           };
+   };
+   
+   //include "/etc/named.rfc1912.zones";
+   include "/etc/named.root.key";

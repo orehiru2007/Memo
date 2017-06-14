@@ -1,0 +1,54 @@
+philippoussis.ddo.jp CentOS release 7.2 (1511) / Oracle VirtualBox
+
+xrdp
+
+1. EPEL 確認
+
+   # rpm -qa | grep epel
+   epel-release-7-5.noarch
+
+2. /etc/yum.repos.d/xrdp.repo 作成
+
+   # cat /etc/yum.repos.d/xrdp.repo
+   [xrdp]
+   name=xrdp
+   baseurl=http://li.nux.ro/download/nux/dextop/el7/x86_64/
+   enabled=1
+   gpgcheck=0
+
+3. インストール、起動
+
+   # yum -y install xrdp tigervnc-server
+
+   # systemctl start xrdp.service
+   # systemctl enable xrdp.service
+
+4. 不具合対応
+
+   1. bpp (bits per pixel) の変更
+
+      connecting to sesman ip 127.0.0.1 port 3350
+      sesman connect ok
+      sending login info to session manager, please wait…
+      xrdp_mm_process_login_response: login succesful for display 10
+      VNC started connecting
+      VNC error – only supporting 8, 15, 16 and 24 bpp rdp connections
+
+      # diff -U0 /etc/xrdp/xrdp.ini{.orig,}
+      --- /etc/xrdp/xrdp.ini.orig     2016-01-13 18:09:30.368540788 +0900
+      +++ /etc/xrdp/xrdp.ini  2016-01-13 18:09:43.328541053 +0900
+      @@ -9 +9 @@
+      -max_bpp=32
+      +max_bpp=24
+      [root@phililppoussis xrdp]#
+
+   2. locale 指定 (日本語化)
+
+      # diff -U0 /etc/xrdp/startwm.sh{.orig,}
+      --- /etc/xrdp/startwm.sh.orig   2016-01-13 18:13:13.844545372 +0900
+      +++ /etc/xrdp/startwm.sh        2016-01-13 18:13:27.494545652 +0900
+      @@ -85,0 +86 @@
+      +export LANG=ja_JP.UTF-8
+
+4. /etc/sysconfig/iptables 変更内容
+

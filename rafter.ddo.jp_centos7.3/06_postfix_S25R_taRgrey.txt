@@ -1,0 +1,220 @@
+rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
+
+S25R + taRgrey
+
+1. SPF チェック用モジュール インストール / 設定	
+
+   1. perl-Mail-SPF-Query インストール
+
+      # yum install -y perl-Mail-SPF-Query perl-Mail-SPF perl-NetAddr-IP
+
+   2. SPF チェック用モジュールのダウンロード / 配置
+
+      # wget https://launchpad.net/debian/+archive/primary/+files/postfix-policyd-spf-perl_2.010.orig.tar.gz
+      # tar zxvf postfix-policyd-spf-perl_2.010.orig.tar.gz
+      # cp ./postfix-policyd-spf-perl-2.010/postfix-policyd-spf-perl /usr/local/lib/policyd-spf-perl
+
+   3. /etc/postfix/master.cf (追記箇所のみ)
+
+      # diff -U1 /etc/postfix/master.cf{.orig,}
+      --- /etc/postfix/master.cf.orig 2014-03-28 20:20:44.011980632 +0900
+      +++ /etc/postfix/master.cf      2014-03-28 20:21:07.434715174 +0900
+      @@ -127 +127,2 @@
+       #  ${nexthop} ${user}
+      +policy-spf unix  -       n       n       -       0       spawn user=nobody argv=/usr/bin/perl /usr/local/lib/policyd-spf-perl
+
+2. Postgrey インストール / 起動
+
+   1. 必要パッケージのインストール
+
+      # yum install -y perl-CPAN.noarch perl-BerkeleyDB perl-IO-stringy perl-IO-Compress perl-Net-DNS perl-Net-Server perl-Parse-Syslog perl-IO-Multiplex
+
+      ※2014/8/29 時点、Parse::Syslog が RPM で提供されていない様子、Parse::Syslog  は RHEL6 用を流用
+
+   2. src.rpm のインストール
+
+      # su - masuda
+      $ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+      $ echo '%_topdir %{getenv:HOME}/rpmbuild' > ~/.rpmmacrosexit
+
+
+      $ cd ~/rpmbuild/SRPMS/
+      $ wget http://pkgs.repoforge.org/postgrey/postgrey-1.34-1.rf.src.rpm
+      $ rpm -Uvh postgrey-1.34-1.rf.src.rpm
+
+   3. tarpit 用パッチの適用
+
+      $ cd ../SOURCES/
+      $ tar zxvf postgrey-1.34.tar.gz 
+      $ cd postgrey-1.34
+      $ wget http://k2net.hakuba.jp/pub/targrey-0.31-postgrey-1.34.patch
+      $ patch -p0 < targrey-0.31-postgrey-1.34.patch 
+      $ cd ..
+      $ rm -rf postgrey-1.34.tar.gz 
+      $ tar czvf postgrey-1.34.tar.gz postgrey-1.34
+
+   4. rpmbuild 
+
+      $ rpmbuild -bb ~/rpmbuild/SPECS/postgrey.spec
+      $ exit
+	
+   5. インストール
+
+      # rpm -Uvh --nodeps /home/masuda/rpmbuild/RPMS/noarch/postgrey-1.34-1.el7.centos.noarch.rpm
+
+   6. 起動スクリプト修正
+
+      # cat /etc/init.d/postgrey (追記箇所のみ)
+      OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --delay=300 --retry-count=2 --max-age=30"
+
+   7. 設定ファイル配置
+      
+      # wget http://k2net.hakuba.jp/spam/postfix.conf.2.tar.gz
+      # tar zxvf postfix.conf.2.tar.gz
+      # cp postfix.conf.2/* /etc/postfix/
+ 
+   8. 起動設定
+
+      # /etc/init.d/postgrey start
+      # chkconfig --add postgrey
+      # chkconfig postgrey on
+
+3. Postfix の設定
+
+   1. /etc/postfix/main.cf (spam 対策に重要な部分のみ抜粋)
+
+      ## Anti spam
+      disable_vrfy_command = yes
+      
+      smtpd_client_restrictions =
+              permit_sasl_authenticated,
+              permit_mynetworks,
+              check_client_access hash:/etc/postfix/smtpd_client_restrictions_access,
+              permit
+      
+      smtpd_helo_required = yes
+      smtpd_helo_restrictions =
+              permit_sasl_authenticated,
+              permit_mynetworks,
+              check_client_access hash:/etc/postfix/smtpd_helo_restrictions_access,
+              reject_invalid_hostname,
+              #reject_non_fqdn_hostname,
+              #reject_rbl_client all.rbl.jp,
+              permit
+      
+      smtpd_sender_restrictions =
+              permit_sasl_authenticated,
+              permit_mynetworks,
+              check_sender_access hash:/etc/postfix/smtpd_sender_restrictions_access,
+              reject_non_fqdn_sender,
+              reject_unknown_sender_domain,
+              permit
+      
+      smtpd_recipient_restrictions =
+              permit_sasl_authenticated,
+              permit_mynetworks,
+              reject_unauth_destination,
+              reject_unknown_recipient_domain,
+              #reject_unverified_recipient,
+              check_recipient_access hash:/etc/postfix/whitelist_recipient,
+              check_client_access hash:/etc/postfix/whitelist_client,
+              check_client_access regexp:/etc/postfix/permit_client_nots25r,
+              check_policy_service inet:60000,
+              permit
+      address_verify_sender = recipient_verify
+      #address_verify_transport_maps = hash:/etc/postfix/verify_transport
+      address_verify_poll_count = 3
+      address_verify_poll_delay = 3s
+      address_verify_map =
+      
+      smtpd_data_restrictions=
+              permit_sasl_authenticated,
+              permit_mynetworks,
+              check_recipient_access hash:/etc/postfix/whitelist_recipient,
+              check_client_access hash:/etc/postfix/whitelist_client,
+              check_client_access regexp:/etc/postfix/permit_client_nots25r,
+              check_policy_service inet:60000,
+              permit
+      
+      パラメータ                                                             | 説明
+      -----------------------------------------------------------------------+---------------------------------
+      smtpd_recipient_restrictions =                                         | RCPT TO コマンドの場面で適用する、アクセス制限
+              permit_sasl_authenticated,                                     |    SMTP-Auth にて認証されている場合 許可
+              permit_mynetworks,                                             |    自身のネットワークからの接続の場合 許可
+              reject_unauth_destination,                                     |    転送許可するアドレス、仮想アドレスにマッチしない場合 拒否
+              reject_unknown_recipient_domain,                               |    RCPT TO アドレスに DNS A または MX レコードがなく、アドレスが自身宛でない場合 拒否
+              # reject_unverified_recipient,                                 |    # 内部メールサーバにアドレスの存在確認を行い、ない場合 拒否
+              check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    送信先アドレスの WhiteList のデータベースを検索し、対応する動作を実行する
+              check_client_access hash:/etc/postfix/whitelist_client,        |    接続元アドレスの WhiteList のデータベースを検索し、対応する動作を実行する
+              check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R のデータベースの検索し、対応する動作を実行する
+              check_policy_service inet:60000,                               |    S25R のデータベースを検査し、動作 WARN となったものを tarGrey に渡す
+              permit                                                         |    許可 (クリーンナップルール)
+      smtpd_data_restrictions=                                               | SMTP DATA コマンドの場面で適用する、アクセス制限
+              permit_sasl_authenticated,                                     |    SMTP-Auth にて認証されている場合 許可
+              permit_mynetworks,                                             |    自身のネットワークからの接続の場合 許可
+              check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    送信先アドレスの WhiteList のデータベースを検索し、対応する動作を実行する
+              check_client_access hash:/etc/postfix/whitelist_client,        |    接続元アドレスの WhiteList のデータベースを検索し、対応する動作を実行する
+              check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R のデータベースの検索し、対応する動作を実行する
+              check_policy_service inet:60000,                               |    S25R のデータベースを検査し、動作 WARN となったものを tarGrey に渡す
+              permit                                                         |    許可 (クリーンナップルール)
+
+   2. taRgrey の起動オプション
+
+      OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --delay=300 --retry-count=2 --max-age=30"
+
+      --tarpit         : 遅延待機時間の要求 125秒
+      --targrey        : targrey モード
+      --delay=300      : グレイリストの保持期間 300秒間は保持し、300秒後に規定に再送回数を満たせば自動ホワイトリストに追加する
+      --retry-count=2  : グレイリストの保持期間 300秒間を経過した後、要求する再送回数 2回
+      --max-age=30     : 自動ホワイトリストの保持期間 30日
+ 
+   3. taRgrey の利用するデータベース (/var/spool/postfix/postgrey 配下)
+
+      postgrey_clients.db : 自動ホワイトリスト
+      tarpit_clients.db   : tarpitting グレイリスト
+      postgrey.db         : 送信状況を管理
+
+   3. taRgrey の仕組み
+
+      smtpd_recipient_restrictions での一度目の check_policy_service で tarpitting を仕掛け、一旦、tarpit_clients.db (tarpitting グレイリスト) に登録される
+      tarpitting を抜けた接続は smtpd_data_restrictions まで渡ってくるため、再度 check_policy_service で呼び出し、tarpit_clients.db (tarpitting グレイリスト) から該当の IP を削除する
+
+      tarpitting を抜けれなかった接続は tarpit_clients.db (tarpitting グレイリスト) に登録されたままとなり、次回 接続時には smtpd_recipient_restrictions で greylisting の処理に回る
+
+   4. 自動 Whitelist (postgrey_clients.db) の仕組み
+
+      # db_dump -p postgrey.db
+      VERSION=3
+      format=print
+      type=btree
+      db_pagesize=4096
+      HEADER=END
+       192.168.1.0/root@kamimaedu.ddo.jp/tawatari@moya.ddo.jp    ※1
+       1398163401,1398163965,2,91                                ※2
+      DATA=END
+
+      ※1 送信元メールサーバ IP アドレス / 送信元アドレス / 送信先アドレス
+      ※2 再送に受信した時間 (UNIX time) / 最後に受信した時間 (UNIX time) / リトライ回数 / 送信元メールサーバ IP アドレスの第四オクテット
+
+      再送に受信した時間 (UNIX time) が 最後に受信した時間 (UNIX time) 300秒以上経過していること、かつ リトライ回数が 2回以上であれば
+      postgrey_clients.db (自動ホワイトリスト) へ登録を行う ※30日を経過した場合 削除される
+
+   5. 起動スクリプトの修正
+
+      # diff -U1 /etc/init.d/postgrey{.orig,}
+      --- /etc/init.d/postgrey.orig   2014-09-02 16:45:47.657411967 +0900
+      +++ /etc/init.d/postgrey        2014-09-02 16:49:31.812279523 +0900
+      @@ -22,2 +22,3 @@
+       OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --delay=300 --retry-count=2 --max-age=30"
+      +PID=`/usr/bin/ps -aef | /usr/bin/awk '{print $1" "$2}' | /usr/bin/grep postgrey | /usr/bin/awk '{print $2}'`
+      
+      @@ -41,2 +42,3 @@
+           echo -n $"Stopping $prog: "
+      +    kill -TERM $PID
+           killproc $postgrey
+      @@ -54,2 +56,3 @@
+           echo -n $"Reloading $prog: "
+      +    kill -HUP $PID
+           killproc $postgrey -HUP
+
+

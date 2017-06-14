@@ -1,0 +1,395 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+すべて /usr/local 以下にインストールすること
+データやログは /var 以下に置くこと
+ライブラリは出来るだけシェアードライブラリにする
+
+1. ライブラリ検索パス (確認)
+
+   いやね /usr/local/lib くらいはライブラリ検索パスで指定してもいいと思うんだよね
+
+   1. 32bit 用ライブラリ検索パス
+   # crle
+   Configuration file [version 4]: /var/ld/ld.config
+     Platform:     32-bit LSB 80386
+     Default Library Path (ELF):   /lib:/usr/lib:/usr/local/gcc4/lib:/usr/local/lib
+     Trusted Directories (ELF):    /lib/secure:/usr/lib/secure  (system default)
+   
+   Command line:
+     crle -c /var/ld/ld.config -l /lib:/usr/lib:/usr/local/gcc4/lib:/usr/local/lib
+
+   2. 64bit 用ライブラリ検索パス
+   # crle -64
+   Configuration file [version 4]: /var/ld/64/ld.config
+     Platform:     64-bit LSB AMD64
+     Default Library Path (ELF):   /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc4/lib/amd64:/usr/local/gcc4/lib
+     Trusted Directories (ELF):    /lib/secure/64:/usr/lib/secure/64  (system default)
+   
+   Command line:
+     crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc4/lib/amd64:/usr/local/gcc4/lib
+
+2. 必要最低限の開発環境の準備
+
+   # pkg install ucb
+   # pkg install gcc-3
+   # pkg install /system/header
+   # pkg install --accept /developer/java/jdk
+   # pkg install --accept /developer/java/jdk-6
+   # pkg install /group/feature/developer-gnu
+
+3. 開発環境
+
+   m4 1.4.16
+   # wget http://core.ring.gr.jp/archives/GNU/m4/m4-1.4.16.tar.gz
+   # gzip -cd m4-1.4.16.tar.gz | tar xf -
+   # cd m4-1.4.16
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   m4 1.4.17
+   # wget http://core.ring.gr.jp/archives/GNU/m4/m4-1.4.17.tar.gz
+   # gzip -cd m4-1.4.17.tar.gz | tar xf -
+   # cd m4-1.4.17
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   libiconv
+   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.14.tar.gz
+   # gzip -cd libiconv-1.14.tar.gz | tar xf -
+   # cd libiconv-1.14
+   # ./configure --prefix=/usr/local --enable-static
+   # make
+   # make check
+   # make install
+
+   libiconv 64bit
+   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.14.tar.gz
+   # gzip -cd libiconv-1.14.tar.gz | tar xf -
+   # cd libiconv-1.14
+   # CFLAGS=-m64 \
+   > ./configure --prefix=/usr/local/64 --enable-static
+   # make
+   # make check
+   # make install
+
+   libtool 2.4
+   # wget http://ftpmirror.gnu.org/libtool/libtool-2.4.tar.gz
+   # tar zxvf libtool-2.4.tar.gz
+   # cd libtool-2.4
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   libtool 2.4.6
+   # wget http://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz
+   # tar zxvf libtool-2.4.6.tar.gz
+   # cd libtool-2.4.6
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   bison 2.7
+   # wget http://core.ring.gr.jp/archives/GNU/bison/bison-2.7.tar.gz
+   # gzip -cd bison-2.7.tar.gz | tar xf -
+   # cd bison-2.7
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   bison 3.0.4
+   # wget http://core.ring.gr.jp/archives/GNU/bison/bison-3.0.4.tar.gz
+   # gzip -cd bison-3.0.4.tar.gz | tar xf -
+   # cd bison-3.0.4
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   make 3.82
+   # wget http://core.ring.gr.jp/archives/GNU/make/make-3.82.tar.gz
+   # gzip -cd make-3.82.tar.gz | tar xf -
+   # cd make-3.82
+   # ./configure --prefix=/usr/local
+   # LANG=C make
+   # make check
+   # make install
+
+   make 4.1
+   # wget http://core.ring.gr.jp/archives/GNU/make/make-4.0.tar.gz
+   # gzip -cd make-4.0.tar.gz | tar xf -
+   # cd make-4.0
+   # ./configure --prefix=/usr/local
+   # LANG=C make
+   # make check
+   # make install
+
+   flex
+   # gzip -cd flex-2.5.39.tar.gz | tar xf -
+   # cd flex-2.5.39
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   autoconf
+   # wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+   # gzip -cd autoconf-2.69.tar.gz | tar xf -
+   # cd autoconf-2.69
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   automake 1.9.6
+   # wget http://ftp.gnu.org/gnu/automake/automake-1.9.6.tar.gz
+   # gzip -cd automake-1.9.6.tar.gz | tar xf -
+   # cd automake-1.9.6
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   automake 1.15
+   # wget http://ftp.gnu.org/gnu/automake/automake-1.15.tar.gz
+   # gzip -cd automake-1.15.tar.gz | tar xf -
+   # cd automake-1.15
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   gcc3 (未実施)
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-3.4.6/gcc-3.4.6.tar.gz
+   # gzip -cd gcc-3.4.6.tar.gz | tar xf -
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/lib -R/usr/local/lib" \
+   > `pwd`/../gcc-3.4.6/configure \
+   > --prefix=/usr/local \
+   > --with-as=/usr/ccs/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --enable-shared \
+   > --enable-languages=c,c++,f77,objc
+   # LD_RUN_PATH=/usr/local/lib make bootstrap
+   # make install
+
+   diffutils 3.2
+   # wget http://core.ring.gr.jp/archives/GNU/diffutils/diffutils-3.2.tar.gz
+   # gzip -cd diffutils-3.2.tar.gz | tar xf -
+   # cd diffutils-3.2
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   diffutils 3.3
+   # wget http://core.ring.gr.jp/archives/GNU/diffutils/diffutils-3.3.tar.xz
+   # xz -cd diffutils-3.3.tar.xz | tar xf -
+   # cd diffutils-3.3
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   tar
+   # wget http://core.ring.gr.jp/archives/GNU/tar/tar-1.28.tar.xz
+   # xz -cd tar-1.28.tar.xz | tar xf -
+   # cd tar-1.28
+   # FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   binutils
+   # wget http://ftp.gnu.org/pub/gnu/binutils/binutils-2.25.1.tar.gz
+   # tar zxvf binutils-2.25.1.tar.gz
+   # mkdir obj
+   # cd obj
+   # `pwd`/../binutils-2.25.1/configure --prefix=/usr/local/binutils \
+   > --disable-nls \
+   > --disable-werror
+   # make
+   # make install
+
+4. gcc4
+
+   ※/usr/local/binutils/bin を PATH から除外しておくこと
+
+   gmp
+   # wget http://ftp.gnu.org/gnu/gmp/gmp-5.1.3.tar.bz2
+   # tar xvf gmp-5.1.3.tar.bz2
+   # cd gmp-5.1.3
+   # ./configure \
+   > --prefix=/usr/local/gcc4 \
+   > --build=i386-sun-solaris2.11
+   # make
+   # make install
+
+   mpfr
+   # wget http://www.mpfr.org/mpfr-current/mpfr-3.1.3.tar.gz
+   # gzip -cd mpfr-3.1.3.tar.gz | tar xf -
+   # cd mpfr-3.1.3
+   # ./configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gmp=/usr/local/gcc4
+   # make
+   # make install
+
+   mpc
+   # wget ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz
+   # tar zxvf mpc-1.0.3.tar.gz
+   # cd mpc-1.0.3
+   # ./configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4
+   # make
+   # make install
+
+   gcc4 4.4.7
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.4.7/gcc-core-4.4.7.tar.gz
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.4.7/gcc-g++-4.4.7.tar.gz
+   # tar zxvf gcc-core-4.4.7.tar.gz
+   # tar zxvf gcc-g++-4.4.7.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc4/lib -R/usr/local/gcc4/lib" \
+   > `pwd`/../gcc-4.4.7/configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-as=/usr/ccs/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4 \
+   > --with-mpc=/usr/local/gcc4 \
+   > --enable-shared
+   # make bootstrap
+   # make install
+
+   gcc4 4.6.4
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.6.4/gcc-4.6.4.tar.gz
+   # tar zxvf gcc-4.6.4.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc4/lib -R/usr/local/gcc4/lib" \
+   > `pwd`/../gcc-4.6.4/configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gnu-as --with-as=/usr/sfw/bin/gas \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4 \
+   > --with-mpc=/usr/local/gcc4 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   # LANG=C make bootstrap
+   # make install
+
+   gcc4 4.7.3
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.7.3/gcc-4.7.3.tar.gz
+   # tar zxvf gcc-4.7.3.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc4/lib -R/usr/local/gcc4/lib" \
+   > `pwd`/../gcc-4.7.3/configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-gnu-ld --with-ld=/usr/local/binutils/bin/ld \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4 \
+   > --with-mpc=/usr/local/gcc4 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   # LANG=C make bootstrap
+   # make install
+
+   gcc4 4.8.0
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.8.0/gcc-4.8.0.tar.gz
+   # tar zxvf gcc-4.8.0.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc4/lib -R/usr/local/gcc4/lib" \
+   > `pwd`/../gcc-4.8.0/configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4 \
+   > --with-mpc=/usr/local/gcc4 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   # LANG=C make bootstrap
+   # make install
+
+   gcc4 4.9.3
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.9.2/gcc-4.9.2.tar.gz
+   # tar zxvf gcc-4.9.3.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc4/lib -R/usr/local/gcc4/lib" \
+   > `pwd`/../gcc-4.9.2/configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4 \
+   > --with-mpc=/usr/local/gcc4 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   # LANG=C make bootstrap
+   # make install
+
+5. gcc 5
+
+   ※/usr/local/binutils/bin を PATH から除外しておくこと
+
+   gmp
+   # wget http://ftp.gnu.org/gnu/gmp/gmp-6.1.0.tar.bz2
+   # tar xvf gmp-6.1.0.tar.bz2
+   # cd gmp-6.1.0
+   # ./configure \
+   > --prefix=/usr/local/gcc5 \
+   > --build=i386-sun-solaris2.11
+   # make
+   # make install
+
+   mpfr
+   # wget http://mpfr.loria.fr/mpfr-current/mpfr-3.1.3.tar.xz
+   # tar Jxvf mpfr-3.1.3.tar.xz
+   # cd mpfr-3.1.3
+   # ./configure \
+   > --prefix=/usr/local/gcc5 \
+   > --with-gmp=/usr/local/gcc5
+   # make
+   # make install
+
+   mpc
+   # wget http://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz
+   # tar zxvf mpc-1.0.3.tar.gz
+   # cd mpc-1.0.3
+   # ./configure \
+   > --prefix=/usr/local/gcc5 \
+   > --with-gmp=/usr/local/gcc5 \
+   > --with-mpfr=/usr/local/gcc5
+   # make
+   # make install
+
+   gcc5 5.2.0
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-5.2.0/gcc-5.2.0.tar.gz
+   # tar zxvf gcc-5.2.0.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc5/lib -R/usr/local/gcc5/lib" \
+   > `pwd`/../gcc-5.2.0/configure \
+   > --prefix=/usr/local/gcc5 \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc5 \
+   > --with-mpfr=/usr/local/gcc5 \
+   > --with-mpc=/usr/local/gcc5 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   # LANG=C make bootstrap
+   # make install
+
+

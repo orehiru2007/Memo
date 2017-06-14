@@ -1,0 +1,11 @@
+kamimaedu (Oracle VM + Oracle Solaris 11.3 X86)
+
+1. sl
+
+   # wget http://www.tkl.iis.u-tokyo.ac.jp/~toyoda/sl/sl.tar
+   # tar xf sl.tar
+   # cd sl/ 
+   # make
+   # cp sl /usr/local/bin
+   # nkf -w sl.1 > /usr/local/man/man1/sl.1
+

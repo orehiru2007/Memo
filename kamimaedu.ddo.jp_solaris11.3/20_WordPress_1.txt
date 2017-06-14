@@ -1,0 +1,186 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+MySQL
+
+1. インストール
+
+   cmake 3.5.2
+   # wget https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz
+   # tar xvzf cmake-3.5.2.tar.gz
+   # cd cmake-3.5.2
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   mysql 5.7.15
+   # export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc4/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin
+   # groupadd -g 3306 mysql
+   # useradd -g 3306 -u 3306 -d /usr/local/var mysql
+   # mkdir /tmp/boost
+   # wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz -P /tmp/boost
+   # wget http://download.softagency.net/MySQL/Downloads/MySQL-5.7/mysql-5.7.15.tar.gz
+   # tar zxvf mysql-5.7.15.tar.gz
+   # cd mysql-5.7.15
+   # cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql -DDOWNLOAD_BOOST=1 -DWITH_BOOST=/tmp/boost
+   # make
+   # make install
+   # cp support-files/my-default.cnf /usr/local/etc/my.cnf
+   # cp support-files/mysql.server /etc/init.d/mysqld
+   # mkdir /usr/local/mysql/logs
+
+   # chown -R mysql:mysql /usr/local/mysql
+
+
+2. /usr/local/etc/my.cnf 編集
+
+
+
+
+
+[mysqld]
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/mysql.sock
+
+symbolic-links=0
+
+skip-grant-tables
+
+[mysqld_safe]
+log-error=/usr/local/mysql/logs/mysql.log
+pid-file=/usr/local/mysql/localhost.localdomain.pid
+
+!includedir /etc/my.cnf.d
+
+
+
+
+
+
+2. データベースの初期化と起動
+
+   # chown -R mysql:mysql /usr/local/mysql/
+   # mysqld --initialize  --explicit_defaults_for_timestamp
+
+
+root@kamimaedu[138]/usr/local/mysql# mysqld --initialize  --explicit_defaults_for_timestamp
+2016-09-14T06:49:58.396982Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2016-09-14T06:50:00.109077Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2016-09-14T06:50:00.394042Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: 74e6fb7e-7a47-11e6-86de-a47971cba7e1.
+2016-09-14T06:50:00.560361Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2016-09-14T06:50:00.854221Z 1 [Note] A temporary password is generated for root@localhost: ;1rU3CQ=LXDG
+
+
+
+# /etc/init.d/mysqld start
+Starting MySQL
+./usr/local/mysql/bin/mysqld_safe: syntax error at line 329: `$' unexpected
+ ERROR! The server quit without updating PID file (/usr/local/mysql/data/kamimaedu.ddo.jp.pid).
+
+
+
+
+
+   # /usr/local/mysql/bin/mysql_install_db --user=mysql
+   # /usr/local/mysql/bin/mysqld_safe --user=mysql &
+
+
+/mysqld --no-defaults --log-error-verbosity=3 --initialize-insecure
+
+
+
+mysqld --initialize  --explicit_defaults_for_timestamp
+
+--user=mysql
+
+
+3. 動作確認
+
+   # /usr/local/mysql/bin/mysqladmin version
+   /usr/local/mysql/bin/mysqladmin  Ver 8.42 Distrib 5.5.10, for solaris10 on i386
+   Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+   
+   Oracle is a registered trademark of Oracle Corporation and/or its
+   affiliates. Other names may be trademarks of their respective
+   owners.
+   
+   Server version          5.5.10
+   Protocol version        10
+   Connection              Localhost via UNIX socket
+   UNIX socket             /tmp/mysql.sock
+   Uptime:                 5 sec
+   
+   Threads: 1  Questions: 1  Slow queries: 0  Opens: 33  Flush tables: 1  Open tables: 26  Queries per second avg: 0.200
+
+   # /usr/local/mysql/bin/mysqlshow
+   +--------------------+
+   |     Databases      |
+   +--------------------+
+   | information_schema |
+   | mysql              |
+   | performance_schema |
+   | test               |
+   +--------------------+
+
+   # /usr/local/mysql/bin/mysqlshow mysql
+   Database: mysql
+   +---------------------------+
+   |          Tables           |
+   +---------------------------+
+   | columns_priv              |
+   | db                        |
+   | event                     |
+   | func                      |
+   | general_log               |
+   | help_category             |
+   | help_keyword              |
+   | help_relation             |
+   | help_topic                |
+   | host                      |
+   | ndb_binlog_index          |
+   | plugin                    |
+   | proc                      |
+   | procs_priv                |
+   | proxies_priv              |
+   | servers                   |
+   | slow_log                  |
+   | tables_priv               |
+   | time_zone                 |
+   | time_zone_leap_second     |
+   | time_zone_name            |
+   | time_zone_transition      |
+   | time_zone_transition_type |
+   | user                      |
+   +---------------------------+
+
+   # /usr/local/mysql/bin/mysql -e "select host,db,user from db" mysql
+   +------+---------+------+
+   | host | db      | user |
+   +------+---------+------+
+   | %    | test    |      |
+   | %    | test\_% |      |
+   +------+---------+------+
+
+4. 起動スクリプト
+
+   # chmod 755 /etc/init.d/mysqld
+   # ln /etc/init.d/mysqld /etc/rc0.d/K16mysqld
+   # ln /etc/init.d/mysqld /etc/rc1.d/K16mysqld
+   # ln /etc/init.d/mysqld /etc/rcS.d/K16mysqld
+   # ln /etc/init.d/mysqld /etc/rc2.d/S99mysqld
+
+PHP
+
+1. インストール
+   # tar zxvf php-5.3.2.tar.gz
+   # cd php-5.3.2
+   # ./configure \
+   > --with-apxs2=/usr/local/apache2/bin/apxs  \
+   > --with-mysql=/usr/local/mysql \
+   > --with-zlib-dir=/usr/local \
+   > --enable-mbstring
+   # make
+   # make install
+
+   # cp php.ini-development /usr/local/lib/php.ini
+

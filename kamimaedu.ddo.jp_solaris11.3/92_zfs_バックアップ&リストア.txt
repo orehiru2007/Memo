@@ -1,0 +1,193 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.1 x86)
+
+フルバックアップ & フルリストア
+
+1. 概要
+
+   - フルバックアップ
+     ルートプールのスナップショットを作成し、フルバックアップする
+
+   - フルリストア
+     CD 起動から、ZFS ルートプールを再作成、ルートプールのスナップショットを復元する
+
+2. 構成
+
+   +--------------+                            +--------------+ 
+   |              |                            |              |
+   |   kamimaedu  +-------------LAN------------+   kamimaedu  |
+   |              |                            |              |
+   +--------------+                            +--------------+
+   192.168.1.93                                192.168.1.91
+                                               nfs サーバ (/var/share を共有)
+
+3. ルートプールのスナップショットを作成 → フルバックアップ
+
+   1. 現状確認
+
+      1. format c8t0d0 → p → p
+         partition> p
+         Current partition table (original):
+         Total disk sectors available: 209698749 + 16384 (reserved sectors)
+         
+         Part      Tag    Flag     First Sector         Size         Last Sector
+           0  BIOS_boot    wm               256      256.00MB          524543
+           1        usr    wm            524544       99.74GB          209698782
+           2 unassigned    wm                 0           0               0
+           3 unassigned    wm                 0           0               0
+           4 unassigned    wm                 0           0               0
+           5 unassigned    wm                 0           0               0
+           6 unassigned    wm                 0           0               0
+           8   reserved    wm         209698783        8.00MB          209715166
+
+       2. ZFS 状態
+
+          # zpool status -v
+            pool: rpool
+           state: ONLINE
+            scan: none requested
+          config:
+          
+                  NAME      STATE     READ WRITE CKSUM
+                  rpool     ONLINE       0     0     0
+                    c8t0d0  ONLINE       0     0     0
+          
+          errors: No known data errors
+
+          # zfs list -t all
+          NAME                             USED  AVAIL  REFER  MOUNTPOINT
+          rpool                           24.4G  73.5G  4.58M  /rpool
+          rpool/ROOT                      21.3G  73.5G    31K  legacy
+          rpool/ROOT/solaris              21.3G  73.5G  19.8G  /
+          rpool/ROOT/solaris@install      55.7M      -  1.92G  -
+          rpool/ROOT/solaris/var          1.47G  73.5G  1.43G  /var
+          rpool/ROOT/solaris/var@install  39.2M      -  97.0M  -
+          rpool/VARSHARE                    98K  73.5G    98K  /var/share
+          rpool/dump                      2.06G  73.6G  2.00G  -
+          rpool/export                    8.96M  73.5G    32K  /export
+          rpool/export/home               8.93M  73.5G    33K  /export/home
+          rpool/export/home/nfs             31K  73.5G    31K  /export/home/nfs
+          rpool/export/home/nfs%nfs           -      -      -  /export/home/nfs
+          rpool/export/home/tawatari      8.86M  73.5G  8.86M  /export/home/tawatari
+          rpool/swap                      1.03G  73.6G  1.00G  -
+
+          # zpool get bootfs rpool
+          NAME   PROPERTY  VALUE               SOURCE
+          rpool  bootfs    rpool/ROOT/solaris  local
+
+   2. ルートプールのスナップショットの作成
+
+      # zfs snapshot -r rpool@130909
+
+      # zfs list -t all
+      NAME                                USED  AVAIL  REFER  MOUNTPOINT
+      rpool                              27.4G  70.5G  4.58M  /rpool
+      rpool@130909                           0      -  4.58M  -
+      rpool/ROOT                         21.3G  70.5G    31K  legacy
+      rpool/ROOT@130909                      0      -    31K  -
+      rpool/ROOT/solaris                 21.3G  70.5G  19.8G  /
+      rpool/ROOT/solaris@install         55.7M      -  1.92G  -
+      rpool/ROOT/solaris@130909              0      -  19.8G  -
+      rpool/ROOT/solaris/var             1.47G  70.5G  1.43G  /var
+      rpool/ROOT/solaris/var@install     39.2M      -  97.0M  -
+      rpool/ROOT/solaris/var@130909          0      -  1.43G  -
+      rpool/VARSHARE                       98K  70.5G    98K  /var/share
+      rpool/VARSHARE@130909                  0      -    98K  -
+      rpool/dump                         4.06G  72.6G  2.00G  -
+      rpool/dump@130909                      0      -  2.00G  -
+      rpool/export                       8.96M  70.5G    32K  /export
+      rpool/export@130909                    0      -    32K  -
+      rpool/export/home                  8.93M  70.5G    33K  /export/home
+      rpool/export/home@130909               0      -    33K  -
+      rpool/export/home/nfs                31K  70.5G    31K  /export/home/nfs
+      rpool/export/home/nfs@130909           0      -    31K  -
+      rpool/export/home/nfs%nfs              -      -      -  /export/home/nfs
+      rpool/export/home/tawatari         8.86M  70.5G  8.86M  /export/home/tawatari
+      rpool/export/home/tawatari@130909      0      -  8.86M  -
+      rpool/swap                         2.03G  71.6G  1.00G  -
+      rpool/swap@130909                      0      -  1.00G  -
+
+      # zfs send -Rv rpool@130909 > /var/backup/backup.img
+      ※ /var/backup は kamimaedu の /var/share を NFS マウント
+
+      # zfs destroy -r rpool@120920
+
+4. CD 起動から、ZFS ルートプールを再作成、ルートプールのスナップショットを復元する
+
+   1. Oracle Solaris 11 11/11 x86 から起動
+
+      Installation menu の選択画面から、3. Shell を選択する
+
+   2. パーティション (スライス) の作成
+
+      # format -e
+
+      partition> p
+      Current partition table (original):
+      Total disk cylinders available: 3913 + 2 (reserved cylinders)
+      
+      Part      Tag    Flag     Cylinders        Size            Blocks
+        0       root    wm       1 - 3912       29.97GB    (3912/0/0) 62846280
+        1 unassigned    wm       0               0         (0/0/0)           0
+        2     backup    wu       0 - 3912       29.98GB    (3913/0/0) 62862345
+        3 unassigned    wm       0               0         (0/0/0)           0
+        4 unassigned    wm       0               0         (0/0/0)           0
+        5 unassigned    wm       0               0         (0/0/0)           0
+        6 unassigned    wm       0               0         (0/0/0)           0
+        7 unassigned    wm       0               0         (0/0/0)           0
+        8       boot    wu       0 -    0        7.84MB    (1/0/0)       16065
+        9 unassigned    wm       0               0         (0/0/0)           0
+
+      partition> l (SMI Label を選択すること)
+      partition> q
+      format> q
+
+      微妙にサイズが違うけど、まぁいいでしょう
+
+   3. ZFS ルートプールを再作成
+
+      # zpool create -f -o failmode=continue -R /a -m legacy -o cachefile=/etc/zfs/zpool.cache rpool c3t0d0s0
+
+      ※ -u オプションを使用すると、復元されたアーカイブは zfs receive 処理の完了時にマウントされません
+         良く解らんけど付けておきます
+
+      # zfs list
+      NAME    USED   AVAIL   REFER   MOUNTPOINT
+      rpool  95.5K   29.3G     31K   legacy
+
+      ※ 既存の ZFS プールを読み込む場合は以下のとおり
+      # zpool import rpool
+
+   4. バックアップサーバを NFS マウント
+
+      # netadm enable -p ncp DefaultFixed
+      # ipadm create-ip net0
+      # ipadm create-addr -T static -a 192.168.1.104/24 net0/v4
+      # ping -s 192.168.1.91
+
+      # mkdir /tmp/mnt
+      # mount -F nfs 192.168.1.91:/var/share /tmp/mnt
+      # cd /tmp/mnt
+
+   5. リストア
+
+      # cat chang_backup.img | zfs receive -vF rpool
+
+   6. bootfs の設定
+ 
+      # zpool set bootfs=rpool/ROOT/solaris rpool
+
+      # zpool get bootfs rpool
+      NAME  PROPERY  VALUE               SOURCE
+      tank  bootfs   rpool/ROOT/solaris  local
+
+   7. 起動ブロックのインストール
+
+      # installgrub /boot/grub/stage1 /boot/grub/stage2 /dev/rdsk/c3t0d0s0
+
+bootadm install-bootloader
+
+
+   8. 再起動
+       
+      init 6
+
