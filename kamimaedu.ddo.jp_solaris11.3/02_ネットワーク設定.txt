@@ -81,6 +81,32 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.2 x86)
       --------------------------- --------------------------- ----- --- ------- -----
       ::1                         ::1                         UH      2       0 lo0
 
+
+   5. RIP の停止
+
+      # routeadm -d ipv4-routing -u
+      
+      # routeadm
+                    Configuration   Current              Current
+                           Option   Configuration        System State
+      ---------------------------------------------------------------
+                     IPv4 routing   disabled             disabled
+                     IPv6 routing   disabled             disabled
+                  IPv4 forwarding   enabled              enabled
+                  IPv6 forwarding   disabled             disabled
+      
+                 Routing services   "route:default ripng:default"
+      
+      Routing daemons:
+      
+                            STATE   FMRI
+                         disabled   svc:/network/routing/ripng:default
+                           online   svc:/network/routing/ndp:default
+                         disabled   svc:/network/routing/legacy-routing:ipv4
+                         disabled   svc:/network/routing/legacy-routing:ipv6
+                         disabled   svc:/network/routing/rdisc:default
+                         disabled   svc:/network/routing/route:default
+
 2. ホスト名の設定
    
    Oracle Solaris 11 からは /etc/nodename も削除され、SVC で管理されています

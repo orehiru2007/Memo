@@ -9,3 +9,6 @@ kamimaedu (Oracle VM + Oracle Solaris 11.3 X86)
    # cp sl /usr/local/bin
    # nkf -w sl.1 > /usr/local/man/man1/sl.1
 
+2. ftp
+
+   # svcadm enable network/ftp
