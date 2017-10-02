@@ -1,0 +1,4 @@
+rafter.ddo.jp CentOS release 7.2 (Oracle VirtualBox)
+
+
+1. OpenSSH による二段階認証
