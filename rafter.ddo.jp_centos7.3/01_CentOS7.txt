@@ -772,7 +772,6 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
 
           Storage=auto        ※auto の場合、/var/log/journal が存在すればその配下にログファイルを作成、ない場合 /run/log/journal/ 配下にログファイルを作成
 
-       
        2. /var/log/journal ディレクトリ作成、設定反映
 
           # mkdir -p /var/log/journal
@@ -782,8 +781,11 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
 
        1. /etc/systemd/journald.conf (該当箇所)
 
-          SystemMaxUse=500M   ※/var/log/journal の保存サイズ、例では 500 MB
-          RuntimeMaxUse=500M  ※/run/log/jornal の保存サイズ、例では 500 MB
+          SystemMaxUse=500M   /var/log/journal の容量
+          RuntimeMaxUse=500M  /var/run/log/journa の容量
+
+          保存用ディレクトリーの全容量に対して 10% 以上になるか
+          該当ディレクトリーのファイルシステムの空き容量が 15% 以下になると、古いエントリーから順に削除される
 
        2. 設定反映
 
@@ -802,8 +804,11 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
     4. /etc/systemd/journald.conf
 
        # diff -U0 /etc/systemd/journald.conf{.orig,}
-       --- /etc/systemd/journald.conf.orig     2016-08-19 20:11:00.414415866 +0900
-       +++ /etc/systemd/journald.conf  2016-08-25 13:31:35.110265605 +0900
+       --- /etc/systemd/journald.conf.orig     2017-11-06 18:52:38.330485479 +0900
+       +++ /etc/systemd/journald.conf  2018-01-10 11:31:04.706742494 +0900
+       @@ -15 +15 @@
+       -#Storage=auto
+       +Storage=auto
        @@ -21,2 +21,2 @@
        -#RateLimitBurst=1000
        -#SystemMaxUse=
@@ -811,7 +816,7 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
        +SystemMaxUse=500M
        @@ -25 +25 @@
        -#RuntimeMaxUse=
-       +RuntimeMaxUse=100M
+       +RuntimeMaxUse=500M
 
 18. startx の alises 設定
 
