@@ -88,7 +88,7 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
      <rule priority="299" table="filter" ipv="ipv4" chain="OUTPUT">-j ACCEPT</rule>
      <rule priority="399" table="filter" ipv="ipv4" chain="FORWARD">-j ACCEPT</rule>
      <rule priority="998" table="filter" ipv="ipv4" chain="LOGGING">-i enp0s3 -m limit --limit 10/m -j LOG --log-prefix "[firewalld DROP]:" --log-level 7</rule>
-     <rule priority="999" table="filter" ipv="ipv4" chain="LOGGING">-j DROP</rule>
+     <rule priority="999" table="filter" ipv="ipv4" chain="LOGGING">-j REJECT</rule>
    </direct>
 
 5. iptables コマンド 確認
@@ -231,3 +231,21 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
 
    # ls /usr/lib/firewalld/services/
 
+7. 特定ホストからの通信だけを遮断
+
+   # cat /etc/firewalld/direct.xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <direct>
+     <chain table="filter" ipv="ipv4" chain="LOGGING"/>
+     <rule priority="101" table="filter" ipv="ipv4" chain="INPUT">-i lo -j ACCEPT</rule>
+     <rule priority="102" table="filter" ipv="ipv4" chain="INPUT">-i enp0s8 -j ACCEPT</rule>
+     <rule priority="103" table="filter" ipv="ipv4" chain="INPUT">-i enp0s9 -j ACCEPT</rule>
+     <rule priority="104" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -s 10.51.20.11/32 -p tcp -m multiport --dports 25 -j LOGGING</rule>
+     <rule priority="199" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -j ACCEPT</rule>
+     <rule priority="299" table="filter" ipv="ipv4" chain="OUTPUT">-o -j ACCEPT</rule>
+     <rule priority="399" table="filter" ipv="ipv4" chain="FORWARD"> -j ACCEPT</rule>
+     <rule priority="998" table="filter" ipv="ipv4" chain="LOGGING">-i enp0s3 -j LOG -m limit --limit 1/s --log-prefix "[firewalld DROP]:" --log-level 7</rule>
+     <rule priority="999" table="filter" ipv="ipv4" chain="LOGGING">-j REJECT</rule>
+   </direct>
+
+   10.51.20.11 から、25/tcp を遮断し、それをログに残したい場合

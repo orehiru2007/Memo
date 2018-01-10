@@ -107,6 +107,22 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.2 x86)
                          disabled   svc:/network/routing/rdisc:default
                          disabled   svc:/network/routing/route:default
 
+   6. IPv6 の無効化
+
+      # ifconfig -a6
+      lo0: flags=2002000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv6,VIRTUAL> mtu 8252 index 1
+              inet6 ::1/128
+      net0: flags=120002004841<UP,RUNNING,MULTICAST,DHCP,IPv6,PHYSRUNNING> mtu 1500 index 2
+              inet6 fe80::250:56ff:feba:429e/10
+              ether 0:50:56:ba:42:9e
+      
+      
+      # ifconfig net0 inet6 unplumb
+      # ifconfig lo0 inet6 unplumb
+      # ifconfig -a6
+
+
+
 2. ホスト名の設定
    
    Oracle Solaris 11 からは /etc/nodename も削除され、SVC で管理されています

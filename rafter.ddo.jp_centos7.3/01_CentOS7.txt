@@ -453,27 +453,40 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
 
 10. telnet 設定 (root ログインの許可)
 
-    # yum -y install telnet-server
-    # systemctl enable telnet.socket
-    # systemctl start telnet.socket
+    1. インストール、起動設定
+
+       # yum -y install telnet-server
+       # systemctl enable telnet.socket
+       # systemctl start telnet.socket
  
-    # diff -U1 /etc/securetty{.orig,}
-    --- /etc/securetty.orig 2014-08-25 19:05:29.408989043 +0900
-    +++ /etc/securetty      2014-08-25 19:05:34.529759785 +0900
-    @@ -39 +39,13 @@
-     xvc0
-    +pts/0
-    +pts/1
-    +pts/2
-    +pts/3
-    +pts/4
-    +pts/5
-    +pts/6
-    +pts/7
-    +pts/8
-    +pts/9
-    +pts/10
-    +pts/11
+    2. 起動スクリプトの修正
+
+        diff -U0 /usr/lib/systemd/system/telnet.socket{.orig,}
+       --- /usr/lib/systemd/system/telnet.socket.orig  2017-11-27 15:44:58.819985249 +0900
+       +++ /usr/lib/systemd/system/telnet.socket       2017-11-27 15:46:13.394979943 +0900
+       @@ -6 +6 @@
+       -ListenStream=23
+       +ListenStream=0.0.0.0:23
+
+    3. Root ログインの許可
+
+       # diff -U1 /etc/securetty{.orig,}
+       --- /etc/securetty.orig 2014-08-25 19:05:29.408989043 +0900
+       +++ /etc/securetty      2014-08-25 19:05:34.529759785 +0900
+       @@ -39 +39,13 @@
+        xvc0
+       +pts/0
+       +pts/1
+       +pts/2
+       +pts/3
+       +pts/4
+       +pts/5
+       +pts/6
+       +pts/7
+       +pts/8
+       +pts/9
+       +pts/10
+       +pts/11
  
 11. ランレベルの変更
 
@@ -563,6 +576,79 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
     server ntp.jst.mfeed.ad.jp
     server 127.127.1.0
     fudge 127.127.1.0 stratum 10
+
+15. chrony
+
+    1. 切り戻し (ntpd → chrony)
+    # systemctl disable ntpdate
+    # systemctl stop ntpd
+    # systemctl status ntpd
+
+    # systemctl enable chronyd
+    # systemctl start chronyd
+    # systemctl status chronyd
+
+    2. /etc/chrony.conf
+    server 10.166.1.1 iburst                    ※1
+    stratumweight 0                             ※2
+    driftfile /var/lib/chrony/drift             ※3
+    makestep 10 3                               ※4
+    rtcsync                                     ※5
+    allow 10.0.0.0/8                            ※6
+    bindcmdaddress 127.0.0.1                    ※7
+    local stratum 10                            ※8
+    keyfile /etc/chrony.keys                    ※9
+    commandkey 1                                ※10
+    generatecommandkey                          ※11
+    noclientlog                                 ※12
+    logchange 0.5                               ※13
+    logdir /var/log/chrony                      ※14
+    
+    # Leap second countermeasure
+    leapsecmode slew                            ※15
+    maxslewrate 83333.333                       ※16
+    smoothtime 400 0.001 leaponly               ※17
+    
+    ※1  : NTP サーバの指定、オプション iburst (起動直後に 4 度問合せを行ない、妥当性判断を速やかに行う) を利用する
+    ※2  : NTP サーバの選定基準に Stratum を考慮するか否か
+           NTP クライアントは、パケット内の Root Deley および Root Dispersion から、NTP サーバとの距離 (Distance) の計算を行い、3 台を選定して同期を行う
+           stratumweight を "2" にした場合、chronyc は Stratum が1上がる毎に、Distance 値に 2 を加える操作をし、Distance の近い 3 台を選定する動作となる
+    ※3  : Drift ファイル (ハードウェアクロックのズレの傾向を図り、NTP サーバと通信が不可の状況でもファイルを元に自動で修正するためのファイル) の配置場所
+    ※4  : 最初の 3 回の往復の中で、10 秒以上ズレている場合は、Step モードで一気に修正する、それ以外の場合は Slew モードで緩やかに修正する (今回の設定内では 1/12 秒 づつ)
+    ※5  : ハードウェアクロックと同期する
+    ※6  : NTP クライアントからのアクセスを受け付ける範囲を限定する
+    ※7  : NTP クライアントからのアクセスを受け付ける IP アドレスを指定する
+    ※8  : 上位 NTP サーバから時刻同期できない場合、自信を Stratum 10 とし、NTP クライアントへの時刻提供を行う (デフォルトでは Stratum 16 となるため、NTP クライアントへの時刻提供は不可)
+    ※9  : NTP の認証で使う鍵ファイルを指定する
+    ※10 : chronyc の認証で使用する鍵ファイルの指定
+    ※11 : chronyc の認証で使用する鍵ファイルを自動生成する
+    ※12 : NTP クライアントのアクセスログを記録しない
+    ※13 : 時刻調整時に、ズレが 0.5 秒以上だった場合にsyslog出力を行う設定す。
+    ※14 : ログを配置するディレクトリの指定
+
+    ※15 : leapsecmode (うるう秒モード) 時の動作を Slew とする
+    ※16 : Slew 調整の最大速度 (設定したレートの 100 万分の 1)、デフォルト値の 83333.333 なら、1 秒間で 83333.333/1000000 = 1/12 秒だけ近づいていく
+    ※17 : leapsecmode (うるう秒モード) 時、NTP クライアントに対する時刻提供を平滑化する (詳細不明)
+           NTP クライアント or 1024 秒間隔を使用するクライアントに適した設定 : smoothtime 400 0.001
+           Linux で chronyd を使用するクライアントに適した設定               : smoothtime 50000 0.01
+
+    3. TIPS 
+    # chronyc -n sources -v
+    MS Name/IP address         Stratum Poll Reach LastRx Last sample
+    ===============================================================================
+    ^* 10.166.1.1                    2   6   177     6  -4637ns[+2457ns] +/-   16ms
+
+    M               : 問合せ先の種類、"^" はサーバ、"=" はピア、"#" はローカルのハードウェアクロック
+    S               : 現在の状態、"*" は同期対象として採用中、"+" は同期対象候補、"-" はアルゴリズムにより同期対象から外れているもの
+    Name/IP address : ホスト名、IP アドレス
+    Stratum         : NTP サーバの階層
+    Poll            : 2 を底とする問い合わせ間隔 (秒) の対数 ※言い換えれば 2 を Poll の値で累乗した値が問い合わせ間隔
+    Reach           : 最近 8 回の問い合わせが成功したかどうかを 8 進数で表したもの
+                      同期ができなくなった時の遷移  376 -> 374 -> 370 -> 360 -> 340 -> 300 -> 200 -> 0 (同期ロス)
+                      同期し始めたときの遷移        1 -> 3 -> 7 -> 17 -> 37 -> 77 -> 177 -> 377 (全部同期している)
+    LastRx          : 前回問い合わせからの経過時間 (単位 秒)
+    Last sample     : 前回測定時の時刻のずれ、[ ] 内は slew 調整分を除いたもの、+/- 以降は測定誤差マージン
+
 
 16. logwatch
 
@@ -780,3 +866,99 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
           2. tuned.conf の編集
           # cat /usr/lib/tuned/virtual-guest/tuned.conf | egrep vm.swappiness
           vm.swappiness = 10
+
+20. NFS クライアント
+
+    1. インストール
+
+       # yum -y install nfs-utils
+
+    2. /etc/idmapd.conf 編集
+
+       # diff -U1 /etc/idmapd.conf{.orig,}
+       --- /etc/idmapd.conf.orig       2015-01-30 15:32:47.093891775 +0900
+       +++ /etc/idmapd.conf    2015-01-30 15:33:10.506140628 +0900
+       @@ -4,3 +4,3 @@
+        # The default is the host's DNS domain name.
+       -#Domain = local.domain.edu
+       +Domain = ibiden.com
+
+    3. rpc-statd.service の編集
+
+       # diff -U0 /usr/lib/systemd/system/rpcbind.socket.orig /usr/lib/systemd/system/rpcbind.socket
+       --- /usr/lib/systemd/system/rpcbind.socket.orig 2017-10-10 11:54:37.042991703 +0900
+       +++ /usr/lib/systemd/system/rpcbind.socket      2017-10-10 11:54:32.289991746 +0900
+       @@ -6 +6 @@
+       -ListenStream=[::]:111
+       +#ListenStream=[::]:111
+
+    4. 必要サービスの起動
+
+       # systemctl status rpcbind
+
+       # systemctl restart rpcbind
+       # systemctl start nfs-idmap
+       # systemctl start nfs-mountd
+ 
+    5. 自動起動
+ 
+       # systemctl enable rpcbind
+       # systemctl enable rpcbind.socket
+
+21. rsyslog
+
+    # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
+    $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+    $ModLoad imjournal # provides access to the systemd journal
+    $imjournalRatelimitInterval 0
+    $ModLoad imudp
+    $UDPServerRun 514
+    $ModLoad imtcp
+    $InputTCPServerRun 514
+    $WorkDirectory /var/lib/rsyslog
+    $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+    $IncludeConfig /etc/rsyslog.d/*.conf
+    $OmitLocalLogging on
+    $IMJournalStateFile imjournal.state
+    mail.*                                                  -/var/log/maillog
+    & stop
+    local3.*                                                -/var/log/dovecot.log
+    & stop
+    local4.*                                                -/var/log/dovecot_deliver.log
+    & stop
+    cron.*                                                  /var/log/cron
+    & stop
+    local7.*                                                /var/log/boot.log
+    & stop
+    authpriv.*                                              -/var/log/secure
+    & stop
+    uucp,news.crit                                          /var/log/spooler
+    & stop
+    :msg,contains,"firewalld DROP"                           -/var/log/iptables.log
+    & stop
+    :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
+    & stop
+
+22. xrdp
+
+    1. EPEL 確認
+
+       # rpm -qa | grep epel
+       epel-release-7-5.noarch
+
+    2. /etc/yum.repos.d/xrdp.repo 作成
+
+       # cat /etc/yum.repos.d/xrdp.repo
+       [xrdp]
+       name=xrdp
+       baseurl=http://li.nux.ro/download/nux/dextop/el7/x86_64/
+       enabled=1
+       gpgcheck=0
+
+    3. インストール、起動
+
+       # yum -y install xrdp tigervnc-server
+
+       # systemctl start xrdp.service
+       # systemctl enable xrdp.service
+

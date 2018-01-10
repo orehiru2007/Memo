@@ -315,7 +315,7 @@ TLS サーバ証明書 SHA-2 署名
                countryName               = JP
                stateOrProvinceName       = Gifu
                organizationName          = TAK
-               organizationalUnitName    = twork
+               organizationalUnitName    = network
                commonName                = kamimaedu.ddo.jp
            X509v3 extensions:
                X509v3 Basic Constraints:
