@@ -649,7 +649,6 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
     LastRx          : 前回問い合わせからの経過時間 (単位 秒)
     Last sample     : 前回測定時の時刻のずれ、[ ] 内は slew 調整分を除いたもの、+/- 以降は測定誤差マージン
 
-
 16. logwatch
 
     1. インストール
