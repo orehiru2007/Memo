@@ -1,4 +1,4 @@
-rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
+rafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
 
 Dovecot
 
@@ -7,10 +7,12 @@ Dovecot
    # yum install -y dovecot
 
    # rpm -qa | grep dovecot
-   dovecot-2.2.10-4.el7_0.1.x86_64
+   dovecot-2.2.10-8.el7.x86_64
 
-   # chkconfig --list | grep dovecot
-   dovecot         0:off   1:off   2:on    3:on    4:on    5:on    6:off
+   # systemctl enable dovecot
+   # systemctl list-unit-files | egrep dovecot
+   dovecot.service                               enabled
+   dovecot.socket                                disabled
 
 2. /etc/dovecot/dovecot.conf
 

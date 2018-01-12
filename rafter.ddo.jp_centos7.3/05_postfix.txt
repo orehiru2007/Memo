@@ -1,421 +1,208 @@
-rafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
+rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
 
+Postfix & TIPS
 
+1. Postfix インストール
 
-Postfix 3 系 (コンパイルインストール)
+   1. rpmbuild 用アカウント作成
 
-1. 既存 Postfix の削除
+      # adduser masuda
+      # passwd masuda
    
-   # yum remove postfix
+   2. デフォルト Postfix のアンインストール / 必要パッケージのインストール
 
-2. 必要パッケージのインストール
-
-   # yum install -y kernel-devel gcc
-   # yum install -y cyrus-sasl-devel libdb-devel mysql-devel openldap-devel openssl-devel \
-   > pcre-devel pkgconfig rpm-libs systemd-units zlib-devel libicu-devel postgresql-devel mysql++-devel.x86_64 patch
-
-3. 実行ユーザ、グループの確認
-
-   # cat /etc/group | egrep "(^postfix|^postdrop)"
-   postdrop:x:90:
-   postfix:x:89:
-
-   # cat /etc/group | egrep ^postfix
-   postfix:x:89:
-
-4. インストール
-
-   # cat postfix-3.2.3-sleep.patch
-   diff -uprN postfix-3.2.3.orig/src/smtpd/smtpd_check.c postfix-3.2.3/src/smtpd/smtpd_check.c
-   --- postfix-3.2.3.orig/src/smtpd/smtpd_check.c  2017-06-01 06:29:46.000000000 +0900
-   +++ postfix-3.2.3/src/smtpd/smtpd_check.c       2017-10-10 17:28:43.023349961 +0900
-   @@ -216,6 +216,7 @@
-    #include <valid_utf8_hostname.h>
-    #include <midna_domain.h>
-    #include <mynetworks.h>
-   +#include <iostuff.h>
+      # rpm -e --nodeps postfix
+      # yum -y install kernel-devel rpm-build redhat-rpm-config
+      # yum -y install db4-devel openldap-devel zlib-devel 
+      # yum -y install mysql mysql-devel cyrus-sasl-devel openssl-devel libdb-devel ed 
    
-    /* DNS library. */
+   3. rpmbuild 環境の準備
+
+      # su - masuda
+      $ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+      $ echo '%_topdir %{getenv:HOME}/rpmbuild' > ~/.rpmmacros
+
+   4. src.rpm のインストール
+
+      $ cd ~/rpmbuild/SRPMS
+      $ wget http://vault.centos.org/7.2.1511/os/Source/SPackages/postfix-2.10.1-6.el7.src.rpm
+      $ rpm -ivh postfix-2.10.1-6.el7.src.rpm
    
-   @@ -4066,6 +4067,7 @@ static int generic_checks(SMTPD_STATE *s
-        ARGV   *list;
-        int     found;
-        int     saved_recursion = state->recursion++;
-   +    VSTRING *buf;
+   5. vda 用パッチの適用
+
+      $ cd ~/rpmbuild/SOURCES/
+      #$ mv postfix-2.5.4-vda-ng.patch.gz postfix-2.5.4-vda-ng.patch.gz.bak
+      $ wget http://vda.sourceforge.net/VDA/postfix-vda-v13-2.10.0.patch
+      $ mv postfix-vda-v13-2.10.0.patch postfix-2.5.4-vda-ng.patch
+      $ gzip postfix-2.5.4-vda-ng.patch
    
-        if (msg_verbose)
-           msg_info(">>> START %s RESTRICTIONS <<<", reply_class);
-   @@ -4154,8 +4156,35 @@ static int generic_checks(SMTPD_STATE *s
-               if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
-                   msg_warn("restriction %s must be followed by number", SLEEP);
-                   reject_server_error(state);
-   -           } else
-   -               sleep(atoi(*++cpp));
-   +            } else {
-   +                /* sleep(atoi(*++cpp)); */
-   +                int sleep_time = atoi(*++cpp);
-   +                int i;
-   +                for ( i = 0; i < sleep_time; i++ ) {
-   +                             /* sleep( 1 ); */
-   +                             if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
-   +                             int ch = VSTREAM_GETC(state->client);
-   +                             if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost connection */
-   +                                 vstream_ungetc(state->client, ch);
-   +                                 buf = vstring_alloc(100);
-   +                                 vstring_sprintf(buf, "lost connection after %d sec", i);
-   +                                 log_whatsup(state, "sleep", STR(buf));
-   +                                 vstring_free(buf);
-   +                                 status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
-   +                                 break;
-   +                             }
-   +                             else { /* pipelining */
-   +                                 vstream_ungetc(state->client, ch);
-   +                                 buf = vstring_alloc(100);
-   +                                 vstring_sprintf(buf, "pipelining after %d sec", i);
-   +                                 log_whatsup(state, "sleep", STR(buf));
-   +                                 vstring_free(buf);
-   +                                 sleep( sleep_time - i );
-   +                                 break;
-   +                                 }
-   +                             }
-   +                }
-   +            }
-           } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
-               status = reject_plaintext_session(state);
-           }
+   6. sleep patch の適用
 
-   # wget http://mirror.postfix.jp/postfix-release/official/postfix-3.2.4.tar.gz
-   # tar zxvf postfix-3.2.4.tar.gz
-   # cd postfix-3.2.4
-   # patch -p1 <../postfix-3.2.4-sleep.patch
-   # make -f Makefile.init makefiles shared=yes dynamicmaps=yes shlib_directory=/usr/lib/postfix \
-   > CCARGS='-fPIC \
-   > -DHAS_LDAP \
-   > -DHAS_PCRE \
-   > -DHAS_MYSQL \
-   > -DUSE_SASL_AUTH \
-   > -DUSE_CYRUS_SASL \
-   > -DDEF_SERVER_SASL_TYPE=\"dovecot\" \
-   > -DUSE_TLS \
-   > -I/usr/include -I/usr/include/mysql -I/usr/include/sasl' \
-   > AUXLIBS="-L/usr/lib64 -L/lib64 -lldap -lpcre -llber -lssl -lcrypto -lsasl2 -Wl,-z,now -Wl,-z,relro,-z,noexecstack" \
-   > AUXLIBS_MYSQL="-L/usr/lib64/mysql/ -lmysqlclient -lz -lm"
-   # make
+      $ tar zxvf postfix-2.10.1.tar.gz
+      $ cd postfix-2.10.1
+      $ wget http://k2net.hakuba.jp/pub/postfix-2.9-sleep.patch
+      $ patch -p0 < postfix-2.9-sleep.patch
+      $ cd ..
+      $ rm -rf postfix-2.10.1.tar.gz
+      $ tar czvf postfix-2.10.1.tar.gz postfix-2.10.1
+  
+  7. rpmbuild 
 
-   # make install
-   install_root: [/]
-   tempdir: [/usr/local/src/postfix/postfix-3.2.4]
-   config_directory: [/etc/postfix]
-   command_directory: [/usr/sbin]
-   daemon_directory: [/usr/libexec/postfix]
-   data_directory: [/var/lib/postfix]
-   html_directory: [no]
-   mail_owner: [postfix]
-   mailq_path: [/usr/bin/mailq]
-   manpage_directory: [/usr/local/man]
-   newaliases_path: [/usr/bin/newaliases]
-   queue_directory: [/var/spool/postfix]
-   readme_directory: [no]
-   sendmail_path: [/usr/sbin/sendmail]
-   setgid_group: [postdrop]
-   shlib_directory: [/usr/lib/postfix]
-   meta_directory: [/etc/postfix]
+      $ cd
+      $ export POSTFIX_MYSQL_REDHAT=1
+      $ export POSTFIX_VDA=1
+      $ export POSTFIX_TLS=1
+      $ export POSTFIX_SASL=2
+      $ export POSTFIX_LDAP=1
+      $ sh ~/rpmbuild/SOURCES/make-postfix.spec
+      $ rpmbuild -bb ~/rpmbuild/SPECS/postfix.spec
 
-6. サービス登録
+      $ exit
 
-   1. /usr/lib/systemd/system/postfix.service
-   [Unit]
-   Description=Postfix Mail Transport Agent
-   After=syslog.target network.target
-   Conflicts=sendmail.service exim.service
+   8. インストール
+
+      # rpm -Uvh /home/masuda/rpmbuild/RPMS/x86_64/postfix-2.10.1-6.el7.centos.x86_64.rpm
+      # systemctl enable postfix
+      # systemctl start postfix
+
+2. ログ設定
+
+   1. cronie-noanacron のインストール
+
+      # yum -y install cronie-noanacron
    
-   [Service]
-   Type=forking
-   PIDFile=/var/spool/postfix/pid/master.pid
-   EnvironmentFile=-/etc/sysconfig/network
-   ExecStartPre=-/usr/libexec/postfix/aliasesdb
-   ExecStartPre=-/usr/libexec/postfix/chroot-update
-   ExecStart=/usr/sbin/postfix start
-   ExecReload=/usr/sbin/postfix reload
-   ExecStop=/usr/sbin/postfix stop
+   2. cronie-anacronのアンインストール (インストールされている場合)
+
+      # yum -y remove cronie-anacron
+
+   3. /etc/cron.d/dailyjobs
+
+      # Run the daily, weekly, and monthly jobs if cronie-anacron is not installed
+      SHELL=/bin/bash
+      PATH=/sbin:/bin:/usr/sbin:/usr/bin
+      MAILTO=root
+      
+      # run-parts
+      50 23 * * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.daily
+      01 0 * * 0 root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.weekly
+      01 0 1 * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.monthly
    
-   [Install]
-   WantedBy=multi-user.target
+   4. /etc/logrotate.conf
 
-   2. 登録
-   # systemctl enable postfix
+      # diff -U1 /etc/logrotate.conf{.orig,}
+      --- /etc/logrotate.conf.orig    2014-03-27 10:47:33.443601717 +0900
+      +++ /etc/logrotate.conf 2014-03-27 10:47:28.330587917 +0900
+      @@ -11,3 +11,3 @@
+       # use date as a suffix of the rotated file
+      -dateext
+      +nodateext
 
-SPF-Python
+   5. /etc/rsyslog.conf
 
-1. python DNS
+      # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
+      $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+      $ModLoad imjournal # provides access to the systemd journal
+      $imjournalRatelimitInterval 0
+      $ModLoad imudp
+      $UDPServerRun 514
+      $ModLoad imtcp
+      $InputTCPServerRun 514
+      $WorkDirectory /var/lib/rsyslog
+      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+      $IncludeConfig /etc/rsyslog.d/*.conf
+      $OmitLocalLogging on
+      $IMJournalStateFile imjournal.state
+      mail.*                                                  -/var/log/maillog
+      &~
+      local3.*                                                -/var/log/dovecot.log
+      &~
+      local4.*                                                -/var/log/dovecot_deliver.log
+      &~
+      local5.*                                                -/var/log/maillog_deux
+      &~
+      local6.*                                                -/var/log/maillog_trois
+      &~
+      cron.*                                                  /var/log/cron
+      &~
+      local7.*                                                /var/log/boot.log
+      &~
+      authpriv.*                                              -/var/log/secure
+      &~
+      uucp,news.crit                                          /var/log/spooler
+      &~
+      :msg,contains,"iptables DROP"                           -/var/log/iptables.log
+      &~
+      :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
+      &~
 
-   # wget http://pypi.python.org/packages/source/p/pydns/pydns-2.3.6.tar.gz
-   # tar zxvf pydns-2.3.6.tar.gz
-   # cd pydns-2.3.6
-   # python setup.py install
+   6. /etc/logrotate.d/syslog (重要箇所のみ)
+      
+      /var/log/maillog
+      /var/log/maillog_deux
+      /var/log/messages
+      {
+          daily
+          rotate 180
+          sharedscripts
+          postrotate
+              /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+          endscript
+      }
 
-2. python pyspf
+3. Postfix + Dovecot (SMTP-Auth) +  TLS
 
-   # tar zxvf pyspf-2.0.12t.tar.gz
-   # cd pyspf-2.0.12
-   # python setup.py install
+   1. /etc/postfix/master.cf (重要箇所のみ抜粋)
 
-3. python pypolicyd-spf
+      # diff -u /etc/postfix/master.cf{.orig,}
+      --- /etc/postfix/master.cf.orig 2013-08-20 22:36:59.372187580 +0900
+      +++ /etc/postfix/master.cf      2013-08-27 21:35:31.524259733 +0900
+      @@ -125,3 +125,5 @@
+       #mailman   unix  -       n       n       -       -       pipe
+       #  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
+       #  ${nexthop} ${user}
+      +dovecot    unix  -       n       n       -       -       pipe
+      +   flags=DRhu user=dovecot:dovecot argv=/usr/libexec/dovecot/dovecot-lda -d ${recipient}
 
-   # wget https://launchpad.net/pypolicyd-spf/1.3/1.3.2/+download/pypolicyd-spf-1.3.2.tar.gz
-   # tar xfz pypolicyd-spf-1.3.2.tar.gz
-   # cd pypolicyd-spf-1.3.2
-   # python setup.py install
-   # mv /etc/python-policyd-spf/policyd-spf.conf /etc/python-policyd-spf/policyd-spf.conf.orig
-   # cp ./policyd-spf.conf.commented /etc/python-policyd-spf/policyd-spf.conf
+   2. /etc/postfix/main.cf (重要箇所のみ)
 
-4. /etc/python-policyd-spf/policyd-spf.conf
+      ## SMTP Auth Dovecot
+      smtpd_tls_auth_only = yes
+      broken_sasl_auth_clients = yes
+      smtpd_sasl_auth_enable = yes
+      smtpd_sasl_authenticated_header = no
+      smtpd_sasl_security_options = noanonymous
+      smtpd_sasl_type = dovecot
+      smtpd_sasl_path = private/auth
+      smtpd_sasl_local_domain = $myhostname
 
-   # egrep -v "(^#|^$)" /etc/python-policyd-spf/policyd-spf.conf
-   debugLevel = 1
-   defaultSeedOnly = 1
-   HELO_reject = Fail
-   Mail_From_reject = Fail
-   PermError_reject = False
-   TempError_Defer = False
-   skip_addresses = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
-
-5. /etc/postfix/master.cf
-
-   policy-spf  unix  -       n       n       -       0       spawn
-      user=nobody argv=/usr/bin/python /usr/bin/policyd-spf /etc/python-policyd-spf/policyd-spf.conf
-
-6. /etc/postfix/main.cf
-
-   smtpd_client_restrictions =
-            permit_sasl_authenticated,
-            permit_mynetworks,
-            check_policy_service unix:private/policy-spf,
-            check_client_access hash:/etc/postfix/smtpd_client_restrictions_access,
-             permit
-   policy-spf_time_limit = 3600s
-
-S25R + Postgrey
-
-1. 必要パッケージのインストール
-
-   # yum install -y perl-CPAN.noarch perl-BerkeleyDB perl-IO-stringy perl-IO-Compress perl-Net-DNS perl-Net-Server perl-Parse-Syslog perl-IO-Multiplex
-   ※CentSO 7 では、Parse::Syslog が RPM で提供されていない様子、Parse::Syslog  は RHEL6 用を流用
-
-2. src.rpm のインストール
-
-   # su - masuda
-   $ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-   $ echo '%_topdir %{getenv:HOME}/rpmbuild' > ~/.rpmmacrosexit
-   $ cd ~/rpmbuild/SRPMS/
-   $ wget http://dl.fedoraproject.org/pub/epel/7/SRPMS/p/postgrey-1.34-12.el7.src.rpm
-   $ rpm -Uvh postgrey-1.34-12.el7.src.rpm
-
-3. tarpit 用パッチの適用
-
-   $ cd ../SOURCES/
-   $ tar zxvf postgrey-1.34.tar.gz 
-   $ cd postgrey-1.34
-   $ wget http://k2net.hakuba.jp/pub/targrey-0.31-postgrey-1.34.patch
-   $ patch -p0 < targrey-0.31-postgrey-1.34.patch 
-   $ cd ..
-   $ rm -rf postgrey-1.34.tar.gz 
-   $ tar czvf postgrey-1.34.tar.gz postgrey-1.34
-
-4. rpmbuild
-
-   $ rpmbuild -bb ~/rpmbuild/SPECS/postgrey.spec
-   $ exit
-
-5. インストール
-
-   # rpm -Uvh --nodeps /home/masuda/rpmbuild/RPMS/noarch/postgrey-1.34-1.el7.centos.noarch.rpm
-   # systemctl enable postgrey
-   # systemctl start postgrey
-
-6. /etc/sysconfig/postgrey
-
-   POSTGREY_OPTS="--inet=127.0.0.1:60000 --tarpit=125 --targrey --retry-count=3 --delay=3600 --max-age=30"
-
-7. 設定ファイル配置
-
-   # wget http://k2net.hakuba.jp/spam/postfix.conf.2.tar.gz
-   # tar zxvf postfix.conf.2.tar.gz
-   # cp postfix.conf.2/* /etc/postfix/
-
-Postfix の設定
-
-1. /etc/postfix/master.cf
-
-   submission inet n       -       n       -       -       smtpd
-     -o syslog_name=postfix/submission                                  : syslog レコードのプロセス名の前に付けられるメールシステムの名前 / submission
-     -o smtpd_tls_security_level=encrypt                                : SMTP TLS セキュリティレベル / encrypt (TLS 暗号化強制)
-     -o smtpd_sasl_auth_enable=yes                                      : SASL 認証 / yes (有効)
-     -o smtpd_reject_unlisted_recipient=yes                             : 不明な送信先アドレスへの配送拒否 / yes (拒否する)
-   #  -o smtpd_client_restrictions=$mua_client_restrictions             : 詳細不明
-   #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : 詳細不明
-   #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : 詳細不明
-     -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO コマンドに適用されるアクセス制限 / permit_sasl_authenticated,reject
-   #  -o milter_macro_daemon_name=ORIGINATING                           : 詳細不明 (Postfix 2.3 から Milter が利用可能のため、その関連)
-   smtps     inet  n       -       n       -       -       smtpd
-     -o syslog_name=postfix/smtps                                       : syslog レコードのプロセス名の前に付けられるメールシステムの名前 / smtps
-     -o smtpd_tls_wrappermode=yes                                       : サーバが常に TLS を使う、非標準 "ラッパー" モードの指定 / yes (有効)
-     -o smtpd_sasl_auth_enable=yes                                      : SASL 認証 / yes (有効)
-     -o smtpd_reject_unlisted_recipient=yes                             : 不明な送信先アドレスへの配送拒否 / yes (拒否する)
-   #  -o smtpd_client_restrictions=$mua_client_restrictions             : 詳細不明
-   #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : 詳細不明
-   #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : 詳細不明
-     -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO コマンドに適用されるアクセス制限 / permit_sasl_authenticated,reject
-   # -o milter_macro_daemon_name=ORIGINATING                            : 詳細不明 (Postfix 2.3 から Milter が利用可能のため、その関連)
-
-2. /etc/postfix/main.cf (spam 対策に重要な部分のみ抜粋)
-
-   ## Anti spam
-   disable_vrfy_command = yes
-   
-   smtpd_client_restrictions =
-           permit_sasl_authenticated,
-           permit_mynetworks,
-           check_policy_service unix:private/policy-spf,
-           check_client_access hash:/etc/postfix/smtpd_client_restrictions_access,
-           permit
-   
-   smtpd_helo_required = yes
-   smtpd_helo_restrictions =
-           permit_sasl_authenticated,
-           permit_mynetworks,
-           check_client_access hash:/etc/postfix/smtpd_helo_restrictions_access,
-           reject_invalid_hostname,
-           #reject_non_fqdn_hostname,
-           #reject_rbl_client all.rbl.jp,
-           permit
-   
-   smtpd_sender_restrictions =
-           permit_sasl_authenticated,
-           permit_mynetworks,
-           check_sender_access hash:/etc/postfix/smtpd_sender_restrictions_access,
-           reject_non_fqdn_sender,
-           reject_unknown_sender_domain,
-           permit
-   
-   smtpd_relay_restrictions =
-           permit_sasl_authenticated,
-           permit_mynetworks,
-           defer_unauth_destination,
-           permit
-   
-   smtpd_recipient_restrictions =
-           permit_sasl_authenticated,
-           permit_mynetworks,
-           reject_unauth_destination,
-           reject_unknown_recipient_domain,
-           #reject_unverified_recipient,
-           check_recipient_access hash:/etc/postfix/whitelist_recipient,
-           check_client_access hash:/etc/postfix/whitelist_client,
-           check_client_access regexp:/etc/postfix/permit_client_nots25r,
-           #check_policy_service unix:private/policy-spf,
-           check_policy_service inet:60000,
-           permit
-   
-   #address_verify_sender = recipient_verify
-   #address_verify_transport_maps = hash:/etc/postfix/verify_transport
-   #address_verify_poll_count = 3
-   #address_verify_poll_delay = 3s
-   #address_verify_map =
-   
-   smtpd_data_restrictions=
-           permit_sasl_authenticated,
-           permit_mynetworks,
-           check_recipient_access hash:/etc/postfix/whitelist_recipient,
-           check_client_access hash:/etc/postfix/whitelist_client,
-           check_client_access regexp:/etc/postfix/permit_client_nots25r,
-           check_policy_service inet:60000,
-           permit
-   
-   ## Limit
-   unknown_address_reject_code = 550
-   unverified_recipient_reject_code = 550
-   unknown_local_recipient_reject_code = 550
-   # 1024 X 1024 X 15 X 1.33 = 20919091
-   mailbox_size_limit = 51200000
-   message_size_limit = 51200000
-   anvil_rate_time_unit = 60s
-   default_process_limit = 300
-   smtpd_recipient_limit = 300
-   smtpd_client_connection_count_limit = 50
-   smtpd_client_message_rate_limit = 120
-   smtpd_client_recipient_rate_limit = 0
-   smtpd_client_connection_rate_limit = 0
-   smtpd_client_event_limit_exceptions = $mynetworks
-   policy-spf_time_limit = 3600s
-
-
-   パラメータ                                                              | 説明
-   ------------------------------------------------------------------------+---------------------------------
-    smtpd_recipient_restrictions =                                         | RCPT TO コマンドの場面で適用する、アクセス制限
-            permit_sasl_authenticated,                                     |    SMTP-Auth にて認証されている場合 許可
-            permit_mynetworks,                                             |    自身のネットワークからの接続の場合 許可
-            reject_unauth_destination,                                     |    転送許可するアドレス、仮想アドレスにマッチしない場合 拒否
-            reject_unknown_recipient_domain,                               |    RCPT TO アドレスに DNS A または MX レコードがなく、アドレスが自身宛でない場合 拒否
-            # reject_unverified_recipient,                                 |    # 内部メールサーバにアドレスの存在確認を行い、ない場合 拒否
-            check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    送信先アドレスの WhiteList のデータベースの検索し、対応する動作を実行する
-            check_client_access hash:/etc/postfix/whitelist_client,        |    接続元アドレスの WhiteList のデータベースの検索し、対応する動作を実行する
-            check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R のデータベースの検索し、対応する動作を実行する
-            check_policy_service inet:60000,                               |    S25R のデータベースを検査し、動作 WARN となったものを tarGrey に渡す
-            permit                                                         |    許可 (クリーンナップルール)
-    smtpd_data_restrictions=                                               | SMTP DATA コマンドの場面で適用する、アクセス制限
-            permit_sasl_authenticated,                                     |    SMTP-Auth にて認証されている場合 許可
-            permit_mynetworks,                                             |    自身のネットワークからの接続の場合 許可
-            check_recipient_access hash:/etc/postfix/whitelist_recipient,  |    送信先アドレスの WhiteList のデータベースの検索し、対応する動作を実行する
-            check_client_access hash:/etc/postfix/whitelist_client,        |    接続元アドレスの WhiteList のデータベースの検索し、対応する動作を実行する
-            check_client_access regexp:/etc/postfix/permit_client_nots25r, |    S25R のデータベースの検索し、対応する動作を実行する
-            check_policy_service inet:60000,                               |    S25R のデータベースを検査し、動作 WARN となったものを tarGrey に渡す
-            permit                                                         |    許可 (クリーンナップルール)
-
-3. S25 + tarGrey 動作説明
-
-   1. /etc/sysconfig/postgrey (taRgrey の起動オプション)
-
-      POSTGREY_OPTS="--inet=127.0.0.1:60000 --tarpit=125 --targrey --retry-count=3 --delay=3600 --max-age=30"
-
-      --tarpit         : 遅延待機時間の要求 125秒
-      --targrey        : targrey モード
-      --delay=3600     : グレイリストの保持期間 3600秒間は保持し、3600秒後に規定に再送回数を満たせば自動ホワイトリストに追加する
-      --retry-count=2  : グレイリストの保持期間 3600秒間を経過した後、要求する再送回数 3 回
-      --max-age=30     : 自動ホワイトリストの保持期間 30日
- 
-   2. taRgrey の利用するデータベース (/var/spool/postfix/postgrey 配下)
-
-      postgrey_clients.db : 自動ホワイトリスト
-      tarpit_clients.db   : tarpitting グレイリスト
-      postgrey.db         : 送信状況を管理
-
-   3. taRgrey の仕組み
-
-      smtpd_recipient_restrictions での一度目の check_policy_service で tarpitting を仕掛け、一旦、tarpit_clients.db (tarpitting グレイリスト) に登録される
-      tarpitting を抜けた接続は smtpd_data_restrictions まで渡ってくるため、再度 check_policy_service で呼び出し、tarpitting のグレイリストから該当の IP を削除する
-
-      tarpitting を抜けれなかった接続は tarpit_clients.db (tarpitting ブラックリスト) に登録されたままとなり、次回 接続時には smtpd_recipient_restrictions で greylisting の処理に回る
-
-   4. 自動 Whitelist (postgrey_clients.db) の仕組み
-
-      # db_dump -p postgrey.db
-      VERSION=3
-      format=print
-      type=btree
-      db_pagesize=4096
-      HEADER=END
-       192.168.1.0/root@kamimaedu.ddo.jp/tak@ibidensangyo.co.jp  ※1
-       1359620946,1359621979,2,91                                ※2
-      DATA=END
-
-      ※1 送信元メールサーバ IP アドレス / 送信元アドレス / 送信先アドレス
-      ※2 再送に受信した時間 (UNIX time) / 最後に受信した時間 (UNIX time) / リトライ回数 / 送信元メールサーバ IP アドレスの第四オクテット
-
-      再送に受信した時間 (UNIX time) が 最後に受信した時間 (UNIX time) 3600秒以上経過していること、かつ リトライ回数が 3 回以上であれば
-      postgrey_clients.db (自動ホワイトリスト) へ登録を行う ※30日を経過した場合 削除される
+      ## Dovecot LDA
+      #mailbox_command = /usr/libexec/dovecot/dovecot-lda
+      #dovecot_destination_concurrency_limit = 1
 
 4. TIPS
+
+   1. /etc/postfix/master.cf
+
+      submission inet n       -       n       -       -       smtpd
+        -o syslog_name=postfix/submission                                  : syslog レコードのプロセス名の前に付けられるメールシステムの名前 / submission
+        -o smtpd_tls_security_level=encrypt                                : SMTP TLS セキュリティレベル / encrypt (TLS 暗号化強制)
+        -o smtpd_sasl_auth_enable=yes                                      : SASL 認証 / yes (有効)
+        -o smtpd_reject_unlisted_recipient=yes                             : 不明な送信先アドレスへの配送拒否 / yes (拒否する)
+      #  -o smtpd_client_restrictions=$mua_client_restrictions             : 詳細不明
+      #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : 詳細不明
+      #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : 詳細不明
+        -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO コマンドに適用されるアクセス制限 / permit_sasl_authenticated,reject
+      #  -o milter_macro_daemon_name=ORIGINATING                           : 詳細不明 (Postfix 2.3 から Milter が利用可能のため、その関連)
+      smtps     inet  n       -       n       -       -       smtpd
+        -o syslog_name=postfix/smtps                                       : syslog レコードのプロセス名の前に付けられるメールシステムの名前 / smtps
+        -o smtpd_tls_wrappermode=yes                                       : サーバが常に TLS を使う、非標準 "ラッパー" モードの指定 / yes (有効)
+        -o smtpd_sasl_auth_enable=yes                                      : SASL 認証 / yes (有効)
+        -o smtpd_reject_unlisted_recipient=yes                             : 不明な送信先アドレスへの配送拒否 / yes (拒否する)
+      #  -o smtpd_client_restrictions=$mua_client_restrictions             : 詳細不明
+      #  -o smtpd_helo_restrictions=$mua_helo_restrictions                 : 詳細不明
+      #  -o smtpd_sender_restrictions=$mua_sender_restrictions             : 詳細不明
+        -o smtpd_recipient_restrictions=permit_sasl_authenticated,reject   : RCPT TO コマンドに適用されるアクセス制限 / permit_sasl_authenticated,reject
+      # -o milter_macro_daemon_name=ORIGINATING                            : 詳細不明 (Postfix 2.3 から Milter が利用可能のため、その関連)
 
    2. Postfix リソースチューニング
 

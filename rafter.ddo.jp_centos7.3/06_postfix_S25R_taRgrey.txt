@@ -64,8 +64,8 @@ S25R + taRgrey
 
    6. 起動スクリプト修正
 
-      # cat /etc/init.d/postgrey (追記箇所のみ)
-      OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --delay=300 --retry-count=2 --max-age=30"
+      # cat /etc/sysconfig/postgrey
+      POSTGREY_OPTS="--inet=127.0.0.1:60000 --tarpit=125 --targrey --retry-count=3 --delay=3600 --max-age=30"
 
    7. 設定ファイル配置
       
@@ -115,7 +115,7 @@ S25R + taRgrey
               permit_mynetworks,
               reject_unauth_destination,
               reject_unknown_recipient_domain,
-              #reject_unverified_recipient,
+              reject_unverified_recipient,
               check_recipient_access hash:/etc/postfix/whitelist_recipient,
               check_client_access hash:/etc/postfix/whitelist_client,
               check_client_access regexp:/etc/postfix/permit_client_nots25r,
@@ -174,14 +174,14 @@ S25R + taRgrey
       tarpit_clients.db   : tarpitting グレイリスト
       postgrey.db         : 送信状況を管理
 
-   3. taRgrey の仕組み
+   4. taRgrey の仕組み
 
       smtpd_recipient_restrictions での一度目の check_policy_service で tarpitting を仕掛け、一旦、tarpit_clients.db (tarpitting グレイリスト) に登録される
       tarpitting を抜けた接続は smtpd_data_restrictions まで渡ってくるため、再度 check_policy_service で呼び出し、tarpit_clients.db (tarpitting グレイリスト) から該当の IP を削除する
 
       tarpitting を抜けれなかった接続は tarpit_clients.db (tarpitting グレイリスト) に登録されたままとなり、次回 接続時には smtpd_recipient_restrictions で greylisting の処理に回る
 
-   4. 自動 Whitelist (postgrey_clients.db) の仕組み
+   5. 自動 Whitelist (postgrey_clients.db) の仕組み
 
       # db_dump -p postgrey.db
       VERSION=3
@@ -198,23 +198,5 @@ S25R + taRgrey
 
       再送に受信した時間 (UNIX time) が 最後に受信した時間 (UNIX time) 300秒以上経過していること、かつ リトライ回数が 2回以上であれば
       postgrey_clients.db (自動ホワイトリスト) へ登録を行う ※30日を経過した場合 削除される
-
-   5. 起動スクリプトの修正
-
-      # diff -U1 /etc/init.d/postgrey{.orig,}
-      --- /etc/init.d/postgrey.orig   2014-09-02 16:45:47.657411967 +0900
-      +++ /etc/init.d/postgrey        2014-09-02 16:49:31.812279523 +0900
-      @@ -22,2 +22,3 @@
-       OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --delay=300 --retry-count=2 --max-age=30"
-      +PID=`/usr/bin/ps -aef | /usr/bin/awk '{print $1" "$2}' | /usr/bin/grep postgrey | /usr/bin/awk '{print $2}'`
-      
-      @@ -41,2 +42,3 @@
-           echo -n $"Stopping $prog: "
-      +    kill -TERM $PID
-           killproc $postgrey
-      @@ -54,2 +56,3 @@
-           echo -n $"Reloading $prog: "
-      +    kill -HUP $PID
-           killproc $postgrey -HUP
 
 

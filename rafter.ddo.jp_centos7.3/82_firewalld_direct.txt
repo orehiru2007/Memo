@@ -44,6 +44,18 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
 
 3. 初期設定
 
+   ゾーン                      | 許可サービス                                         | 説明
+   ----------------------------+------------------------------------------------------+------------------------------------------------
+   block ( 変更不可 )          | 無し                                                 | 全てのパケットを破棄 (with icmp-host-prohibited) ※戻りパケットは許可される
+   dmz                         | ssh                                                  | DMZ 用に定義されたゾーン
+   drop ( 変更不可 )           | 無し                                                 | 全てのパケットを破棄 ※戻りパケットも許可されない
+   external                    | ssh                                                  | マスカレードが有効となっている
+   home                        | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 自宅用
+   internal                    | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 内部ネットワーク用
+   public                      | ssh、dhcpv6-client                                   | デフォルトゾーン
+   trusted ( 変更不可 )        | すべて許可                                           | 
+   work                        | dhcpv6-client、ipp-client、ssh                       | 職場用
+
    1. drop をデフォルトゾーンに指定
    # firewall-cmd --set-default-zone=drop
    # firewall-cmd --get-default-zone
@@ -68,25 +80,24 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
      <rule priority="101" table="filter" ipv="ipv4" chain="INPUT">-i lo -j ACCEPT</rule>
      <rule priority="102" table="filter" ipv="ipv4" chain="INPUT">-i enp0s8 -j ACCEPT</rule>
      <rule priority="103" table="filter" ipv="ipv4" chain="INPUT">-i enp0s9 -j ACCEPT</rule>
-     <rule priority="104" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p icmp -j ACCEPT</rule>
-     <rule priority="111" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 21 -j ACCEPT</rule>
-     <rule priority="112" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 22 -j ACCEPT</rule>
-     <rule priority="113" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 25 -j ACCEPT</rule>
-     <rule priority="114" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 53 -j ACCEPT</rule>
-     <rule priority="115" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p udp -m udp --dport 53 -j ACCEPT</rule>
-     <rule priority="116" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 3389 -j ACCEPT</rule>
-     <rule priority="117" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 5900 -j ACCEPT</rule>
-     <rule priority="118" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 25,465,587 -j ACCEPT</rule>
-     <rule priority="119" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 80,443 -j ACCEPT</rule>
-     <rule priority="120" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 110,995 -j ACCEPT</rule>
-     <rule priority="121" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 143,993 -j ACCEPT</rule>
-     <rule priority="122" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 8080 -j ACCEPT</rule>
-     <rule priority="197" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -m state --state RELATED,ESTABLISHED -j ACCEPT</rule>
-     <rule priority="198" table="filter" ipv="ipv4" chain="INPUT">-j LOGGING</rule>
-     <rule priority="199" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -j REJECT</rule>
-     <rule priority="201" table="filter" ipv="ipv4" chain="OUTPUT">-o enp0s3 -d 203.129.120.84/32 -p tcp -m multiport --dports 80 -j DROP</rule>
-     <rule priority="299" table="filter" ipv="ipv4" chain="OUTPUT">-j ACCEPT</rule>
-     <rule priority="399" table="filter" ipv="ipv4" chain="FORWARD">-j ACCEPT</rule>
+     <rule priority="201" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p icmp -j ACCEPT</rule>
+     <rule priority="202" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 21 -j ACCEPT</rule>
+     <rule priority="203" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 22 -j ACCEPT</rule>
+     <rule priority="204" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 25 -j ACCEPT</rule>
+     <rule priority="205" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 53 -j ACCEPT</rule>
+     <rule priority="206" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p udp -m udp --dport 53 -j ACCEPT</rule>
+     <rule priority="207" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 3389 -j ACCEPT</rule>
+     <rule priority="208" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 5900 -j ACCEPT</rule>
+     <rule priority="209" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 25,465,587 -j ACCEPT</rule>
+     <rule priority="210" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 80,443 -j ACCEPT</rule>
+     <rule priority="211" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 110,995 -j ACCEPT</rule>
+     <rule priority="212" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 143,993 -j ACCEPT</rule>
+     <rule priority="213" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 8080 -j ACCEPT</rule>
+     <rule priority="298" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -m state --state RELATED,ESTABLISHED -j ACCEPT</rule>
+     <rule priority="299" table="filter" ipv="ipv4" chain="INPUT">-j LOGGING</rule>
+     <rule priority="301" table="filter" ipv="ipv4" chain="OUTPUT">-o enp0s3 -d 203.129.120.84/32 -p tcp -m multiport --dports 80 -j DROP</rule>
+     <rule priority="399" table="filter" ipv="ipv4" chain="OUTPUT">-j ACCEPT</rule>
+     <rule priority="499" table="filter" ipv="ipv4" chain="FORWARD">-j ACCEPT</rule>
      <rule priority="998" table="filter" ipv="ipv4" chain="LOGGING">-i enp0s3 -m limit --limit 10/m -j LOG --log-prefix "[firewalld DROP]:" --log-level 7</rule>
      <rule priority="999" table="filter" ipv="ipv4" chain="LOGGING">-j REJECT</rule>
    </direct>
@@ -230,6 +241,7 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
    # firewall-cmd --info-service=squid
 
    # ls /usr/lib/firewalld/services/
+
 
 7. 特定ホストからの通信だけを遮断
 

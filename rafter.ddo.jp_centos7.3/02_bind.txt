@@ -1,12 +1,12 @@
-rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
+rafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
 
 DNS サーバ
 
 1. パッケージ確認
 
    # rpm -qa | grep ^bind
-   bind-9.9.4-14.el7.x86_64
-   bind-chroot-9.9.4-14.el7.x86_64
+   bind-chroot-9.9.4-51.el7_4.1.x86_64
+   bind-9.9.4-51.el7_4.1.x86_64
 
 2. 起動設定、動作確認
 
