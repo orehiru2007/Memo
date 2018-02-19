@@ -261,3 +261,30 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
    </direct>
 
    10.51.20.11 から、25/tcp を遮断し、それをログに残したい場合
+
+8. ICMP type に対する警告
+
+   (pyenv:Py3)[root@rafter ~]#  egrep  "ICMP" /var/log/messages | egrep "Feb 14"
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: ICMP type 'beyond-scope' is not supported by the kernel for ipv6.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: beyond-scope: INVALID_ICMPTYPE: No supported ICMP type., ignoring for run-time.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: ICMP type 'failed-policy' is not supported by the kernel for ipv6.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: failed-policy: INVALID_ICMPTYPE: No supported ICMP type., ignoring for run-time.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: ICMP type 'reject-route' is not supported by the kernel for ipv6.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: reject-route: INVALID_ICMPTYPE: No supported ICMP type., ignoring for run-time.
+
+   (pyenv:Py3)[root@rafter ~]# diff -U0 /usr/lib/python2.7/site-packages/firewall/core/fw.py{.orig,}
+   --- /usr/lib/python2.7/site-packages/firewall/core/fw.py.orig   2018-02-14 20:14:58.309756219 +0900
+   +++ /usr/lib/python2.7/site-packages/firewall/core/fw.py        2018-02-14 20:17:06.432675688 +0900
+   @@ -494 +494 @@
+   -                        log.warning("%s: %s, ignoring for run-time." % \
+   +                        log.info1("%s: %s, ignoring for run-time." % \
+
+   (pyenv:Py3)[root@rafter ~]# diff -U0 /usr/lib/python2.7/site-packages/firewall/core/fw_icmptype.py{.orig,}
+   --- /usr/lib/python2.7/site-packages/firewall/core/fw_icmptype.py.orig  2018-02-14 20:17:17.960274955 +0900
+   +++ /usr/lib/python2.7/site-packages/firewall/core/fw_icmptype.py       2018-02-14 20:17:38.224665320 +0900
+   @@ -69 +69 @@
+   -                log.warning("ICMP type '%s' is not supported by the kernel for %s." % (obj.name, ipv))
+   +                log.info1("ICMP type '%s' is not supported by the kernel for %s." % (obj.name, ipv))
+   
+   
+   
