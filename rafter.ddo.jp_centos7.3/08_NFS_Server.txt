@@ -19,7 +19,7 @@ NFS Server
 3. ディレクトリ作成
 
    # mkdir /home/exports
-   # chown -R nfsnobody 
+   # chown -R nfsnobody /home/exports
 
 4. /etc/exports 編集
 
@@ -51,7 +51,19 @@ NFS Server
       LOCKD_TCPPORT=port : nlockmgr (lockd) が使用する TCP ポートを制御します。
       LOCKD_UDPPORT=port : nlockmgr (lockd) が使用する UDP ポートを制御します
 
-   2. 確認
+   2. /etc/sysctl.conf 設定内容
+
+      fs.nfs.nlm_tcpport=32803
+      fs.nfs.nlm_udpport=32769
+
+   3. 設定反映、再起動
+
+      # sysctl -p
+
+      # systemctl restart nfslock.service
+      # systemctl restart nfs.service
+
+   4. 確認
 
       # rpcinfo -p
          program vers proto   port  service
@@ -61,14 +73,14 @@ NFS Server
           100000    4   udp    111  portmapper
           100000    3   udp    111  portmapper
           100000    2   udp    111  portmapper
-          100024    1   udp  44085  status
-          100024    1   tcp  53684  status
-          100005    1   udp  20048  mountd
-          100005    1   tcp  20048  mountd
-          100005    2   udp  20048  mountd
-          100005    2   tcp  20048  mountd
-          100005    3   udp  20048  mountd
-          100005    3   tcp  20048  mountd
+          100024    1   udp    662  status
+          100024    1   tcp    662  status
+          100005    1   udp    892  mountd
+          100005    1   tcp    892  mountd
+          100005    2   udp    892  mountd
+          100005    2   tcp    892  mountd
+          100005    3   udp    892  mountd
+          100005    3   tcp    892  mountd
           100003    3   tcp   2049  nfs
           100003    4   tcp   2049  nfs
           100227    3   tcp   2049  nfs_acl
@@ -81,10 +93,6 @@ NFS Server
           100021    1   tcp  32803  nlockmgr
           100021    3   tcp  32803  nlockmgr
           100021    4   tcp  32803  nlockmgr
-          100011    1   udp    875  rquotad
-          100011    2   udp    875  rquotad
-          100011    1   tcp    875  rquotad
-          100011    2   tcp    875  rquotad
 
    3. iptables に許可すべきポート一覧
 
