@@ -221,3 +221,38 @@ CentOS 7 UEFI 環境 バックアップ、リストア手順
    # grub2-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=centos --recheck
 
 4. TIPS
+
+   1. dracut の不具合対応
+
+      9. GRUB 2 の再設定と再インストール ※インターネット接続環境 or 該当の rpm パッケージをダウンロードしておく必要あり
+   
+         # yum reinstall grub2-efi-2.02-0.44.el7.centos.x86_64 grub2-tools-2.02-0.44.el7.centos.x86_64 shim-0.9-2.el7.x86_64
+         # grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+   
+      10. 初期 RAM ディスク作成 ※インターネット接続環境 or 該当の rpm パッケージをダウンロードしておく必要あり
+   
+          # yum reinstall kernel-3.10.0-514.26.2.el7.x86_64
+   
+      11. 再起動
+   
+          # sync; sync; sync
+          # exit
+          # exit
+
+   2. VirtualBox 不具合対応 (特定バージョン以降にて UEFI 環境に不具合あり)
+
+      1. UEFI Interactive Shell
+
+         FS0:＼> ＼EFI＼centos＼shimx64.efi 
+
+      2. ブートローダの設定
+
+         # cp -a /boot/efi/EFI/centos/* /boot/efi/EFI/BOOT/
+         # mv /boot/efi/EFI/BOOT/shimx64.efi /boot/efi/EFI/BOOT/bootx64.efi 
+
+
+
+
+
+
+
