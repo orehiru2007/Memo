@@ -461,7 +461,7 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
  
     2. 起動スクリプトの修正
 
-        diff -U0 /usr/lib/systemd/system/telnet.socket{.orig,}
+       # diff -U0 /usr/lib/systemd/system/telnet.socket{.orig,}
        --- /usr/lib/systemd/system/telnet.socket.orig  2017-11-27 15:44:58.819985249 +0900
        +++ /usr/lib/systemd/system/telnet.socket       2017-11-27 15:46:13.394979943 +0900
        @@ -6 +6 @@

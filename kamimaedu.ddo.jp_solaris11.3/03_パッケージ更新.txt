@@ -68,3 +68,5 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 
 
+solaris_201601115
+
