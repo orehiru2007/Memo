@@ -1,0 +1,196 @@
+agassi.ddo.jp (CentOS 6.4 i386 EPSON Endeavor NP31S)
+
+1. リポジトリ追加
+
+   1. EPEL のリポジトリ追加
+   # mkdir /usr/local/src/epel
+   # cd /usr/local/src/epel
+   # wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+   # rpm -ivh epel-release-6-8.noarch.rpm
+
+   /etc/yum.repos.d/epel.repo の enabled=1 を enabled=0 に変更し、通常時は使わないようにする。
+   # sed -i -e "s/enabled=1/enabled=0/g" /etc/yum.repos.d/epel.repo
+
+   2. CentALT のリポジトリ追加
+
+      1. /etc/yum.repos.d/centos.alt.ru.repo の追加
+      # cat /etc/yum.repos.d/centos.alt.ru.repo
+      [CentALT]
+      name=CentALT Packages for Enterprise Linux 6 - $basearch
+      baseurl=http://centos.alt.ru/repository/centos/6/$basearch/
+      enabled=0
+      gpgcheck=0
+
+      2. Apache (httpd) バージョン確認
+      # yum list --enablerepo=CentALT | grep httpd | grep CentALT
+      httpd.i686                               2.2.26-1.el6                   CentALT
+      httpd-devel.i686                         2.2.26-1.el6                   CentALT
+      httpd-manual.i686                        2.2.26-1.el6                   CentALT
+      httpd-tools.i686                         2.2.26-1.el6                   CentALT
+      lighttpd.i686                            1.4.32-1.el6                   CentALT
+      lighttpd-fastcgi.i686                    1.4.32-1.el6                   CentALT
+      lighttpd-mod_geoip.i686                  1.4.32-1.el6                   CentALT
+      lighttpd-mod_mysql_vhost.i686            1.4.32-1.el6                   CentALT
+      php-eaccelerator-httpd.i686              1:1.0-0.8.git42067ac.el6       CentALT
+      thttpd.i686                              2:2.25b-1.el6                  CentALT
+
+      3. Apache2.2.25 (2013/11/28 時点最終) インストール
+      # yum install -y httpd httpd-devel --enablerepo=CentALT
+
+2. Postfix の更新
+
+   1. rpmbuild 用アカウント作成
+   # adduser masuda
+   # passwd masuda
+   
+   2. デフォルト Postfix のアンインストール / 必要パッケージのインストール
+   # yum remove postfix
+   # yum -y install kernel-devel rpm-build redhat-rpm-config
+   # yum -y install db4-devel openldap-devel zlib-devel 
+   # yum -y install mysql mysql-devel cyrus-sasl-devel openssl-devel ed
+   
+   3. rpmbuild 環境の準備
+   # su - masuda
+   $ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+   $ echo '%_topdir %{getenv:HOME}/rpmbuild' > ~/.rpmmacros
+   
+   4. src.rpm のインストール
+   $ cd ~/rpmbuild/SRPMS
+   $ wget http://ftp.wl0.org/official/2.10/SRPMS/postfix-2.10.2-1.src.rpm
+   $ rpm -ivh postfix-2.10.2-1.src.rpm
+   
+   5. vda 用パッチの適用
+   $ cd ~/rpmbuild/SOURCES/
+   $ mv postfix-2.5.4-vda-ng.patch.gz postfix-2.5.4-vda-ng.patch.gz.bak
+   $ wget http://vda.sourceforge.net/VDA/postfix-vda-v13-2.10.0.patch
+   $ mv postfix-vda-v13-2.10.0.patch postfix-2.5.4-vda-ng.patch
+   $ gzip postfix-2.5.4-vda-ng.patch
+   
+   6. sleep patch の適用
+   $ tar zxvf postfix-2.10.2.tar.gz
+   $ cd postfix-2.10.2
+   $ wget http://k2net.hakuba.jp/pub/postfix-2.9-sleep.patch
+   $ patch -p0 < postfix-2.9-sleep.patch
+   $ cd ..
+   $ rm -rf postfix-2.10.2.tar.gz
+   $ tar czvf postfix-2.10.2.tar.gz postfix-2.10.2
+   
+   7. rpmbuild 
+   $ cd
+   $ export POSTFIX_MYSQL_REDHAT=1
+   $ export POSTFIX_VDA=1
+   $ export POSTFIX_TLS=1
+   $ export POSTFIX_SASL=2
+   $ export POSTFIX_LDAP=1
+   $ sh ~/rpmbuild/SOURCES/make-postfix.spec
+   $ rpmbuild -bb ~/rpmbuild/SPECS/postfix.spec
+   $ exit
+   
+   7. インストール
+   # rpm -Uvh /home/tawatari/rpmbuild/RPMS/x86_64/postfix-2.10.2-1.mysql.sasl2.vda.rhel6.x86_64.rpm
+   # chkconfig postfix on
+   
+   8. cronie-noanacron のインストール
+   # yum -y install cronie-noanacron
+   
+   9. cronie-anacronのアンインストール (インストールされている場合)
+   # yum -y remove cronie-anacron
+   
+   10. ログローテート関連
+   # cat /etc/cron.d/dailyjobs
+   SHELL=/bin/bash
+   PATH=/sbin:/bin:/usr/sbin:/usr/bin
+   MAILTO=root
+   HOME=/
+   
+   # run-parts
+   50 23 * * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.daily
+   01 0 * * 0 root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.weekly
+   01 0 1 * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.monthly
+   
+   # diff -U1 /etc/logrotate.conf{.orig,}
+   --- /etc/logrotate.conf.orig    2014-03-27 10:47:33.443601717 +0900
+   +++ /etc/logrotate.conf 2014-03-27 10:47:28.330587917 +0900
+   @@ -11,3 +11,3 @@
+    # use date as a suffix of the rotated file
+   -dateext
+   +nodateext
+   
+   /etc/logrotate.d/syslog の編集
+   # cat /etc/logrotate.d/syslog
+   /var/log/cron
+   /var/log/secure
+   /var/log/spooler
+   {
+       sharedscripts
+       postrotate
+           /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+       endscript
+   }
+   
+   /var/log/maillog
+   /var/log/messages
+   {
+       daily
+       rotate 180
+       sharedscripts
+       postrotate
+           /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+       endscript
+   }
+
+2. SPF チェック用モジュール インストール / 設定	
+
+   1. perl-Mail-SPF-Query インストール
+   # yum install -y perl-Mail-SPF-Query perl-Mail-SPF perl-NetAddr-IP
+
+   2. SPF チェック用モジュールのダウンロード / 配置
+   # cd /usr/local/src/postfix/
+   # wget https://launchpad.net/debian/+archive/primary/+files/postfix-policyd-spf-perl_2.010.orig.tar.gz
+   # tar zxvf postfix-policyd-spf-perl_2.010.orig.tar.gz
+   # cp ./postfix-policyd-spf-perl-2.010/postfix-policyd-spf-perl /usr/local/lib/policyd-spf-perl
+
+   3. /etc/postfix/master.cf への追記
+   # diff -U1 /etc/postfix/master.cf{.orig,}
+   --- /etc/postfix/master.cf.orig 2014-03-28 20:20:44.011980632 +0900
+   +++ /etc/postfix/master.cf      2014-03-28 20:21:07.434715174 +0900
+   @@ -127 +127,2 @@
+    #  ${nexthop} ${user}
+   +policy-spf unix  -       n       n       -       0       spawn user=nobody argv=/usr/bin/perl /usr/local/lib/policyd-spf-perl
+
+3. Postfgrey インストール / 起動
+
+   1. 必要パッケージのインストール
+   # yum install perl-BerkeleyDB perl-IO-stringy perl-IO-Compress perl-Net-DNS perl-Net-Server perl-Parse-Syslog perl-IO-Multiplex
+
+   2. src.rpm のインストール
+   # su - masuda
+   $ cd ~/rpmbuild/SRPMS/
+   $ wget http://ftp.riken.jp/Linux/dag/source/postgrey-1.34-1.rf.src.rpm
+   $ rpm -Uvh postgrey-1.34-1.rf.src.rpm
+
+   3. tarpit 用パッチの適用
+   $ cd ../SOURCES/
+   $ tar zxvf postgrey-1.34.tar.gz 
+   $ cd postgrey-1.34
+   $ wget http://k2net.hakuba.jp/pub/targrey-0.31-postgrey-1.34.patch
+   $ patch -p0 < targrey-0.31-postgrey-1.34.patch 
+   $ cd ..
+   $ rm -rf postgrey-1.34.tar.gz 
+   $ tar czvf postgrey-1.34.tar.gz postgrey-1.34
+
+   4. rpmbuild 
+   $ rpmbuild -bb ~/rpmbuild/SPECS/postgrey.spec
+   $ exit
+	
+   5. インストール
+   # rpm -Uvh /home/masuda/rpmbuild/RPMS/noarch/postgrey-1.34-1.el6.noarch.rpm
+
+   2. 起動
+ 
+      # cat /etc/init.d/postgrey (編集箇所のみ)
+      OPTIONS="--dbdir=$DBPATH --inet=127.0.0.1:60000 --tarpit=125 --targrey --retry-count=2 --delay=300 --max-age=2"
+
+      # /etc/init.d/postgrey start
+      # chkconfig postgrey on
+

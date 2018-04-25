@@ -1,0 +1,195 @@
+agassi.ddo.jp (CentOS 6.4 i386 EPSON Endeavor NP31S)
+
+1. リポジトリの追加
+
+   # mkdir /usr/local/src/rpmforge; cd /usr/local/src/rpmforge
+   # wget http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.2-2.el6.rf.i686.rpm
+   # rpm -Uvh rpmforge-release-0.5.2-2.el6.rf.i686.rpm
+
+   # mkdir /usr/local/src/epel
+   # wget http://ftp-srv2.kddilabs.jp/Linux/distributions/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
+   # rpm -Uvh epel-release-6-8.noarch.rpm
+
+   /etc/yum.repos.d/epel.repo の enabled=1 を enabled=0 に変更し、通常時は使わないようにする。
+   # sed -i -e "s/enabled=1/enabled=0/g" /etc/yum.repos.d/epel.repo
+
+2. パッケージの更新
+
+   # yum update -y
+
+3. 必要パッケージのインストール
+
+   # yum install make gcc patchutils make gcc patchutils OpenIPMI kernel-devel telnet \
+   audit-libs.i686 compat-libstdc++-33.i686 cracklib.i686 db4.i686 libgcc.i686 libselinux.i686 \
+   pam.i686 zlib.i686 cyrus-sasl-lib.i686 glibc.i686 keyutils-libs.i686 krb5-libs.i686 libcom_err.i686 \
+   libcurl.i686 libidn.i686 libssh2.i686 libstdc++.i686 libtool-ltdl.i686 libxml2.i686 ncurses-libs.i686 \
+   nspr.i686 nss-softokn-freebl.i686 nss-util.i686 nss.i686 openldap.i686 openssl.i686 unixODBC.i686
+
+4. ネットワーク設定
+
+   # cat /etc/sysconfig/network-scripts/ifcfg-eth0
+   DEVICE="eth0"
+   BOOTPROTO=static
+   BROADCAST="192.168.72.255"
+   IPADDR="192.168.72.110"
+   NETMASK="255.255.255.0"
+   NM_CONTROLLED="no"
+   ONBOOT="yes"
+   TYPE="Ethernet"
+   HWADDR=70:54:D2:16:42:C2
+
+   # cat /etc/sysconfig/network
+   NETWORKING=yes
+   HOSTNAME=agassi.ddo.jp
+   GATEWAY=192.168.1.1
+
+5. 名前解決 IPv6 対策
+
+   # cat /etc/resolv.conf
+   search ddo.jp
+   nameserver 192.168.1.91
+   options single-request-reopen
+
+6. カーネル設定
+
+   # diff -U1 /etc/sysctl.conf{.orig,}
+   --- /etc/sysctl.conf.orig       2013-03-17 17:39:22.060385981 +0900
+   +++ /etc/sysctl.conf    2013-03-17 17:40:00.520385391 +0900
+   @@ -15,3 +15,3 @@
+    # Controls the System Request debugging functionality of the kernel
+   -kernel.sysrq = 0
+   +kernel.sysrq = 1
+   
+   @@ -40 +40,7 @@
+    kernel.shmall = 268435456
+   +
+   +# Controls the panic information
+   +kernel.panic = 1
+   +kernel.panic_on_oops = 1
+   +kernel.unknown_nmi_panic = 1
+   +kernel.panic_on_unrecovered_nmi = 1
+
+7. SELinux 無効化
+
+   # cat /etc/selinux/config
+   # This file controls the state of SELinux on the system.
+   # SELINUX= can take one of these three values:
+   #     enforcing - SELinux security policy is enforced.
+   #     permissive - SELinux prints warnings instead of enforcing.
+   #     disabled - No SELinux policy is loaded.
+   SELINUX=disable
+   # SELINUXTYPE= can take one of these two values:
+   #     targeted - Targeted processes are protected,
+   #     mls - Multi Level Security protection.
+   SELINUXTYPE=targeted
+
+8. sshd 設定 (パスワード認証の無効化)
+
+   # diff -U1 /etc/ssh/sshd_config{.orig,}
+   --- /etc/ssh/sshd_config.orig   2013-03-17 17:47:42.800367731 +0900
+   +++ /etc/ssh/sshd_config        2013-03-17 17:48:03.156366769 +0900
+   @@ -65,3 +65,3 @@
+    #PermitEmptyPasswords no
+   -PasswordAuthentication yes
+   +PasswordAuthentication no
+
+9. /boot にラベル
+
+   # e2label /dev/sda1 
+
+   # e2label /dev/sda1 /boot
+   # e2label /dev/sda1
+   /boot
+
+   # diff -U1 /etc/fstab{.orig,}
+   --- /etc/fstab.orig     2013-03-17 17:40:26.577386166 +0900
+   +++ /etc/fstab  2013-03-17 17:40:44.802386786 +0900
+   @@ -9,3 +9,3 @@
+    /dev/mapper/VG00-root   /                       ext4    defaults        1 1
+   -UUID=0c869ce9-cf89-4da8-b8fd-ae8886d8577b /boot                   ext4    defaults        1 2
+   +LABEL=/boot            /boot                   ext4    defaults        1 2
+    /dev/mapper/VG00-home   /home                   ext4    defaults        1 2
+
+10. ntp 設定
+
+    # cat /etc/ntp.conf
+    server ntp.nict.jp
+    server ntp.jst.mfeed.ad.jp
+    fudge 127.127.1.0 stratum 10
+
+    # ntpdate -s ntp.nict.jp
+    # /etc/init.d/ntpd start
+    # chkconfig ntpd on
+
+11. NFS 環境
+
+    1. NFS 環境の準備
+    # yum -y install nfs-utils
+
+    2. /etc/idmapd.conf の編集
+    # diff -U1 /etc/idmapd.conf{.orig,}
+    --- /etc/idmapd.conf.orig       2013-03-19 23:17:24.609308716 +0900
+    +++ /etc/idmapd.conf    2013-03-19 23:17:40.280309068 +0900
+    @@ -4,3 +4,3 @@
+     # The default is the host's DNS domain name.
+    -#Domain = local.domain.edu
+    +Domain = agassi.ddo.jp
+
+    3. マウントポイントの作成
+    # mkdir /backup
+
+    4. NFS 公開ディレクトリの指定
+    # cat /etc/exports
+    /backup 192.168.72.0/24(rw,sync,no_root_squash,no_all_squash)
+
+    5. サービスの起動
+    # /etc/init.d/rpcbind start
+    # /etc/rc.d/init.d/rpcidmapd start 
+    # /etc/init.d/nfslock start
+    # /etc/init.d/nfs start
+    # /etc/init.d/netfs start
+    # chkconfig rpcbind on
+    # chkconfig rpcidmapd on
+    # chkconfig nfslock on
+    # chkconfig nfs on
+    # chkconfig netfs on
+
+    6. NFS クライアント 追記
+    # yum -y install nfs-utils 
+
+    # /etc/rc.d/init.d/rpcbind start
+    # /etc/rc.d/init.d/rpcidmapd start
+    # /etc/rc.d/init.d/nfslock start
+    # /etc/rc.d/init.d/netfs start
+    # chkconfig rpcbind on
+    # chkconfig rpcidmapd on
+    # chkconfig nfslock on
+    # chkconfig netfs on
+
+12. CentOS ALT ※2014/4/7 追記
+
+    1. /etc/yum.repos.d/centos.alt.ru.repo の追加
+    # cat /etc/yum.repos.d/centos.alt.ru.repo
+    [CentALT]
+    name=CentALT Packages for Enterprise Linux 6 - $basearch
+    baseurl=http://centos.alt.ru/repository/centos/6/$basearch/
+    enabled=0
+    gpgcheck=0
+
+    2. Apache (httpd) バージョン確認
+    # yum list --enablerepo=CentALT | grep httpd | grep CentALT
+    
+    httpd.i686                               2.2.26-1.el6                   CentALT
+    httpd-devel.i686                         2.2.26-1.el6                   CentALT
+    httpd-manual.i686                        2.2.26-1.el6                   CentALT
+    httpd-tools.i686                         2.2.26-1.el6                   CentALT
+    lighttpd.i686                            1.4.32-1.el6                   CentALT
+    lighttpd-fastcgi.i686                    1.4.32-1.el6                   CentALT
+    lighttpd-mod_geoip.i686                  1.4.32-1.el6                   CentALT
+    lighttpd-mod_mysql_vhost.i686            1.4.32-1.el6                   CentALT
+    php-eaccelerator-httpd.i686              1:1.0-0.8.git42067ac.el6       CentALT
+    thttpd.i686                              2:2.25b-1.el6                  CentALT
+
+    3. Apache2.2.25 (2013/11/28 時点最終) インストール
+    # yum install -y httpd httpd-devel --enablerepo=CentALT
+

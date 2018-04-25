@@ -1,0 +1,29 @@
+agassi.ddo.jp (CentOS 6.4 i386 EPSON Endeavor NP31S)
+
+先代が壊れたので、再構築します
+
+1. ハードウェア情報
+
+   機種名 : EPSON Endeavor NP31S
+   CPU    : AMD デュアルコア E1-1200 APU
+   HDD    : 2.5型 HDD 250GB (シリアル ATA 300MB/s 5400rpm)
+   Memory : 4GB
+
+   URL    : http://shop.epson.jp/pc/np31s/spec/
+
+2. インストール
+
+   Disc Found                    : Skip
+   インストール時に使用する言語  : Japanese (日本語)
+   システム用のキーボード設定    : 日本語
+   ストレージデバイスの選択      : ● 基本ストレージデバイス
+   ストレージデバイスの警告      : ■ 選択したすべてのデバイスに適用します
+   ホスト名                      : agassi.ddo.jp
+   ネットワークの設定            : 割愛
+   タイムゾーンの設定            : アジア/東京
+                                   □ システムクロックで UTC を使用
+   root パスワード               : *******
+   ディスクパーティション設定    : 割愛
+   ブートローダーの設定          : ■ ブートローダーを /dev/sda にインストールする
+   インストールタイプの設定      : ● Minimal Desktop
+
