@@ -124,72 +124,81 @@ agassi.ddo.jp (CentOS 6.4 i386 EPSON Endeavor NP31S)
 11. NFS 環境
 
     1. NFS 環境の準備
-    # yum -y install nfs-utils
+
+       # yum -y install nfs-utils
 
     2. /etc/idmapd.conf の編集
-    # diff -U1 /etc/idmapd.conf{.orig,}
-    --- /etc/idmapd.conf.orig       2013-03-19 23:17:24.609308716 +0900
-    +++ /etc/idmapd.conf    2013-03-19 23:17:40.280309068 +0900
-    @@ -4,3 +4,3 @@
-     # The default is the host's DNS domain name.
-    -#Domain = local.domain.edu
-    +Domain = agassi.ddo.jp
+
+       # diff -U1 /etc/idmapd.conf{.orig,}
+       --- /etc/idmapd.conf.orig       2013-03-19 23:17:24.609308716 +0900
+       +++ /etc/idmapd.conf    2013-03-19 23:17:40.280309068 +0900
+       @@ -4,3 +4,3 @@
+        # The default is the host's DNS domain name.
+       -#Domain = local.domain.edu
+       +Domain = agassi.ddo.jp
 
     3. マウントポイントの作成
-    # mkdir /backup
+
+       # mkdir /backup
 
     4. NFS 公開ディレクトリの指定
-    # cat /etc/exports
-    /backup 192.168.72.0/24(rw,sync,no_root_squash,no_all_squash)
+
+       # cat /etc/exports
+       /backup 192.168.72.0/24(rw,sync,no_root_squash,no_all_squash)
 
     5. サービスの起動
-    # /etc/init.d/rpcbind start
-    # /etc/rc.d/init.d/rpcidmapd start 
-    # /etc/init.d/nfslock start
-    # /etc/init.d/nfs start
-    # /etc/init.d/netfs start
-    # chkconfig rpcbind on
-    # chkconfig rpcidmapd on
-    # chkconfig nfslock on
-    # chkconfig nfs on
-    # chkconfig netfs on
+
+       # /etc/init.d/rpcbind start
+       # /etc/rc.d/init.d/rpcidmapd start 
+       # /etc/init.d/nfslock start
+       # /etc/init.d/nfs start
+       # /etc/init.d/netfs start
+       # chkconfig rpcbind on
+       # chkconfig rpcidmapd on
+       # chkconfig nfslock on
+       # chkconfig nfs on
+       # chkconfig netfs on
 
     6. NFS クライアント 追記
-    # yum -y install nfs-utils 
 
-    # /etc/rc.d/init.d/rpcbind start
-    # /etc/rc.d/init.d/rpcidmapd start
-    # /etc/rc.d/init.d/nfslock start
-    # /etc/rc.d/init.d/netfs start
-    # chkconfig rpcbind on
-    # chkconfig rpcidmapd on
-    # chkconfig nfslock on
-    # chkconfig netfs on
+       # yum -y install nfs-utils 
+
+       # /etc/rc.d/init.d/rpcbind start
+       # /etc/rc.d/init.d/rpcidmapd start
+       # /etc/rc.d/init.d/nfslock start
+       # /etc/rc.d/init.d/netfs start
+       # chkconfig rpcbind on
+       # chkconfig rpcidmapd on
+       # chkconfig nfslock on
+       # chkconfig netfs on
 
 12. CentOS ALT ※2014/4/7 追記
 
     1. /etc/yum.repos.d/centos.alt.ru.repo の追加
-    # cat /etc/yum.repos.d/centos.alt.ru.repo
-    [CentALT]
-    name=CentALT Packages for Enterprise Linux 6 - $basearch
-    baseurl=http://centos.alt.ru/repository/centos/6/$basearch/
-    enabled=0
-    gpgcheck=0
+
+       # cat /etc/yum.repos.d/centos.alt.ru.repo
+       [CentALT]
+       name=CentALT Packages for Enterprise Linux 6 - $basearch
+       baseurl=http://centos.alt.ru/repository/centos/6/$basearch/
+       enabled=0
+       gpgcheck=0
 
     2. Apache (httpd) バージョン確認
-    # yum list --enablerepo=CentALT | grep httpd | grep CentALT
-    
-    httpd.i686                               2.2.26-1.el6                   CentALT
-    httpd-devel.i686                         2.2.26-1.el6                   CentALT
-    httpd-manual.i686                        2.2.26-1.el6                   CentALT
-    httpd-tools.i686                         2.2.26-1.el6                   CentALT
-    lighttpd.i686                            1.4.32-1.el6                   CentALT
-    lighttpd-fastcgi.i686                    1.4.32-1.el6                   CentALT
-    lighttpd-mod_geoip.i686                  1.4.32-1.el6                   CentALT
-    lighttpd-mod_mysql_vhost.i686            1.4.32-1.el6                   CentALT
-    php-eaccelerator-httpd.i686              1:1.0-0.8.git42067ac.el6       CentALT
-    thttpd.i686                              2:2.25b-1.el6                  CentALT
+
+       # yum list --enablerepo=CentALT | grep httpd | grep CentALT
+       
+       httpd.i686                               2.2.26-1.el6                   CentALT
+       httpd-devel.i686                         2.2.26-1.el6                   CentALT
+       httpd-manual.i686                        2.2.26-1.el6                   CentALT
+       httpd-tools.i686                         2.2.26-1.el6                   CentALT
+       lighttpd.i686                            1.4.32-1.el6                   CentALT
+       lighttpd-fastcgi.i686                    1.4.32-1.el6                   CentALT
+       lighttpd-mod_geoip.i686                  1.4.32-1.el6                   CentALT
+       lighttpd-mod_mysql_vhost.i686            1.4.32-1.el6                   CentALT
+       php-eaccelerator-httpd.i686              1:1.0-0.8.git42067ac.el6       CentALT
+       thttpd.i686                              2:2.25b-1.el6                  CentALT
 
     3. Apache2.2.25 (2013/11/28 時点最終) インストール
-    # yum install -y httpd httpd-devel --enablerepo=CentALT
+
+       # yum install -y httpd httpd-devel --enablerepo=CentALT
 

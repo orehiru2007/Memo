@@ -39,37 +39,28 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 3. 開発環境
 
-   m4 1.4.16
-   # wget http://core.ring.gr.jp/archives/GNU/m4/m4-1.4.16.tar.gz
-   # gzip -cd m4-1.4.16.tar.gz | tar xf -
-   # cd m4-1.4.16
-   # ./configure --prefix=/usr/local
-   # make
-   # make check
-   # make install
-
-   m4 1.4.17
-   # wget http://core.ring.gr.jp/archives/GNU/m4/m4-1.4.17.tar.gz
-   # gzip -cd m4-1.4.17.tar.gz | tar xf -
-   # cd m4-1.4.17
+   m4
+   # wget http://core.ring.gr.jp/archives/GNU/m4/m4-1.4.18.tar.gz
+   # gzip -cd m4-1.4.18.tar.gz | tar xf -
+   # cd m4-1.4.18
    # ./configure --prefix=/usr/local
    # make
    # make check
    # make install
 
    libiconv
-   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.14.tar.gz
-   # gzip -cd libiconv-1.14.tar.gz | tar xf -
-   # cd libiconv-1.14
+   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.15.tar.gz
+   # gzip -cd libiconv-1.15.tar.gz | tar xf -
+   # cd libiconv-1.15
    # ./configure --prefix=/usr/local --enable-static
    # make
    # make check
    # make install
 
    libiconv 64bit
-   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.14.tar.gz
-   # gzip -cd libiconv-1.14.tar.gz | tar xf -
-   # cd libiconv-1.14
+   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.15.tar.gz
+   # gzip -cd libiconv-1.15.tar.gz | tar xf -
+   # cd libiconv-1.15
    # CFLAGS=-m64 \
    > ./configure --prefix=/usr/local/64 --enable-static
    # make

@@ -1,50 +1,5 @@
 agassi.ddo.jp (CentOS 6.4 i386 EPSON Endeavor NP31S)
 
-2016/08/05 追記
-
-1. Courier-unicode
-
-   # su - masuda
-   $ cd ~/rpmbuild/SOURCES
-   $ wget http://prdownloads.sourceforge.net/courier/courier-unicode-1.4.tar.bz2
-   $ rpmbuild -tb courier-unicode-1.4.tar.bz2
-   $ sudo rpm -ivh /home/masuda/rpmbuild/RPMS/i686/courier-unicode-1.4-1.el6.i686.rpm
-
-   $ sudo rpm -ivh /home/masuda/rpmbuild/RPMS/i686/courier-unicode-devel-1.4-1.el6.i686.rpm
-
-2. Courier-authlib
-
-   # su - masuda
-   $ cd ~/rpmbuild/SOURCES
-   $ wget http://prdownloads.sourceforge.net/courier/courier-authlib-0.66.4.tar.bz2
-   $ rpmbuild -tb courier-authlib-0.66.4.tar.bz2
-   $ sudo rpm -Uvh /home/masuda/rpmbuild/RPMS/i686/courier-authlib-0.65.0-1.el6.i686.rpm
-   $ sudo rpm -Uvh /home/masuda/rpmbuild/RPMS/i686/courier-authlib-devel-0.65.0-1.el6.i686.rpm
-
-
-3. Courier-IMAP
-
-   # su - masuda
-   $ cd ~/rpmbuild/SOURCES
-
-   $ tar jvxf courier-imap-4.17.1.tar.bz2
-   $ cd courier-imap-4.17.1
-   $ cp courier-imap.spec /home/masuda/rpmbuild/SPECS/
-   $ rpmbuild -ba /home/masuda/rpmbuild/SPECS/courier-imap.spec
-   $ sudo rpm -ivh /home/masuda/rpmbuild/RPMS/i686/courier-imap-4.12.0-1.i686.rpm
-
-
-
-   $ tar jvxf courier-imap-4.17.1.tar.bz2
-   $ cd courier-imap-4.17.1
-   $ cp courier-imap.spec /home/masuda/rpmbuild/SPECS/
-   $ rpmbuild -ba /home/masuda/rpmbuild/SPECS/courier-imap.spec
-   $ sudo rpm -ivh /home/masuda/rpmbuild/RPMS/i686/courier-imap-4.12.0-1.i686.rpm
-
-
-
-
-
 1. 必要パッケージのインストール
    
    # yum install -y sqlite-devel postgresql-devel gdbm-devel pam-devel expect libtool-ltdl-devel gamin-devel libidn-devel

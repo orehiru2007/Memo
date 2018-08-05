@@ -1,0 +1,169 @@
+agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
+
+SPF, DKIM
+
+1. SPF (Sender Policy Framework) 設定
+
+   1. SPF レコード
+
+      [root@agassi ~]# nslookup -type=TXT agassi.ddo.jp 8.8.8.8
+      Server:         8.8.8.8
+      Address:        8.8.8.8#53
+      
+      Non-authoritative answer:
+      agassi.ddo.jp   text = "\"v=spf1 +ip4:203.133.240.0/21 ~all"
+
+      ※私の環境では ddo.jp サービスを利用しているため、それを利用する
+
+   2. 確認結果 (kamimaedu.ddo.jp にて、SPF レコードの検証結果を確認する)
+
+      Apr 26 15:29:51 kamimaedu postfix/smtpd[27512]: [ID 197553 mail.info] connect from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]
+      Apr 26 15:29:51 kamimaedu postfix/smtpd[27512]: [ID 197553 mail.info] Anonymous TLS connection established from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]: TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits)
+      Apr 26 15:29:51 kamimaedu policyd-spf[27520]: [ID 702911 mail.info] Pass; identity=helo; client-ip=203.133.245.13; helo=agassi.ddo.jp; envelope-from=masuda@agassi.ddo.jp; receiver=tawatari@kamimaedu.ddo.jp
+      Apr 26 15:29:51 kamimaedu policyd-spf[27520]: [ID 702911 mail.info] Pass; identity=mailfrom; client-ip=203.133.245.13; helo=agassi.ddo.jp; envelope-from=masuda@agassi.ddo.jp; receiver=tawatari@kamimaedu.ddo.jp
+      Apr 26 15:29:52 kamimaedu postfix/smtpd[27512]: [ID 197553 mail.info] NOQUEUE: warn: RCPT from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]: ; from=<masuda@agassi.ddo.jp> to=<tawatari@kamimaedu.ddo.jp> proto=ESMTP helo=<agassi.ddo.jp>
+      Apr 26 15:29:52 kamimaedu postgrey[1253]: [ID 702911 mail.notice] action=pass, reason=triplet found, client_name=d203133245013.cable.ogaki-tv.ne.jp, client_address=203.133.245.13, sender=masuda@agassi.ddo.jp, recipient=tawatari@kamimaedu.ddo.jp#012
+      Apr 26 15:29:52 kamimaedu postfix/smtpd[27512]: [ID 197553 mail.info] 07744EEB4: client=d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]
+      Apr 26 15:29:52 kamimaedu postfix/smtpd[27512]: [ID 197553 mail.info] 07744EEB4: warn: DATA from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]: ; from=<masuda@agassi.ddo.jp> to=<tawatari@kamimaedu.ddo.jp> proto=ESMTP helo=<agassi.ddo.jp>
+      Apr 26 15:29:52 kamimaedu postfix/cleanup[27521]: [ID 197553 mail.info] 07744EEB4: message-id=<cfd0bf41-b6cd-0ab9-f294-ca84bc8f6d6a@agassi.ddo.jp>
+      Apr 26 15:29:52 kamimaedu postfix/qmgr[27313]: [ID 197553 mail.info] 07744EEB4: from=<masuda@agassi.ddo.jp>, size=1093, nrcpt=1 (queue active)
+      Apr 26 15:29:52 kamimaedu postfix/smtp[27522]: [ID 197553 mail.info] initializing the client-side TLS engine
+      Apr 26 15:29:52 kamimaedu postfix/smtpd[27512]: [ID 197553 mail.info] disconnect from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13] ehlo=2 starttls=1 mail=1 rcpt=1 data=1 quit=1 commands=7
+      Apr 26 15:29:52 kamimaedu postfix/smtp[27522]: [ID 197553 mail.info] 07744EEB4: to=<tawatari@kamimaedu.ddo.jp>, relay=127.0.0.1[127.0.0.1]:10025, delay=0.4, delays=0.27/0.05/0.04/0.04, dsn=2.0.0, status=sent (250 2.0.0 Ok: queued as 2C4DFEEB5)
+      Apr 26 15:29:52 kamimaedu postfix/qmgr[27313]: [ID 197553 mail.info] 07744EEB4: removed
+
+   SPF レコードを利用した、SPAM 対策については、割愛
+
+2. DKIM 
+
+   1. google.com の例
+
+      # nslookup -type=TXT 20161025._domainkey.google.com
+      ;; Truncated, retrying in TCP mode.
+      Server:         127.0.0.1
+      Address:        127.0.0.1#53
+      
+      Non-authoritative answer:
+      20161025._domainkey.google.com  text = "k=rsa\; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXNZF1j8sJPDleRjf9SPBNem0ik58kF1ilC1nUgKAttl9v7FX9hXJXPmLNhVtSKVZ8yruaeOZLeIxtgtk1s81zzIE5Mj0AiGn2wlFt4kYfqlDfYe95YLQHjynu4i7vj1Tj" "ksf62btcCbL+3XhbK+oD5PlqYhXHWuzoKoEp5L4lCihgkONvU/oy7NNeE6quqfF/y0YSLwF2WVA2Kd8L6R0Ar2dYT/3wZCFknI7xhvPqh9HNcIWBELGPwtXcsHbX1wvBlCgNQAUcdJrf2YWzAwqmZ564/1ipL1IMk1nafPJk75ktumVNz6ORuIn3jbZWp9rRpnaeI9cu/8KfSKH2EY9QIDAQAB"
+
+   2. OpenDKIM のインストール
+
+      # yum install -y epel-release
+      # yum install -y opendkim
+
+   3. 鍵ペアの作成 
+
+      Google に習って、セレクタは、鍵の作成日時とする
+      鍵長は 1024 bit とする (2048 bit の鍵長では、ddo.jp に登録可能な TXT レコードの文字数制限を超えてしまうため)
+
+      # opendkim-genkey -D /etc/opendkim/keys -b 1024 -d agassi.ddo.jp -s 20180426
+ 
+      # chown -R opendkim:opendkim /etc/opendkim/keys/*
+      # ls -l /etc/opendkim/keys/
+      合計 8
+      -rw------- 1 opendkim opendkim 887  4月 26 18:38 2018 20180426.private
+      -rw------- 1 opendkim opendkim 319  4月 26 18:38 2018 20180426.txt
+
+   4. DNS 登録
+
+      # cat /etc/opendkim/keys/20180426.txt
+      20180426._domainkey     IN      TXT     ( "v=DKIM1; k=rsa; "
+                "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB" )  ; ----- DKIM key 20180426 for agassi.ddo.jp
+
+
+      # /var/named/ext.agassi.ddo.jp
+      20180426._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+      _adsp._domainkey        IN      TXT     "dkim=unknown"
+
+   5. 確認
+
+      # nslookup -type=TXT 20180426._domainkey.agassi.ddo.jp 8.8.8.8
+      Server:         8.8.8.8
+      Address:        8.8.8.8#53
+      
+      Non-authoritative answer:
+      20180426._domainkey.agassi.ddo.jp       text = "v=DKIM1\; k=rsa\; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+
+      # nslookup -type=TXT _adsp._domainkey.agassi.ddo.jp 8.8.8.8
+      Server:         8.8.8.8
+      Address:        8.8.8.8#53
+
+      Non-authoritative answer:
+      _adsp._domainkey.agassi.ddo.jp  text = "dkim=unknown"
+
+   6. OpenDKIM の設定
+
+      1. /etc/opendkim.conf{.orig,}
+
+         # diff -U0  /etc/opendkim.conf{.orig,}
+         --- /etc/opendkim.conf.orig     2018-04-26 19:10:02.776465473 +0900
+         +++ /etc/opendkim.conf  2018-04-26 19:11:18.616531744 +0900
+         @@ -39 +39 @@
+         -Mode   v
+         +Mode   sv
+         @@ -98 +98 @@
+         -KeyFile        /etc/opendkim/keys/default.private
+         +#KeyFile       /etc/opendkim/keys/default.private
+         @@ -103 +103 @@
+         -# KeyTable     /etc/opendkim/KeyTable
+         +KeyTable       /etc/opendkim/KeyTable
+         @@ -108 +108 @@
+         -# SigningTable refile:/etc/opendkim/SigningTable
+         +SigningTable   refile:/etc/opendkim/SigningTable
+         @@ -112 +112 @@
+         -# ExternalIgnoreList   refile:/etc/opendkim/TrustedHosts
+         +ExternalIgnoreList     refile:/etc/opendkim/TrustedHosts
+         @@ -115 +115 @@
+         -# InternalHosts        refile:/etc/opendkim/TrustedHosts
+         +InternalHosts  refile:/etc/opendkim/TrustedHosts
+
+      2. /etc/opendkim/KeyTable
+
+         20180426._domainkey.agassi.ddo.jp agassi.ddo.jp:20180426:/etc/opendkim/keys/20180426.private
+
+      3. /etc/opendkim/SigningTable
+
+         *@agassi.ddo.jp         20180426._domainkey.agassi.ddo.jp
+
+      4. /etc/opendkim/TrustedHosts
+
+         127.0.0.1
+         172.17.238.0/24
+
+   7. Postfix と OpenDKIM の連携
+
+      1. /etc/postfix/main.cf
+
+         ## DKIM
+         smtpd_milters = inet:127.0.0.1:8891
+         non_smtpd_milters = $smtpd_milters
+         milter_default_action = accept
+
+      2. Postfix 再起動
+
+         # /etc/init.d/postfix restart
+
+   8. 動作確認
+
+      1. agassi.ddo.jp → Gmail
+
+         ARC-Authentication-Results: i=1; mx.google.com;
+                dkim=pass header.i=@agassi.ddo.jp header.s=20180426 header.b=khPZ83Y6;
+                spf=pass (google.com: domain of masuda@agassi.ddo.jp designates 203.133.245.13 as permitted sender) smtp.mailfrom=masuda@agassi.ddo.jp
+
+      2. Gmail → agassi.ddo.jp
+
+         Apr 26 20:00:33 agassi opendkim[30563]: 7DA26360B26: mail-ot0-f179.google.com [74.125.82.179] not internal
+         Apr 26 20:00:33 agassi opendkim[30563]: 7DA26360B26: not authenticated
+         Apr 26 20:00:33 agassi opendkim[30563]: 7DA26360B26: DKIM verification successful
+
+3. DNS レコードまとめ
+
+   ; SPF
+                           IN      TXT     "v=spf1 +ip4:203.133.240.0/21 ~all"
+   ; DKIM
+   20180426._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+   _adsp._domainkey        IN      TXT     "dkim=unknown"
+
+
+

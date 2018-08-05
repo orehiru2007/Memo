@@ -142,3 +142,6 @@ Squid
    # cat /etc/logadm.conf (関係箇所のみ抜粋)
    /var/squid/logs/access.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
    /var/squid/logs/cache.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+   /var/squid/logs/access.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh; kill -HUP `cat /var/squid/run/squid.pid`' -p 1d
+   /var/squid/logs/cache.log -C 180 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh; kill -HUP `cat /var/squid/run/squid.pid`' -p 1d

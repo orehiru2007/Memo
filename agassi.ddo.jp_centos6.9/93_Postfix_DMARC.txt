@@ -1,0 +1,89 @@
+agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
+
+Postfix + DMARC (
+
+1. 必要パッケージのインストール
+
+   # yum install -y opendmarc
+
+2. DMARC 導入
+
+   1. /etc/opendmarc.conf
+   
+      --- /etc/opendmarc.conf.orig    2018-05-09 15:35:29.417594465 +0900
+      +++ /etc/opendmarc.conf 2018-05-09 16:58:42.071653708 +0900
+      @@ -44 +44 @@
+      -# AutoRestart false
+      +AutoRestart true
+      @@ -178 +178 @@
+      -# HistoryFile /var/spool/opendmarc/opendmarc.dat
+      +HistoryFile /var/spool/opendmarc/opendmarc.dat
+      @@ -196 +196 @@
+      -# IgnoreHosts /etc/opendmarc/ignore.hosts
+      +IgnoreHosts /etc/opendmarc/ignore.hosts
+
+   2. /etc/opendmarc/ignore.hosts
+   
+      127.0.0.0/8
+      172.17.238.0/24
+   
+   3. Postfix
+   
+      1. /etc/postfix/main.cf
+   
+         smtpd_client_restrictions =
+                 #check_policy_service unix:private/policy-spf,
+         smtpd_helo_restrictions =
+                 #check_policy_service unix:private/policy-spf,
+   
+      2. 再起動
+   
+         # /etc/init.d/postfix restart
+   
+   4. 確認
+   
+      1. gmail からのメールログ
+   
+         May  9 16:26:21 agassi opendkim[30563]: BB998360185: mail-ot0-f178.google.com [74.125.82.178] not internal
+         May  9 16:26:21 agassi opendkim[30563]: BB998360185: not authenticated
+         May  9 16:26:21 agassi opendkim[30563]: BB998360185: DKIM verification successful
+         May  9 16:26:21 agassi opendmarc[26220]: implicit authentication service: agassi.ddo.jp
+         May  9 16:26:21 agassi opendmarc[26220]: BB998360185: SPF(mailfrom): orehiru2007@gmail.com pass
+         May  9 16:26:21 agassi opendmarc[26220]: BB998360185: gmail.com pass
+   
+      2. メールヘッダ
+   
+         1. gmail (DMARC を宣言していて詐称でないメール)
+   
+            Authentication-Results: agassi.ddo.jp; dmarc=pass (p=none dis=none) header.from=gmail.com
+   
+         2. DMARC を宣言していないドメインからのメール
+   
+            Authentication-Results: agassi.ddo.jp; dmarc=none (p=none dis=none) header.from=kamimaedu.ddo.jp
+
+3. レポート
+
+   1. データベースの準備
+
+      # mysql -u root -pパスワード mysql　　←MySQLの管理者rootとそのパスワード
+      mysql> CREATE DATABASE opendmarc;
+      mysql> GRANT ALL PRIVILEGES ON opendmarc.* TO 'dmarc'@'localhost' IDENTIFIED BY 'opendmarc_db_password';
+      mysql> FLUSH PRIVILEGES;
+      mysql> quit
+
+      データベース名 : opendmarc
+      全権限ユーザ   : dmarc
+      パスワード     : opendmarc_db_password
+      アクセス許可   : localhost のみ
+
+
+
+
+
+
+
+
+
+
+
+

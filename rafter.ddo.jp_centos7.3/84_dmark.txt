@@ -1,8 +1,0 @@
-rafter.ddo.jp CentOS release 7.3 (Oracle VirtualBox)
-
-https://phase-d.com/blog/2015/12/postfix_dkimdmarc/
-https://blog.k3n.link/2016/07/05/mailserver/
-
-1. ソフトウェアのインストール
-
-   yum install -y opendkim
