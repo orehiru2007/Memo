@@ -1,6 +1,6 @@
 agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
 
-DMARC
+DMARC (Domain-based Message Authentication, Reporting & Conformance)
 
 1. 参考 URL
 

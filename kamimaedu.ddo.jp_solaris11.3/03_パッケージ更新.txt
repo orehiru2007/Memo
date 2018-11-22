@@ -65,8 +65,13 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    3. boot 環境を事前に作成せずに、アップデートと合わせて自動作成する場合
    # pkg image-update
 
+3. OpenCSW ※2018/9 wget 導入のため
 
+   # pkgadd -d http://get.opencsw.org/now
+   # /opt/csw/bin/pkgutil -U
+   # /opt/csw/bin/pkgutil -y -i wget
+   # /opt/csw/bin/pkgutil -y -i cacertificates
 
+   # /usr/sbin/pkgchk -L CSWwget
 
-solaris_201601115
 

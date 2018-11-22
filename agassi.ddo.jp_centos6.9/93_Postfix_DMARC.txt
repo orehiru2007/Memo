@@ -1,6 +1,6 @@
 agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
 
-Postfix + DMARC (
+Postfix + DMARC (Domain-based Message Authentication, Reporting & Conformance)
 
 1. 必要パッケージのインストール
 
@@ -35,6 +35,13 @@ Postfix + DMARC (
                  #check_policy_service unix:private/policy-spf,
          smtpd_helo_restrictions =
                  #check_policy_service unix:private/policy-spf,
+
+
+## DKIM, DMARC
+smtpd_milters = inet:127.0.0.1:8891, inet:127.0.0.1:8893
+non_smtpd_milters = $smtpd_milters
+milter_default_action = accept
+
    
       2. 再起動
    
@@ -87,3 +94,4 @@ Postfix + DMARC (
 
 
 
+smtpd_milters = inet:127.0.0.1:8891, inet:127.0.0.1:8893
