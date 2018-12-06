@@ -286,7 +286,163 @@ MySQL
    +-----------+--------------------+---------------+
 
 
+PHP 7
+
+1. インストール
+
+   # tar zxvf php-7.2.12.tar.gz
+   # cd php-7.2.12
+   # CFLAGS=-m64 \
+   # ./configure \
+   > --with-apxs2=/usr/local/apache2/bin/apxs  \
+   > --with-mysql=/usr/local/mysql \
+   > --with-zlib-dir=/usr/local/64 \
+   > --with-iconv-dir=/usr/local/64 \
+   > --with-mysqli=mysqlnd \
+   > --enable-mbstring
+   # make
+   # make install
+
+   # cp php.ini-development /usr/local/lib/php.ini
+
+
+2. /usr/local/lib/php.ini
+
+
+   root@kamimaedu[116]~# diff -U0 /usr/local/lib/php.ini{.orig,}
+   --- /usr/local/lib/php.ini.orig 2018-11-13 09:36:30.585511972 +0900
+   +++ /usr/local/lib/php.ini      2018-11-13 18:53:32.555952964 +0900
+   @@ -897 +897 @@
+   -;extension=mysqli
+   +extension=mysqli
+   @@ -1159 +1159 @@
+   -mysqli.default_socket =
+   +mysqli.default_socket = /usr/local/mysql/mysql.sock
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2. 拡張モジュールのインストール
+
+   # cd /usr/local/src/php/7.2.11/php-7.2.12/ext/mysqli
+   # phpize
+   # CFLAGS=-m64 ./configure
+   # make
+   # make test
+   # make install
+
+
+   # cd /usr/local/src/php/7.2.11/php-7.2.12/ext/curl/
+   # phpize
+   # CFLAGS=-m64 ./configure
+   # make
+   # make test
+   # make install
+
+   # cd /usr/local/src/php/7.2.11/php-7.2.12/ext/openssl/
+   # cp config0.m4 config.m4
+   # phpize
+   # CFLAGS=-m64 ./configure
+   # make
+   # make test
+   # make install
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/usr/local/lib/php.ini
+
+/etc/init.d/apache stop; /etc/init.d/apache start
+/usr/local/src/php/7.2.11/php-7.2.12/ext/mysqli
+/usr/local/lib/php/extensions/no-debug-zts-20170718/
+
+/usr/local/lib/php
+/usr/local/php
+
+
+
+3. FTP
+
+   あったほうが便利なようなので
+
+   
+
+インストールに失敗しました: ダウンロードに失敗しました。 No working transports found
+
+
+
+
+
+
+
+
+
 PHP 5
+
+1. インストール
+
+   # ln -s /usr/local/mysql/lib /usr/local/mysql/lib64
+   # tar zxvf php-5.6.38.tar.gz
+   # cd php-5.6.38
+   # CFLAGS=-m64 \
+   > ./configure \
+   > --with-apxs2=/usr/local/apache2/bin/apxs  \
+   > --with-zlib-dir=/usr/local/64 \
+   > --with-iconv-dir=/usr/local/64 \
+   > --with-mysqli=mysqlnd \
+   > --with-pdo-mysql=mysqlnd \
+   > --with-mysql=mysqlnd \
+   > --enable-mbstring
+   # make
+   # make test
+   # make install
+
+2. /usr/local/lib/php.ini
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 コンパイルオプション指定
 
@@ -334,69 +490,3 @@ CFLAGS=-m64 \
    # make install
 
 
-
-PHP 7
-
-1. インストール
-
-   # tar zxvf php-7.2.12.tar.gz
-   # cd php-7.2.12
-   # CFLAGS=-m64 \
-   # ./configure \
-   > --with-apxs2=/usr/local/apache2/bin/apxs  \
-   > --with-mysql=/usr/local/mysql \
-   > --with-zlib-dir=/usr/local/64 \
-   > --with-iconv-dir=/usr/local/64 \
-   > --with-mysqli=mysqlnd \
-   > --enable-mbstring
-   # make
-   # make install
-
-   # cp php.ini-development /usr/local/lib/php.ini
-
-2. 拡張モジュールのインストール
-
-   # cd /usr/local/src/php/7.2.11/php-7.2.12/ext/mysqli
-   # phpize
-   # CFLAGS=-m64 ./configure
-   # make
-   # make test
-   # make install
-
-
-   # cd /usr/local/src/php/7.2.11/php-7.2.12/ext/curl/
-   # phpize
-   # CFLAGS=-m64 ./configure
-   # make
-   # make test
-   # make install
-
-   # cd /usr/local/src/php/7.2.11/php-7.2.12/ext/openssl/
-   # cp config0.m4 config.m4
-   # phpize
-   # CFLAGS=-m64 ./configure
-   # make
-   # make test
-   # make install
-
-2. /usr/local/lib/php.ini
-
-
-   root@kamimaedu[116]~# diff -U0 /usr/local/lib/php.ini{.orig,}
-   --- /usr/local/lib/php.ini.orig 2018-11-13 09:36:30.585511972 +0900
-   +++ /usr/local/lib/php.ini      2018-11-13 18:53:32.555952964 +0900
-   @@ -897 +897 @@
-   -;extension=mysqli
-   +extension=mysqli
-   @@ -1159 +1159 @@
-   -mysqli.default_socket =
-   +mysqli.default_socket = /usr/local/mysql/mysql.sock
-
-/usr/local/lib/php.ini
-
-/etc/init.d/apache stop; /etc/init.d/apache start
-/usr/local/src/php/7.2.11/php-7.2.12/ext/mysqli
-/usr/local/lib/php/extensions/no-debug-zts-20170718/
-
-/usr/local/lib/php
-/usr/local/php

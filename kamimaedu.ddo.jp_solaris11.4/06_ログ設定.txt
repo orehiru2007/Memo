@@ -1,0 +1,154 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+
+1. ログインの監査、su の監査
+
+   1. ログインの監査 /etc/default/login
+
+      # diff -u /etc/default/login{.orig,}
+      --- /etc/default/login.orig     2018-11-28 17:55:37.652555165 +0900
+      +++ /etc/default/login  2018-11-28 17:55:39.531585109 +0900
+      @@ -11,7 +11,7 @@
+       # any of the currently enabled /dev/vt/# virtual terminal devices.
+       # Comment this line out to allow remote login by root.
+       #
+      -CONSOLE=/dev/console
+      +#CONSOLE=/dev/console
+      
+       # PASSREQ determines if login requires a password.
+       #
+      @@ -63,7 +63,7 @@
+       # for a local user's account (passwd(5)/shadow(5)), that account
+       # will be locked if failed logins equals or exceeds RETRIES.
+       #
+      -#RETRIES=5
+      +RETRIES=5
+       #
+       # The SYSLOG_FAILED_LOGINS variable is used to determine how many failed
+       # login attempts will be allowed by the system before a failed login
+      @@ -70,4 +70,4 @@
+       # message is logged, using the syslog(3) LOG_NOTICE facility.  For example,
+       # if the variable is set to 0, login will log -all- failed login attempts.
+       #
+      -#SYSLOG_FAILED_LOGINS=5
+      +SYSLOG_FAILED_LOGINS=5
+
+   2. su の監査 (デフォルトで有効のため要点のみ) /etc/default/su
+
+      SULOG=/var/adm/sulog
+      SYSLOG=YES
+
+2. その他ログ設定
+
+   1. /etc/syslog.conf
+
+      # diff -U1 /etc/syslog.conf{.orig,}
+      --- /etc/syslog.conf.orig       2018-11-28 17:56:45.769745589 +0900
+      +++ /etc/syslog.conf    2018-11-28 17:58:00.491834058 +0900
+      @@ -10,3 +10,3 @@
+       *.err;kern.notice;auth.notice                  /dev/sysmsg
+      -*.err;kern.debug;daemon.notice;auth.none;mail.crit     /var/adm/messages
+      +*.err;kern.debug                               /var/adm/messages
+      
+      @@ -22,2 +22,5 @@
+       mail.debug                     ifdef(`LOGHOST', /var/log/syslog, @loghost)
+      +auth.notice                     ifdef(`LOGHOST', /var/log/authlog, @loghost)
+      +mail.debug                      ifdef(`LOGHOST', /var/log/maillog, @loghost)
+      +daemon.debug                    ifdef(`LOGHOST', /var/log/daemonlog, @loghost)
+
+   2. ログファイルの作成
+
+      # touch /var/log/maillog
+      # chmod 644 /var/log/maillog
+      # chgrp sys /var/log/maillog
+      # touch /var/log/daemonlog
+      # chmod 644 /var/log/daemonlog
+      # chgrp sys /var/log/daemonlog
+
+   3. syslog の再起動
+
+      # svcadm refresh system/system-log:default
+
+   4. ログのローテート
+
+      メールログは一日ごと 180日間保存
+      # logadm -w /var/log/mail.log -p 1d -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`'
+
+      Daemon のログは一日ごと 180日間保存
+      # logadm -w /var/log/daemon.log -p 1d -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`'
+
+      ログイン記録ログは 1週間ごと 4世代保存
+      # logadm -w /var/log/auth.log -p 1w -C 4 -a 'kill -HUP `cat /var/run/syslog.pid`'
+
+      # cat /etc/logadm.conf
+      (snip)
+      /var/log/maillog -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`' -p 1d
+      /var/log/daemonlog -C 180 -a 'kill -HUP `cat /var/run/syslog.pid`' -p 1d
+      /var/log/authlog -C 4 -a 'kill -HUP `cat /var/run/syslog.pid`' -p 1w
+
+3. rsyslog の導入
+
+   1. rsyslog の確認
+
+      # pkg list rsyslog
+      NAME (PUBLISHER)                                  VERSION                    IFO
+      system/rsyslog                                    8.15.0-11.4.0.0.1.14.0     i--
+
+   2. system-log サービスインスタンスの状態確認
+
+      # svcs system-log
+      STATE          STIME    FMRI
+      disabled       16:26:09 svc:/system/system-log:rsyslog
+      online         16:26:10 svc:/system/system-log:default
+
+   3. syslog の無効化、rsyslog の有効化
+
+      # svcadm disable /system/system-log:default
+      # svcadm enable /system/system-log:rsyslog
+
+      # svcs system-log
+      STATE          STIME    FMRI
+      disabled       16:14:12 svc:/system/system-log:default
+      online         16:14:16 svc:/system/system-log:rsyslog
+
+   4. /etc/rsyslog.conf
+
+      # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
+      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+      $ModLoad imsolaris      # for Solaris kernel logging
+      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+      mail.*                                                  -/var/log/mail.log
+      &~
+      local5.*                                                -/var/log/mail_deux.log
+      &~
+      local6.*                                                -/var/log/sftp.log
+      &~
+      auth.*                                                  -/var/log/auth.log
+      &~
+      daemon.*                                                -/var/log/daemon.log
+      &~
+      local0.warning                                          /var/log/ipf/ipf.log
+      &~
+      *.*                                                     /var/adm/messages
+      &~
+      $IncludeConfig /etc/rsyslog.d/
+      $ModLoad imtcp.so       # load module
+      $InputTCPServerRun 514  # start up TCP listener at port 514
+      $ModLoad imudp.so       # provides UDP syslog reception
+      $UDPServerAddress *     # listen to all IP addresses
+      $UDPServerRun 514       # start a UDP syslog server at standard port 514
+
+   5. /etc/logadm.conf (重要箇所のみ抜粋)
+
+      /var/log/mail.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+      /var/log/daemon.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+      /var/log/auth.log -C 30 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+   5. /etc/logadm.conf (最終)
+
+      /var/log/mail.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+      /var/log/mail_deux.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+      /var/log/daemon.log -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+      /var/log/auth.log -C 30 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+      /var/log/dovecot.log -C 180 -a 'kill -HUP `cat /usr/local/64/var/run/dovecot/master.pid`' -m 666 -p 1d
+      /var/log/dovecot-deliver.log -C 180 -a 'kill -HUP `cat /usr/local/64/var/run/dovecot/master.pid`' -m 666 -p 1d
+      /var/adm/messages -C 180 -a '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d

@@ -1,0 +1,152 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.2 x86)
+
+ネットワーク設定、ホスト名設定
+
+1. ネットワーク設定
+
+   1. ネットワーク (インストール時に DHCP を選択した場合) の状態確認
+   
+      # dladm show-phys
+      LINK              MEDIA                STATE      SPEED  DUPLEX    DEVICE
+      net0              Ethernet             up         1000   full      e1000g0
+      net1              Ethernet             unknown    0      unknown   e1000g1
+
+      # ipadm show-addr
+      (表示されず)
+
+   2. SMF の確認
+   
+      # svcs -a | grep physical
+      online         11:24:29 svc:/network/physical:upgrade
+      online         11:24:31 svc:/network/physical:default
+
+   3. NCP の切り替え方法
+   
+      (表示されず)
+   
+   4. 静的な IP アドレスの設定方法
+   
+      # ipadm delete-ip net0
+      # ipadm create-ip net0
+      # ipadm create-addr -T static -a 172.17.238.99/16 net0/v4
+   
+      # dladm show-link
+      LINK                CLASS     MTU    STATE    OVER
+      net0                phys      1500   up       --
+      net1                phys      1500   unknown  --
+
+      # dladm show-phys
+      LINK              MEDIA                STATE      SPEED  DUPLEX    DEVICE
+      net0              Ethernet             up         1000   full      e1000g0
+      net1              Ethernet             unknown    0      unknown   e1000g1
+   
+      # ipadm show-addr
+      ADDROBJ           TYPE     STATE        ADDR
+      lo0/v4            static   ok           127.0.0.1/8
+      net0/v4           static   ok           172.17.238.91/16
+      lo0/v6            static   ok           ::1/128
+
+      # ifconfig net0
+      net0: flags=100001000843<UP,BROADCAST,RUNNING,MULTICAST,IPv4,PHYSRUNNING> mtu 1500 index 3
+              inet 172.17.238.99 netmask ffff0000 broadcast 172.17.255.255
+              ether 0:50:56:ba:36:6
+
+      # route -p add default 172.17.254.1
+
+      # netstat -rn
+      Routing Table: IPv4
+        Destination           Gateway           Flags  Ref     Use     Interface
+      -------------------- -------------------- ----- ----- ---------- ---------
+      default              172.17.254.1         UG        3         15
+      127.0.0.1            127.0.0.1            UH        2         50 lo0
+      172.17.0.0           172.17.238.91        U         4        389 net0
+      
+      Routing Table: IPv6
+        Destination/Mask            Gateway                   Flags Ref   Use    If
+      --------------------------- --------------------------- ----- --- ------- -----
+      ::1                         ::1                         UH      2       0 lo0
+
+
+   5. RIP の停止
+
+      # routeadm -d ipv4-routing -u
+      
+      # routeadm
+                    Configuration   Current              Current
+                           Option   Configuration        System State
+      ---------------------------------------------------------------
+                     IPv4 routing   disabled             disabled
+                     IPv6 routing   disabled             disabled
+                  IPv4 forwarding   disabled             disabled
+                  IPv6 forwarding   disabled             disabled
+      
+                 Routing services   "route:default ripng:default"
+      
+      Routing daemons:
+      
+                            STATE   FMRI
+                         disabled   svc:/network/routing/ripng:default
+                           online   svc:/network/routing/ndp:default
+                         disabled   svc:/network/routing/legacy-routing:ipv4
+                         disabled   svc:/network/routing/legacy-routing:ipv6
+                         disabled   svc:/network/routing/rdisc:default
+                         disabled   svc:/network/routing/route:default
+
+   6. IPv6 の無効化
+
+      # ifconfig -a6
+      lo0: flags=2002000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv6,VIRTUAL> mtu 8252 index 1
+              inet6 ::1/128
+      net0: flags=120002004841<UP,RUNNING,MULTICAST,DHCP,IPv6,PHYSRUNNING> mtu 1500 index 2
+              inet6 fe80::250:56ff:feba:429e/10
+              ether 0:50:56:ba:42:9e
+      
+      # ifconfig net0 inet6 unplumb
+      # ifconfig lo0 inet6 unplumb
+      # ifconfig -a6
+
+2. ホスト名の設定
+   
+   Oracle Solaris 11 からは /etc/nodename も削除され、SVC で管理されています
+
+   # svccfg -s svc:/system/identity:node listprop config
+   config                       application
+   config/enable_mapping       boolean     true
+   config/ignore_dhcp_hostname boolean     false
+   config/loopback             astring
+   config/nodename             astring     kamimaedu.ddo.jp
+
+   # svccfg -s svc:/system/identity:node setprop config/nodename=kamimaedu.ddo.jp
+   # svccfg -s svc:/system/identity:node setprop config/loopback=localhost.ddo.jp
+   # svcadm refresh svc:/system/identity:node
+   # svcadm restart svc:/system/identity:node
+
+   # svccfg -s svc:/system/identity:node listprop config
+   config                       application
+   config/enable_mapping       boolean     true
+   config/ignore_dhcp_hostname boolean     false
+   config/loopback             astring     localhost.ddo.jp
+   config/nodename             astring     kamimaedu.ddo.jp
+
+3. DNS 設定
+
+   # svccfg
+   svc:> select dns/client
+   svc:/network/dns/client> setprop config/nameserver = net_address: ( 172.17.238.91 )
+   svc:/network/dns/client> setprop config/search = astring: ( "ddo.jp" )
+   svc:/network/dns/client> select dns/client:default
+   svc:/network/dns/client:default> refresh
+   svc:/network/dns/client:default> validate
+   svc:/network/dns/client:default> exit
+
+   # svccfg -s svc:/network/dns/client listprop config
+   config                      application
+   config/nameserver          net_address 172.17.238.91
+   config/search              astring     ddo.jp
+   config/value_authorization astring     solaris.smf.value.name-service.dns.client
+
+   # svcadm restart dns/client
+
+   # svccfg -s svc:/network/dns/client setprop config/nameserver = "net_address: ( 172.17.238.91 )"
+
+

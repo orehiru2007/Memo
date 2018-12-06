@@ -1,0 +1,72 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+
+インストール
+
+1. Oracle Solaris 11.4 x86 のダウンロード
+
+   ダウンロードには Sun の Online Account が必要です。
+
+   ユーザー名 : tawatari@kamimaedu.ddo.jp
+   パスワード : Taknet77
+
+2. インストールパラメータ
+
+   ISO イメージ (sol-11_3-text-x86.iso) をマウントし、仮想マシンを起動する
+
+   Keyboard Layout:                          14. Japanese
+   Select a Language:                        7. Japanese
+   Installation menu:                        1. Install Oracle Solaris
+   Disks:                                    Type   Size (GB)   Boot   Device
+                                             ----------------------------------------------
+                                             scsi      120.0      +    c2t0d0    VMware
+   Network:                                  Computer name : kamimaedu.ddo.jp
+                                             NIC           : net0 (e1000g0)
+                                             IP Address    : 192.168.1.93
+                                             Network       : 255.255.255.0
+                                             Router        : 192.168.1.1
+   DNS Server Addresses:                     8.8.8.8
+   DNS Search List:                          ddo.jp
+   Alternate Name Service:                   None
+   Time Zone: Regions/Locations/Time Zones:  Asia / Japan / Asia/Tokyo
+   Locale: Laguage/Terriroty:                Japanese / Japan (ja_JP.UTF-8)
+   User (Root password):                     Taknet77
+
+
+   あとはインストーラーに従うのみです、南無南無
+
+4. beadm の利用方法について
+   
+   ブート環境 (ルートを含む、配下のデータ一式) のスナップショットを管理することが可能です
+   検証作業時には非常に有効な機能であると思います
+
+   1. ブート環境の作成
+   # beadm create "BE 名前"
+   
+   2. ブート環境のマウント方法
+   # beadm mount "BE Name" "マウントポイント"
+   ※再起動時には必ずアンマウント (beadm umount) すること
+
+   3. アクティブでないブート環境からブート環境を作成する方法
+   # beadm create -e "アクティブではない BE Name" "BE Name"
+
+   4. ブート環境のスナップショット (読み取り専用イメージ) 作成
+   # beadm create "BE Name@Description"
+
+   5. ブート環境のスナップショット (読み取り専用イメージ) からブート環境の作成
+   # beadm create  -e "BE Name@Description" "BE Name"
+
+   6. ブート環境をアクティブにする方法 (アクティブとしなくても GRUB ブートメニューで選択可能)
+   # beadm activate "BE Name"
+
+   7. ブート環境の破棄
+   # beadm destroy "BE Name"
+   
+   8. ブート環境名の変更
+   # beadm rename "BE Name" "New BE Name"
+
+   9. ブート環境 一覧の確認
+   # beadm list
+
+5. 日本語入力
+
+    pkg install atok

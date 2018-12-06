@@ -17,7 +17,6 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       # AddType
       AddType application/x-httpd-php .php
       AddType application/x-httpd-php-source .phps
-      root@kamimaedu[202]/usr/local/apache2/conf/extra#
 
 2. MySQL チューニング (実施済み)
 
@@ -114,6 +113,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
       # wget http://ja.wordpress.org/latest-ja.tar.gz
       # tar zxvf latest-ja.tar.gz
       # cp -Rp wordpress /usr/local/apache2/htdocs/wp
+      # 
 
    5. wp-config.php の設定内容
 
@@ -171,15 +171,15 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
        /* 編集が必要なのはここまでです ! WordPress でブログをお楽しみください。 */
 
 
+     # diff -U0 /var/www/html/wp/wp-includes/class-http.php{.orig,}
+     --- /var/www/html/wp/wp-includes/class-http.php.orig    2018-11-24 16:18:00.719142893 +0900
+     +++ /var/www/html/wp/wp-includes/class-http.php 2018-11-24 16:18:16.894955854 +0900
+     @@ -199 +199 @@
+     -                       'sslverify' => true,
+     +                       'sslverify' => false,
+
    6. ブログ名/初期パスワードの設定
 
       URL : http://kamimaedu.ddo.jp/wp/wp-admin/install.php
             http://kamimaedu.ddo.jp/wp/wp-login.php
 
-3. FTP
-
-   あったほうが便利なようなので
-
-   
-
-インストールに失敗しました: ダウンロードに失敗しました。 No working transports found

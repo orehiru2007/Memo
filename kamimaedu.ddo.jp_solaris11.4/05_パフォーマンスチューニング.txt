@@ -1,0 +1,149 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+
+パフォーマンスチューニングとかもろもろ
+
+1. ファイルディスクリプタ数
+
+   1. 現状確認
+
+      # ulimit -Hn
+      65536
+
+      # ulimit -n
+      256
+
+      # ulimit -a
+      core file size          (blocks, -c) unlimited
+      data seg size           (kbytes, -d) unlimited
+      file size               (blocks, -f) unlimited
+      open files                      (-n) 256
+      pipe size            (512 bytes, -p) 10
+      stack size              (kbytes, -s) 8192
+      cpu time               (seconds, -t) unlimited
+      max user processes              (-u) 29995
+      virtual memory          (kbytes, -v) unlimited
+
+   2. 変更
+
+      # diff -U1 /etc/system{.orig,}
+      --- /etc/system.orig    2014年  9月 12日 (金)
+      +++ /etc/system 2014年  9月 12日 (金)
+      @@ -91,1 +91,6 @@
+      
+      +set noexec_user_stack = 1
+      +set noexec_user_stack_log = 1
+      +set rlim_fd_max = 262144
+      +set rlim_fd_cur = 262144
+
+2. パスワード規則
+
+   # diff -U1 /etc/default/passwd{.orig,}
+   --- /etc/default/passwd.orig    2014年  9月 12日 (金)
+   +++ /etc/default/passwd 2014年  9月 12日 (金)
+   @@ -4,3 +4,3 @@
+    MINWEEKS=
+   -PASSLENGTH=6
+   +PASSLENGTH=8
+   
+   @@ -46,4 +46,4 @@
+    #
+   -#DICTIONLIST=
+   -#DICTIONDBDIR=/var/passwd
+   +DICTIONLIST=/usr/share/lib/dict/words
+   +DICTIONDBDIR=/var/passwd
+
+   1. Tips 1 各パラメータ
+
+      MAXWEEKS    : 有効期限 (週単位)                                              デフォルト: 指定なし
+      MINWEEKS    : 変更禁止期間 (週単位)                                          デフォルト: 指定なし
+      PASSLENGTH  : 最低文字数                                                     デフォルト: 6
+      NAMECHECK   : 大文字小文字の区別                                             デフォルト: YES 区別する
+      HISTORY     : 保存する旧パスワードの履歴                                     デフォルト: 0 保存しない
+      MINDIFF     : 古いパスワードと新しいパスワードで異なる必要がある文字の最小数 デフォルト: 3 
+      MINALPHA    : "英字" の最小数 ※大文字小文字は区別しない                     デフォルト: 2
+      MINNONALPHA : "英字" 以外の文字 "数字・特殊文字" の最小数                    デフォルト: 1
+      MAXREPEATS  : 同じ文字を続けてもよい回数                                     デフォルト: 0 チェック無し
+      MINSPECIAL  : "特殊文字" (英字・数字以外の文字) の最小数                     デフォルト: 0 チェック無し
+      MINDIGIT    : "数字" の最小数                                                デフォルト: 0 チェック無し
+      WHITESPACE  : 空白文字を使用できるかどうかの指定                             デフォルト: YES 可能
+   
+      ※MINNONALPHA を指定した場合、MINDIGIT は利用不可
+      ※MINNONALPHA を指定した場合、MINSPECIAL は利用不可
+      ※MINDIGIT or MINSPECIAL を指定した場合、MINNONALPHA は利用不可
+   
+   2. デフォルトパスワードの規則
+                                                                                     |良い例     |悪い例
+      -------------------------------------------------------------------------------+-----------+----------
+      少なくとも6文字以上の長さであること                                            |abc987+-   |abc+-
+      同一種の文字のみではだめで，英小文字，英大文字，数字，特殊記号を混在させること |abc987defg |abcgfed
+      少なくとも2文字は英文字であること                                              |ab123467   |a123987
+      少なくとも1文字は数字か特殊文字であること                                      |abc9gfed   |abcdefg
+      古いパスワードとは3文字以上異なること                                          |           |       
+      ログイン名と同じではだめ                                                       |           |       
+
+3. パスワードアルゴリズム変更
+
+   1. 過去の見解 (そう思っていたことが、自分にもありましたよ。。)
+
+      Solaris11 ではデフォルトの暗号化方式が SHA-256 が採用されていますが
+      他のシステムとの下位互換を考慮し、MD5 とします
+
+      # diff -U1 /etc/security/policy.conf{.orig,}
+      --- /etc/security/policy.conf.orig      2013年  4月 23日 (火)
+      +++ /etc/security/policy.conf   2013年  4月 23日 (火)
+      @@ -29,3 +29,3 @@
+       #
+      -CRYPT_DEFAULT=5
+      +CRYPT_DEFAULT=1
+   
+   2. 2014/9 時点の見解
+
+      Solaris11 ではデフォルト暗号化方式に SHA-256 を採用していますが
+      他システム (RHEL 6、7 が SHA512 を採用している) との互換を考慮し、SHA512 とする
+   
+      # diff -U1 /etc/security/policy.conf{.orig,}
+      --- /etc/security/policy.conf.orig      2014年  9月  9日 (火)
+      +++ /etc/security/policy.conf   2014年  9月  9日 (火)
+      @@ -41,3 +41,3 @@
+       #
+      -CRYPT_DEFAULT=5
+      +CRYPT_DEFAULT=6
+       #
+
+4. システム動作の監視
+
+   # svcadm -v enable svc:/system/sar:default
+   # svcs -a | grep sar
+   online         14:32:03 svc:/system/sar:default
+
+   # diff -U1 /var/spool/cron/crontabs/sys{.orig,}
+   --- /var/spool/cron/crontabs/sys.orig   2013年  4月 23日 (火)
+   +++ /var/spool/cron/crontabs/sys        2013年  4月 23日 (火)
+   @@ -8,1 +8,3 @@
+    # 5 18 * * 1-5 /usr/lib/sa/sa2 -s 8:00 -e 18:01 -i 1200 -A
+   +0,10,20,30,40,50 * * * * /usr/lib/sa/sa1 1 1
+   +53 23 * * * /usr/lib/sa/sa2 -A
+
+5. キーボード (昔はキーボードからの Break 信号を受付ないようにしていましたが、今回は確認のみです)
+
+   # svcprop -p keymap keymap
+   keymap/console_beeper_freq integer 900
+   keymap/kbd_beeper_freq integer 2000
+   keymap/keyboard_abort astring enable
+   keymap/keyclick boolean false
+   keymap/repeat_delay integer 500
+   keymap/repeat_rate integer 40
+   keymap/layout astring Japanese
+
+   例: キーボードレイアウトを日本語に変更する場合
+   # svccfg -s keymap:default setprop keymap/layout = astring: "Japanese"
+   # svcadm refresh keymap
+   # svcadm restart keymap
+
+6. シングルユーザモード設定 (パスワード入力を無くす)
+
+   # echo "PASSREQ=NO" > /etc/default/sulogin
+
+7. Linux の netstat -lanput のようなモノ
+
+   # for pid in `ps -aeo pid | grep -v PID`; do pfiles ${pid} | egrep "^${pid}:|sockname:"; done 
