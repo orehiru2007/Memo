@@ -4,7 +4,41 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
 0. デフォルトシェルの変更
 
-   (実施せず)
+   Oracle Solaris 11 はデフォルトシェルに ksh に採用しています
+   OpenSolaris からの流儀なのですが、気持ち悪いので Bourne シェルに戻します
+
+   というか、その ksh (ksh93) がクソなので付き合いきれません、ksh は Bourne シェル系を拡張したもののはずなのに
+
+   1. 確認
+
+      # ksh --version
+      version         sh (AT&T Research) 93u+ 2012-08-01
+
+      # ls -al /usr/bin/ksh
+      -r-xr-xr-x   5 root     bin      2993240  8月 17日  11:07 /usr/bin/ksh*
+
+      # ls -al /usr/bin/sh
+      -r-xr-xr-x   5 root     bin      2993240  8月 17日  11:07 /usr/bin/sh*
+
+      # ls -i /usr/bin/ksh
+            8259 /usr/bin/ksh*
+      # ls -i /usr/bin/sh
+            8259 /usr/bin/sh*
+      # ls -i /bin/sh
+            8259 /bin/sh*
+
+   2. Bourne シェルのインストール
+
+      # pkg install pkg:/legacy/shell/bourne
+
+   3. Bourne シェルへの切り戻し
+
+      # mv /bin/sh /bin/sh.orig
+      # ln -s /usr/sunos/bin/sh /bin/sh
+
+   4. ksh (ksh93) への切り戻し
+
+      # mv /bin/sh.orig /bin/sh 
 
 1. /etc/auto_home の設定
 

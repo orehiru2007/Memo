@@ -42,27 +42,28 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 3. perl 
 
    1. 32bit
-   # wget http://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
+   # wget https://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
    # tar zxvf perl-5.28.1.tar.gz
    # cd perl-5.28.1
    # ./Configure -de -Dcc=gcc -Doptimize=-O3 \
    > -Dldflags="-L/usr/local/lib -R/usr/local/lib -L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
    > -Dusethreads \
-   > -Dprefix=/usr/local
+   > -Dprefix=/usr/local \
+   > -Dusedevel
    # LD_RUN_PATH=/usr/local/lib make
    # LC_ALL=C make test
    # make install
 
    2. 64bit
-   # wget http://www.cpan.org/src/5.0/perl-5.22.1.tar.gz
-   # tar zxvf perl-5.22.1.tar.gz
-   # cd perl-5.22.1
+   # wget http://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
+   # tar zxvf perl-5.28.1.tar.gz
+   # cd perl-5.28.1
    # ./Configure -de -Dcc="gcc -m64" -Doptimize=-O3 \
-   > -Dldflags="-L/usr/local/64/lib -R/usr/local/64/lib -L/usr/local/gcc4/lib/amd64 -R/usr/local/gcc4/lib/amd64" \
+   > -Dldflags="-L/usr/local/64/lib -R/usr/local/64/lib -L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
    > -Dusethreads \
    > -Dprefix=/usr/local/64 \
    > -Duse64bitint
-   # LD_RUN_PATH=/usr/local/64/lib/amd64 make
+   # LD_RUN_PATH=/usr/local/64/lib make
    # LC_ALL=C make test
    # make install
 
@@ -73,6 +74,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # tar zxvf db-5.3.28.tar.gz
    # cd db-5.3.28/build_unix
    # CC=gcc \
+   # CPPFLAGS=/usr/jdk/instances/jdk1.8.0/include \
    # LDFLAGS=-R/usr/local/lib \
    > ../dist/configure --prefix=/usr/local --enable-compat185 --enable-cxx --enable-java
    # make
