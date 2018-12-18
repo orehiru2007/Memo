@@ -40,6 +40,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
       # mv /bin/sh.orig /bin/sh 
 
+
 1. /etc/auto_home の設定
 
    Solarisでは、通常/homeはオートマウンタの管理下にあります。
