@@ -8,7 +8,7 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
 
    1. RPMforge
 
-      # yum install rpmforge-release
+      ## yum install rpmforge-release
 
       ## mkdir /usr/local/src/rpmforge ; cd /usr/local/src/rpmforge
       ## wget http://pkgs.repoforge.org/rpmforge-release/rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
