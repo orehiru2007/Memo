@@ -1,14 +1,14 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
 
 1. ログインの監査、su の監査
 
    1. ログインの監査 /etc/default/login
 
       # diff -u /etc/default/login{.orig,}
-      --- /etc/default/login.orig     2019-04-09 18:30:55.406520739 +0900
-      +++ /etc/default/login  2019-04-09 18:31:18.449115463 +0900
-      @@ -63,7 +63,7 @@
-       # for a local user's account (passwd(5)/shadow(5)), that account
+      --- /etc/default/login.orig     月 4月 22 11:24:11 2019
+      +++ /etc/default/login  月 4月 22 11:24:33 2019
+      @@ -91,7 +91,7 @@
+       # for a local user's account (passwd(4)/shadow(4)), that account
        # will be locked if failed logins equals or exceeds RETRIES.
        #
       -#RETRIES=5
@@ -16,7 +16,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
        #
        # The SYSLOG_FAILED_LOGINS variable is used to determine how many failed
        # login attempts will be allowed by the system before a failed login
-      @@ -70,4 +70,4 @@
+      @@ -98,4 +98,4 @@
        # message is logged, using the syslog(3) LOG_NOTICE facility.  For example,
        # if the variable is set to 0, login will log -all- failed login attempts.
        #
@@ -80,9 +80,10 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
    1. rsyslog の確認
 
+      # pkg install /system/rsyslog
       # pkg list rsyslog
       NAME (PUBLISHER)                                  VERSION                    IFO
-      system/rsyslog                                    8.15.0-11.4.0.0.1.14.0     i--
+      system/rsyslog                                    7.6.6-2018.0.0.0           i--
 
    2. system-log サービスインスタンスの状態確認
 
@@ -104,14 +105,8 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    4. /etc/rsyslog.conf
 
       # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
-      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
       $ModLoad imsolaris      # for Solaris kernel logging
-      $IncludeConfig /etc/rsyslog.d/
       $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-      $template InfoLogFileName,"/var/log/syslog/%fromhost%.log"
-      $template HostIP,"%fromhost%"
-      $template logmsg,"%timereported% %syslogseverity-text% %fromhost-ip% %programname% : %msg%"
-      $template ZBXSendMail,"%fromhost%%msg%"
       mail.*                                          -/var/log/mail.log
       & stop
       local5.*                                        -/var/log/mail_deux.log

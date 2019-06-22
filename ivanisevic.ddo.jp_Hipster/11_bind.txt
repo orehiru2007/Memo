@@ -1,0 +1,240 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+bind9
+
+1. インストール
+
+   # groupadd -g 53 named
+   # useradd -u 53 -g 53 -d /var/named -s /bin/false named
+   # export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc4/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin
+
+   # wget https://ftp.isc.org/isc/bind9/9.12.4-P1/bind-9.12.4-P1.tar.gz
+   # tar zxvf bind-9.12.4-P1.tar.gz
+   # cd bind-9.12.4-P1
+   # CFLAGS="-m64" \
+   > CPPFLAGS=-I/usr/local/64/include/openssl \
+   > PERL=/usr/local/64/bin/perl \
+   > ./configure \
+   > --prefix=/usr/local/64 \
+   > --disable-threads \
+   > --with-openssl=/usr/local/64 \
+   > --with-libjson=no \
+   > --enable-ipv6=no
+   # make
+   # make install
+
+   ※PATH に /usr/local/binutils/bin /usr/gnu/bin がある場合は外しておくこと
+
+2. /etc/init.d/named
+
+   #!/bin/sh
+   
+   PID=`/usr/bin/ps -aef | /usr/bin/awk '{print $1" "$2}' | /usr/bin/grep named | /usr/bin/awk '{print $2}'`
+   
+   case "$1" in
+   'start')
+           if [ $PID ]; then
+                   echo "NAMED has Started"
+           else
+                   /usr/local/64/sbin/named -u named -t /var/named -c /etc/named.conf -4 > /dev/null 2>&1
+                   echo "Starting NAMED"
+           fi
+           ;;
+   
+   'stop')
+           if [ $PID ]; then
+                   kill -TERM $PID
+                   echo "Stopping NAMED"
+           else
+                   echo "NAMED has Stopped"
+           fi
+           ;;
+   
+   'restart')
+           $0 stop
+           sleep 2
+           $0 start
+           ;;
+   
+   *)
+           echo "Usage: $0 { start | stop | restart }"
+           exit 1
+           ;;
+   esac
+   exit 0
+
+3. 起動スクリプトのリンクの作成
+
+   # chmod 755 /etc/init.d/named
+   # ln -s /etc/init.d/named /etc/rc2.d/S99named
+   # ln -s /etc/init.d/named /etc/rc1.d/K03named
+   # ln -s /etc/init.d/named /etc/rc0.d/K03named
+   # ln -s /etc/init.d/named /etc/rcS.d/K03named
+
+4. rndckey の作成
+
+   # mkdir /var/named
+   # chown named:named /var/named/
+   # mkdir /var/named/etc/
+   # cd /var/named/etc
+   # rndc-confgen -r /dev/random > rndc.conf
+   # chown named:named rndc.conf
+   # chmod 600 rndc.conf
+
+   出来上がった rndc.conf の以下の部分をコメントアウトを外し、named.conf にコピーします
+   ------------------------------
+   # key "rndc-key" {
+   #       algorithm hmac-md5;
+   #       secret "ouH6Gj6MxJjclPke88JMyw==";
+   # };
+   #
+   # controls {
+   #       inet 127.0.0.1 port 953
+   #               allow { 127.0.0.1; } keys { "rndc-key"; };
+   # };
+   ------------------------------
+
+5. pid ファイルの作成
+
+   # mkdir -p /var/named/var/run
+   # chown named:named /var/named/var/run
+
+6. デバイスファイルを作成
+
+   # ls -l /devices/pseudo/log@0:log
+   crw-r-----   1 root     sys      149,  5 5月  4 00:06 /devices/pseudo/log@0:log
+
+   # ls -l /devices/pseudo/poll@0:poll
+   crw-rw-rw-   1 root     sys      187,  0 5月  3 14:29 /devices/pseudo/poll@0:poll
+
+   # ls -l /devices/pseudo/random@0:random
+   crw-r--r--   1 root     sys      205,  0 5月  3 23:41 /devices/pseudo/random@0:random
+   
+   # mkdir -p /var/named/dev
+   # cd /var/named/dev
+   
+   # mknod log c 149 5
+   # chown root:named log
+   
+   # mknod poll c 187 0
+   # chmod 666 poll
+   
+   # mknod random c 205 0
+   # chmod 666 random
+
+7. SSL 関連ライブラリのコピー
+
+   # cd /var/named
+   # mkdir lib
+   # mkdir -p usr/lib
+   # mkdir -p usr/local/64
+
+   # cp -Rp /lib/64 lib
+   # cp -Rp /usr/lib/64 usr/lib
+   # cp -Rp /usr/local/64/lib usr/local/64
+
+9. zoneinfo ファイルのコピー 
+
+   # mkdir -p /var/named/usr/share/lib
+   # cp -Rp /usr/share/lib/zoneinfo /var/named/usr/share/lib
+
+10. ログファイルの出力場所の作成
+
+    # mkdir /var/named/log
+    # chown named:named /var/named/log
+
+#11. ログ ローテート (一日ごと 180日間保存)
+#
+#    # logadm -w /var/named/log/default.log -p 1d -C 180
+#    # logadm -w /var/named/log/queries.log -p 1d -C 180
+#
+#    # cat /etc/logadm.conf
+#    /var/named/log/default.log -C 180 -p 1d
+#    /var/named/log/queries.log -C 180 -p 1d
+
+12. /var/named/etc/named.conf
+
+    options {
+            directory "/";
+            pid-file "/var/run/named.pid";
+            auth-nxdomain no;
+            notify yes;
+            empty-zones-enable no;
+            allow-transfer {
+                    192.168.1.0/24;
+            };
+    };
+    
+    key "rndc-key" {
+            algorithm hmac-md5;
+            secret "ouH6Gj6MxJjclPke88JMyw==";
+    };
+    
+    controls {
+            inet 127.0.0.1 port 953
+            allow { 127.0.0.1; } keys { "rndc-key"; };
+    };
+    
+    logging {
+            channel "default-log" {
+                    file "log/default.log";
+                    print-time yes;
+                    print-category yes;
+                    print-severity yes;
+                    severity info;
+            };
+            channel "queries-log" {
+                    file "log/queries.log";
+                    severity info;
+                    print-time yes;
+                    print-severity yes;
+                    print-category yes;
+            };
+            category default {
+                    "default-log";
+                    "default_syslog";
+                    "default_debug";
+                    "default_stderr";
+            };
+            category queries { "queries-log"; };
+            category lame-servers { null; };
+    };
+    
+    view "internal" {
+            match-clients {
+                    127.0.0.0/8;
+                    192.168.1.0/24;
+            };
+            zone "." IN {
+                    type hint;
+                    file "named.ca";
+            };
+            zone "0.0.127.in-addr.arpa" IN {
+                    type master;
+                    file "0.0.127.in-addr.arpa";
+                    allow-update { none; };
+            };
+            zone "1.168.192.in-addr.arpa" IN {
+                    type master;
+                    file "1.168.192.in-addr.arpa";
+                    allow-update { none; };
+            };
+            zone "kamimaedu.ddo.jp" IN {
+                    type master;
+                    file "kamimaedu.ddo.jp";
+                    allow-update { none; };
+            };
+    };
+    
+    view "external" {
+            match-clients {any;};
+            recursion no;
+            zone "kamimaedu.ddo.jp" IN {
+                    type master;
+                    file "ext.kamimaedu.ddo.jp";
+                    allow-update { none; };
+            };
+    };
+
+11. DNS 参照先設定
+

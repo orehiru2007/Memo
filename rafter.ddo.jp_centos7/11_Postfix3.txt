@@ -185,7 +185,7 @@ S25R + Postgrey
    $ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
    $ echo '%_topdir %{getenv:HOME}/rpmbuild' > ~/.rpmmacrosexit
    $ cd ~/rpmbuild/SRPMS/
-   $ wget http://dl.fedoraproject.org/pub/epel/7/SRPMS/p/postgrey-1.34-12.el7.src.rpm
+   $ wget https://dl.fedoraproject.org/pub/epel/7/SRPMS/Packages/p/postgrey-1.34-12.el7.src.rpm
    $ rpm -Uvh postgrey-1.34-12.el7.src.rpm
 
 3. tarpit 用パッチの適用

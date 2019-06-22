@@ -1,4 +1,4 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
 
 すべて /usr/local 以下にインストールすること
 データやログは /var 以下に置くこと
@@ -67,12 +67,35 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # LC_ALL=C make test
    # make install
 
-3. DB
-
+3. DB 6.1.19 ※未インストール
+ 
    2. 64bit
    ※binutils を PATH から除外しておくこと
    # tar zxvf db-6.1.19.tar.gz
    # cd db-6.1.19/build_unix
+   # CFLAGS=-m64 \
+   > CC=gcc \
+   > LDFLAGS="-L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
+   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
+   # make
+   # make install
+
+4. DB 5.3.28
+
+   1. 32bit
+   ※binutils を PATH から除外しておくこと
+   # tar zxvf db-5.3.28.tar.gz
+   # cd db-5.3.28/build_unix
+   # CC=gcc \
+   > LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
+   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
+   # make
+   # make install
+
+   2. 64bit
+   ※binutils を PATH から除外しておくこと
+   # tar zxvf db-5.3.28.tar.gz
+   # cd db-5.3.28/build_unix
    # CFLAGS=-m64 \
    > CC=gcc \
    > LDFLAGS="-L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
@@ -91,14 +114,6 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 7. tcpdump (純正利用) ※インストール済み
 
    # pkg install /diagnostic/tcpdump
-
-8. sudo (純正利用) ※インストール済み
-
-   # pkg install /security/sudo
-
-9. less (純正利用) ※インストール済み
-
-   # pkg install /text/less
 
 10. jwhois
 
@@ -124,9 +139,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
     # wget ftp://ftp.cwru.edu/pub/bash/readline-6.3.tar.gz
     # tar xvzfls readline-6.3.tar.gz
     # cd readline-6.3
-    > CFLAGS=-m64 \
-    > CPPFLAGS=-m64 \
-    > LDFLAGS=-m64 \
+    # CC="gcc -m64" \
     # ./configure --prefix=/usr/local/64
     # make
     # make install

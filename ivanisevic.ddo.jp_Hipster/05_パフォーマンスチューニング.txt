@@ -10,15 +10,15 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
       65536
 
       # ulimit -n
-      256
+      65536
 
       # ulimit -a
       core file size          (blocks, -c) unlimited
       data seg size           (kbytes, -d) unlimited
       file size               (blocks, -f) unlimited
-      open files                      (-n) 256
+      open files                      (-n) 65536
       pipe size            (512 bytes, -p) 10
-      stack size              (kbytes, -s) 8192
+      stack size              (kbytes, -s) 10240
       cpu time               (seconds, -t) unlimited
       max user processes              (-u) 29995
       virtual memory          (kbytes, -v) unlimited
@@ -26,14 +26,14 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    2. 変更
 
       # diff -U1 /etc/system{.orig,}
-      --- /etc/system.orig    2014年  9月 12日 (金)
-      +++ /etc/system 2014年  9月 12日 (金)
-      @@ -91,1 +91,6 @@
+      --- /etc/system.orig    月 4月 22 11:16:39 2019
+      +++ /etc/system 月 4月 22 11:16:57 2019
+      @@ -110,1 +110,6 @@
       
       +set noexec_user_stack = 1
       +set noexec_user_stack_log = 1
-      +set rlim_fd_max = 262144
-      +set rlim_fd_cur = 262144
+      +set rlim_fd_max = 524288
+      +set rlim_fd_cur = 524288
 
 2. パスワード規則
 
@@ -46,7 +46,6 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    -#DICTIONDBDIR=/var/passwd
    +DICTIONLIST=/usr/share/lib/dict/words
    +DICTIONDBDIR=/var/passwd
-    #DICTIONMINWORDLENGTH=3
 
    1. Tips 1 各パラメータ
 
@@ -79,7 +78,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    
    2. デフォルトパスワードの規則
 
-      少なくとも 8 文字以上の長さであること
+      少なくとも 6 文字以上の長さであること
       少なくとも 2 文字は英文字であること
       少なくとも 1 文字は数字か特殊文字であること
       古いパスワードとは 3 文字以上異なること
@@ -91,9 +90,9 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    他システム (RHEL 6、7 が SHA512 を採用している) との互換を考慮し、SHA512 とする
    
    # diff -U1 /etc/security/policy.conf{.orig,}
-   --- /etc/security/policy.conf.orig      2019-04-09 18:25:01.513555132 +0900
-   +++ /etc/security/policy.conf   2019-04-09 18:27:30.555883710 +0900
-   @@ -43,3 +43,3 @@
+   --- /etc/security/policy.conf.orig      月 4月 22 11:19:27 2019
+   +++ /etc/security/policy.conf   月 4月 22 11:19:47 2019
+   @@ -50,3 +50,3 @@
     #
    -CRYPT_DEFAULT=5
    +CRYPT_DEFAULT=6

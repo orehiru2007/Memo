@@ -1,0 +1,109 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.1 x86)
+
+ipfilter NAT Box の構築
+
+1. ネットワーク環境の確認
+
+   # ipadm create-ip net1
+   # ipadm create-addr -T static -a 192.168.3.228/24 net1/v4
+
+   # ifconfig -a
+   lo0: flags=2001000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv4,VIRTUAL> mtu 8232 index 1
+           inet 127.0.0.1 netmask ff000000
+   net0: flags=1000843<UP,BROADCAST,RUNNING,MULTICAST,IPv4> mtu 1500 index 2
+           inet 192.168.1.93 netmask ffffff00 broadcast 192.168.1.255
+           ether 0:50:56:81:6f:8a
+   net1: flags=1000843<UP,BROADCAST,RUNNING,MULTICAST,IPv4> mtu 1500 index 3
+           inet 192.168.3.228 netmask ffffff00 broadcast 192.168.3.255
+           ether 0:50:56:81:79:b2
+   lo0: flags=2002000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv6,VIRTUAL> mtu 8252 index 1
+           inet6 ::1/128
+   net0: flags=20002000840<RUNNING,MULTICAST,IPv6> mtu 1500 index 2
+           inet6 ::/0
+           ether 0:50:56:81:6f:8a
+   net1: flags=20002000840<RUNNING,MULTICAST,IPv6> mtu 1500 index 3
+           inet6 ::/0
+           ether 0:50:56:81:79:b2
+
+2. フォワーディングの有効化
+
+   1. 現状確認 (無効となっている)
+   # svcs -x routing/route:default
+   svc:/network/routing/route:default (in.routed network routing daemon)
+    State: disabled since 2013年09月06日 21時31分58秒
+   Reason: Disabled by an administrator.
+      See: http://support.oracle.com/msg/SMF-8000-05
+      See: in.routed(1M)
+   Impact: This service is not running.
+
+   # routeadm
+                 Configuration   Current              Current
+                        Option   Configuration        System State
+   ---------------------------------------------------------------
+                  IPv4 routing   disabled             disabled
+                  IPv6 routing   disabled             disabled
+               IPv4 forwarding   disabled             disabled
+               IPv6 forwarding   disabled             disabled
+   
+              Routing services   "route:default ripng:default"
+   
+   Routing daemons:
+   
+                         STATE   FMRI
+                      disabled   svc:/network/routing/ripng:default
+                        online   svc:/network/routing/ndp:default
+                      disabled   svc:/network/routing/legacy-routing:ipv4
+                      disabled   svc:/network/routing/legacy-routing:ipv6
+                      disabled   svc:/network/routing/rdisc:default
+                      disabled   svc:/network/routing/route:default
+
+   2. フォワーディングの有効化 (ついでにルーティングも)
+   # routeadm -e ipv4-forwarding
+   # routeadm -e ipv4-routing
+   # routeadm -u
+
+   # routeadm
+                 Configuration   Current              Current
+                        Option   Configuration        System State
+   ---------------------------------------------------------------
+                  IPv4 routing   enabled              enabled
+                  IPv6 routing   disabled             disabled
+               IPv4 forwarding   enabled              enabled
+               IPv6 forwarding   disabled             disabled
+   
+              Routing services   "route:default ripng:default"
+   
+   Routing daemons:
+   
+                         STATE   FMRI
+                      disabled   svc:/network/routing/ripng:default
+                        online   svc:/network/routing/ndp:default
+                      disabled   svc:/network/routing/legacy-routing:ipv4
+                      disabled   svc:/network/routing/legacy-routing:ipv6
+                      disabled   svc:/network/routing/rdisc:default
+                        online   svc:/network/routing/route:default
+
+3. NAT ルールの設定
+
+   1. /etc/ipf/ipnat.conf 設定内容
+   # cat /etc/ipf/ipnat.conf
+   map net1 192.168.56.0/24 -> 192.168.1.103/32 proxy port ftp ftp/tcp
+   map net1 192.168.56.0/24 -> 192.168.1.103/32 portmap tcp/udp auto
+   map net1 192.168.56.0/24 -> 192.168.1.103/32
+
+   ※net1 から送信されるパケットについて、192.168.3.0/24 にマッチすれば、192.168.1.93 に NAT する
+
+   2. ルール変更後の反映方法
+   # ipnat -CF -f /etc/ipf/ipnat.conf
+
+   3. ipnat の状態確認
+   # ipnat -l
+   List of active MAP/Redirect filters:
+   map net1 192.168.3.0/24 -> 192.168.1.93/32 proxy port ftp ftp/tcp
+   map net1 192.168.3.0/24 -> 192.168.1.93/32 portmap tcp/udp auto
+   map net1 192.168.3.0/24 -> 192.168.1.93/32
+   
+   List of active sessions:
+   MAP 192.168.3.228   <- -> 192.168.1.93    [192.168.3.117]
+
+

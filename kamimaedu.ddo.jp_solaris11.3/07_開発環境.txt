@@ -403,9 +403,9 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 6. gcc7
 
-   gmp='gmp-6.1.0.tar.bz2'		gmp-6.1.2.tar.xz
+   gmp='gmp-6.1.0.tar.bz2'	gmp-6.1.2.tar.xz
    mpfr='mpfr-3.1.4.tar.bz2'	mpfr-3.1.6.tar.gz
-   mpc='mpc-1.0.3.tar.gz'		mpc-1.1.0.tar.gz
+   mpc='mpc-1.0.3.tar.gz'	mpc-1.1.0.tar.gz
    isl='isl-0.16.1.tar.bz2'	http://isl.gforge.inria.fr/isl-0.16.1.tar.gz
 
    ※/usr/local/binutils/bin を PATH から除外しておくこと

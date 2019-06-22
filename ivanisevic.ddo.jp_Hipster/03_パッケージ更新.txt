@@ -1,0 +1,66 @@
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
+
+パッケージ更新
+
+1. 基本編
+
+   1. レポジトリ情報を最新の状態にする
+   # pkg refresh --full
+
+   2. インストールされているパッケージの一覧表示 (ローカルのみ) 
+   # pkg list
+
+   3. 全パッケージの一覧表示 (リモート含む)
+   # pkg list -a
+
+   4. パッケージの検索
+
+      1. ローカルのパッケージの検索
+      # pkg search "何か名前"
+
+      2. リモートにあるパッケージの検索
+      # pkg search -r "何か名前"
+
+   5. ファイル/実行バイナリ名からパッケージの検索 (リモートの場合 -r 要)
+   # pkg search "何かファイル/実行バイナリ名"
+
+   6. パッケージの内容確認 (リモートの場合 -r 要)
+   # pkg info "何かパッケージ名"
+
+   7. パッケージに含まれるファイル一覧 (リモートの場合 -r 要)
+   # pkg contents "何かパッケージ名"
+
+   8. パッケージの依存関係の確認 (リモートの場合 -r 要)
+   # pkg contents -m "何かパッケージ名"
+
+   9. アップデートの有無の確認
+   # pkg list -u
+
+   10. インストール/アップデート
+   # pkg install "何かパッケージ名"
+
+   11. 環境全体のアップデート
+   # pkg update
+   # pkg update -nv --accept ※ドライラン
+
+2. 応用編 (大型アップデートを実施する際、事前に boot 環境をバックアップする)
+
+   1. ZFS BE (Boot Environment) の作成
+   # beadm list
+   BE               Active Mountpoint Space  Policy Created
+   --               ------ ---------- -----  ------ -------
+   solaris          NR     /          3.40G  static 2014-09-08 19:20
+
+   # pfexec beadm create solaris_nox
+
+   # beadm list
+   BE          Active Mountpoint Space  Policy Created
+   --          ------ ---------- -----  ------ -------
+   solaris     NR     /          2.25G  static 2013-05-15 15:47
+   solaris_nox      -      -          165.0K static 2014-09-09 11:55
+
+   2. boot 環境を事前に作成せずに、アップデートと合わせて自動作成する場合
+   # pkg image-update
+
+
+

@@ -1,4 +1,4 @@
-rafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
+exitrafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
 
 Dovecot
 

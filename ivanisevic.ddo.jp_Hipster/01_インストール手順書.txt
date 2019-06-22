@@ -1,0 +1,61 @@
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
+
+インストール
+
+1. OpenIndiana Hipster 2018.10 のダウンロード
+
+   URL : https://www.openindiana.org/download/
+
+2. インストールパラメータ
+
+   ISO イメージ (OI-hipster-gui-20181023.iso) をマウントし、仮想マシンを起動する
+
+   Select a Language                                 : 15. Japanese
+   ディスク                                          : ■ ディスク全体を使用する
+   タイムゾーン、日付と時刻 (地域/場所/タイムゾーン) : アジア / 日本 / 日本
+   ロケール (言語/地域)                              : 日本語 / 日本
+   ユーザ (Root Password)                            : Taknet77
+   コンピュータ名                                    : ivanisevic
+   キーボード                                        : Japanese (IBM ThinkPad 560Z)
+
+   あとはインストーラーに従うのみです、南無南無
+
+3. root アカウント有効化
+
+   # rolemod -K type=normal root
+   ※OpenIndiana では、root はユーザとして作成されるため ※警告を無視してユーザを作成しなかった場合は別)
+
+4. beadm の利用方法について
+   
+   ブート環境 (ルートを含む、配下のデータ一式) のスナップショットを管理することが可能です
+   検証作業時には非常に有効な機能であると思います
+
+   1. ブート環境の作成
+   # beadm create "BE 名前"
+   
+   2. ブート環境のマウント方法
+   # beadm mount "BE Name" "マウントポイント"
+   ※再起動時には必ずアンマウント (beadm umount) すること
+
+   3. アクティブでないブート環境からブート環境を作成する方法
+   # beadm create -e "アクティブではない BE Name" "BE Name"
+
+   4. ブート環境のスナップショット (読み取り専用イメージ) 作成
+   # beadm create "BE Name@Description"
+
+   5. ブート環境のスナップショット (読み取り専用イメージ) からブート環境の作成
+   # beadm create  -e "BE Name@Description" "BE Name"
+
+   6. ブート環境をアクティブにする方法 (アクティブとしなくても GRUB ブートメニューで選択可能)
+   # beadm activate "BE Name"
+
+   7. ブート環境の破棄
+   # beadm destroy "BE Name"
+   
+   8. ブート環境名の変更
+   # beadm rename "BE Name" "New BE Name"
+
+   9. ブート環境 一覧の確認
+   # beadm list
+
+

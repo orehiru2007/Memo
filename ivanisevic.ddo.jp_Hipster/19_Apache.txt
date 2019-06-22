@@ -2,33 +2,31 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 1. APR
 
-   # wget http://ftp.yz.yamagata-u.ac.jp/pub/network/apache/apr/apr-1.5.2.tar.gz
-   # tar zxvf apr-1.5.2.tar.gz
-   # cd apr-1.5.2
+   # wget http://ftp.yz.yamagata-u.ac.jp/pub/network/apache/apr/apr-1.7.0.tar.gz
+   # tar zxvf apr-1.7.0.tar.gz
+   # cd apr-1.7.0
    # CC="gcc -m64" \
-   # ./configure --prefix=/usr/local/64
+   > ./configure --prefix=/usr/local/64
    # make
    # make test
    # make install
 
-   ¦/usr/local/binutils/bin ‚ğ PATH ‚ÉŠÜ‚ß‚é‚±‚Æ
-   
 2. APR-Utils
 
-   # wget http://ftp.jaist.ac.jp/pub/apache//apr/apr-util-1.5.4.tar.gz
-   # tar -xvzf apr-util-1.5.4.tar.gz
-   # cd apr-util-1.5.4
+   # wget http://ftp.jaist.ac.jp/pub/apache/apr/apr-util-1.6.1.tar.gz
+   # tar -xvzf apr-util-1.6.1.tar.gz
+   # cd apr-util-1.6.1
    # CC="gcc -m64" \
-   # ./configure --prefix=/usr/local/64 --with-apr=/usr/local/64
+   > ./configure --prefix=/usr/local/64 --with-apr=/usr/local/64
    # make
    # make test
    # make install
 
 3. Apache 2.4.23
 
-   # wget http://ftp.riken.jp/net/apache/httpd/httpd-2.4.23.tar.gz
-   # tar zxvf httpd-2.4.23.tar.gz
-   # cd httpd-2.4.23
+   # wget http://ftp.riken.jp/net/apache/httpd/httpd-2.4.39.tar.gz
+   # tar zxvf httpd-2.4.39.tar.gz
+   # cd httpd-2.4.39
    # CC="gcc -m64" \
    > CPPFLAGS=-I/usr/local/64/include \
    > LDFLAGS="-L/usr/local/64/lib -R/usr/local/64/lib" \
@@ -46,15 +44,16 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
    # mkdir -p /var/www/html
    # mkdir /var/www/cgi-bin
+   # mkdir /var/log/apache
    # mv /usr/local/apache2/logs /usr/local/apache2/logs.orig
-   # ln -s /usr/local/apache2/logs /var/log/apache
+   # ln -s /var/log/apache /usr/local/apache2/logs
 
    :%s/\/usr\/local\/httpd-2.4.25\/htdocs/\/var\/www\/html/g
 
-4. ‹N“®İ’è
+4. èµ·å‹•è¨­å®š
 
-   # svcadm -v disable /network/http:apache22
-   svc:/network/http:apache22 disabled.
+   # svcadm -v disable /network/http:apache24
+   svc:/network/http:apache24 disabled.
 
    # cp -p /usr/local/apache2/bin/apachectl /etc/init.d/apache
    # ln /etc/init.d/apache /etc/rc0.d/K16apache
@@ -62,12 +61,12 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # ln /etc/init.d/apache /etc/rcS.d/K16apache
    # ln /etc/init.d/apache /etc/rc2.d/S50apache
 
-5. ƒƒO
+5. ãƒ­ã‚°
 
-   1. ƒ[ƒe[ƒg
+   1. ãƒ­ãƒ¼ãƒ†ãƒ¼ãƒˆ
    # logadm -w apache2 -p 1d -C 180 -a '/usr/local/apache2/bin/apachectl graceful' '/var/log/apache/*{access,error,ssl_request}_log'
 
-   2. ƒƒOƒtƒH[ƒ}ƒbƒg (/usr/local/apache2/conf/httpd.conf d—v‰ÓŠ‚Ì‚İ”²ˆ)
+   2. ãƒ­ã‚°ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ (/usr/local/apache2/conf/httpd.conf é‡è¦ç®‡æ‰€ã®ã¿æŠœç²‹)
    LogFormat "%h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"" combined
    LogFormat "%h %l %u %t \"%r\" %>s %b" common
    LogFormat "%{Referer}i -> %U" referer
@@ -76,13 +75,13 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    
    CustomLog "logs/access_log" combined
 
-6. TIPS ƒŠƒ_ƒCƒŒƒNƒg
+6. TIPS ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆ
 
-   1. ƒ‚ƒWƒ…[ƒ‹‚Ì—LŒø‰»
+   1. ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æœ‰åŠ¹åŒ–
    LoadModule proxy_http_module modules/mod_proxy_http.so
    LoadModule rewrite_module modules/mod_rewrite.so
 
-   2. ƒŠƒ_ƒCƒŒƒNƒg (URL ‘‚«Š·‚¦)
+   2. ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆ (URL æ›¸ãæ›ãˆ)
    <VirtualHost 172.17.238.93:80>
        ServerName kamimaedu.ddo.jp
        DocumentRoot "/var/www/html"
@@ -91,10 +90,10 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
        RewriteRule ^/?ir/stock/info/164soukai/(.*)$ http://srdb.jp/4062/$1 [R=301,L]
    </VirtualHost>
 
-   ¦ƒŠƒ_ƒCƒŒƒNƒgæ‚ª ŠO•”ƒhƒƒCƒ“‚Ìê‡Ahttp:// ‚©‚ç‚Ìƒtƒ‹ƒpƒX‚Å‹Lq‚µ‚½ê‡A©“®‚Å Redirect ˆ—‚Æ‚È‚é‚½‚ß’ˆÓ‚ª•K—v
-   ¦Ql URL : https://qwerty.work/blog/2012/02/htaccessurl-rewrite.php
+   â€»ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆå…ˆãŒ å¤–éƒ¨ãƒ‰ãƒ¡ã‚¤ãƒ³ã®å ´åˆã€http:// ã‹ã‚‰ã®ãƒ•ãƒ«ãƒ‘ã‚¹ã§è¨˜è¿°ã—ãŸå ´åˆã€è‡ªå‹•ã§ Redirect å‡¦ç†ã¨ãªã‚‹ãŸã‚æ³¨æ„ãŒå¿…è¦
+   â€»å‚è€ƒ URL : https://qwerty.work/blog/2012/02/htaccessurl-rewrite.php
 
-   3. ƒŠƒ_ƒCƒŒƒNƒg (ƒŠƒo[ƒXƒvƒƒLƒV)
+   3. ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆ (ãƒªãƒãƒ¼ã‚¹ãƒ—ãƒ­ã‚­ã‚·)
    <VirtualHost 172.17.238.93:80>
        ServerName kamimaedu.ddo.jp
        DocumentRoot "/var/www/html"

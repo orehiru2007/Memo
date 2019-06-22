@@ -1,4 +1,4 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.2 x86)
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
 
 Postfix + Dovecot (SMTP-Auth) +  TLS
 
@@ -9,18 +9,18 @@ Postfix
    # svcadm disable sendmail
    # svcs -x sendmail
    svc:/network/smtp:sendmail (sendmail SMTP mail transfer agent)
-    State: disabled since 2016年01月25日 11時52分12秒
+    State: disabled since 2019年05月 9日 09:24:50 JST
    Reason: Disabled by an administrator.
-      See: http://support.oracle.com/msg/SMF-8000-05
+      See: http://illumos.org/msg/SMF-8000-05
       See: sendmail(1M)
       See: /var/svc/log/network-smtp:sendmail.log
    Impact: This service is not running.
 
 2. zlib 64bit (インストール済)
 
-   # wget http://zlib.net/zlib-1.2.8.tar.gz
-   # tar zxvf zlib-1.2.8.tar.gz
-   # cd zlib-1.2.8
+   # wget http://zlib.net/zlib-1.2.11.tar.gz
+   # tar zxvf zlib-1.2.11.tar.gz
+   # cd zlib-1.2.11
    # CFLAGS=-m64 ./configure --prefix=/usr/local/64
    # LD_RUN_PATH=/usr/local/64/lib make
    # make install
@@ -30,9 +30,9 @@ Postfix
 
 3. PCRE 64bit
 
-   # wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.38.tar.gz
-   # tar zxvf pcre-8.38.tar.gz
-   # cd pcre-8.38
+   # wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.43.tar.gz
+   # tar zxvf pcre-8.43.tar.gz
+   # cd pcre-8.43
    # CFLAGS="-m64 -g" \
    > CXXFLAGS="-m64 -g" \
    > LDFLAGS="-L/usr/local/gcc4/lib/amd64/ -L/usr/local/64/lib/" \
@@ -47,10 +47,10 @@ Postfix
       # groupadd -g 68 postfix
       # groupadd -g 69 postdrop
       # useradd -u 68 -g 68 -d /etc/postfix postfix
-      # wget http://linorg.usp.br/postfix/release/official/postfix-3.2.0.tar.gz
-      # tar zxvf postfix-3.2.0.tar.gz
-      # cd postfix-3.2.0
-      # patch -p1 <../postfix-3.2.0-sleep.patch
+      # wget http://linorg.usp.br/postfix/release/official/postfix-3.3.4.tar.gz
+      # tar zxvf postfix-3.3.4.tar.gz
+      # cd postfix-3.3.4
+      # patch -p1 <../postfix-3.3.4-sleep.patch
       # make -f Makefile.init makefiles shared=yes dynamicmaps=yes shlib_directory=/usr/local/64/lib/postfix \
       > CC="gcc -m64" \
       > OPT='-O3 -pipe -s -march=native -mtune=native' \
@@ -68,17 +68,16 @@ Postfix
       > -DDEF_META_DIR=\"/usr/local/64/etc/postfix\" \
       > -DUSE_TLS \
       > -DUSE_SASL_AUTH \
-      > -DUSE_CYRUS_SASL \
       > -DHAS_DB \
       > -DHAS_PCRE \
       > -DDEF_SERVER_SASL_TYPE=\"dovecot\" \
       > -I/usr/local/64/include/openssl/ -I/usr/local/64/include/sasl -I/usr/local/64/include' \
-      > AUXLIBS="-L/usr/local/64/lib -R/usr/local/64/lib -lssl -lcrypto -lz -lm -lsasl2 -ldb -lpcre"
+      > AUXLIBS="-L/usr/local/64/lib -R/usr/local/64/lib -lssl -lcrypto -lz -lm -ldb -lpcre"
       # make
 
       # make install
       install_root      : /
-      tempdir           : /usr/local/src/64/postfix/3.2.0/postfix-3.2.0
+      tempdir           : /usr/local/src/64/postfix/3.3.4/postfix-3.3.4
       config_directory  : /usr/local/64/etc/postfix
       command_directory : /usr/local/64/sbin
       daemon_directory  : /usr/local/64/libexec/postfix
@@ -96,8 +95,9 @@ Postfix
       meta_directory    : /usr/local/64/etc/postfix
 
       # cat postfix-3.2.0-sleep.patch
-      --- postfix-3.2.0.orig/src/smtpd/smtpd_check.c  2017-02-06 05:55:35.000000000 +0900
-      +++ postfix-3.2.0/src/smtpd/smtpd_check.c       2017-04-19 16:49:45.184474849 +0900
+      diff -urN postfix-3.3.4.orig/src/smtpd/smtpd_check.c postfix-3.3.4/src/smtpd/smtpd_check.c
+      --- postfix-3.3.4.orig/src/smtpd/smtpd_check.c  2019-03-30 21:01:12.000000000 +0000
+      +++ postfix-3.3.4/src/smtpd/smtpd_check.c       2019-05-09 16:37:53.904792603 +0000
       @@ -216,6 +216,7 @@
        #include <valid_utf8_hostname.h>
        #include <midna_domain.h>
@@ -106,7 +106,7 @@ Postfix
       
        /* DNS library. */
       
-      @@ -4063,6 +4064,7 @@
+      @@ -4070,6 +4071,7 @@
            ARGV   *list;
            int     found;
            int     saved_recursion = state->recursion++;
@@ -114,7 +114,7 @@ Postfix
       
            if (msg_verbose)
               msg_info(">>> START %s RESTRICTIONS <<<", reply_class);
-      @@ -4151,8 +4153,35 @@
+      @@ -4158,8 +4160,35 @@
                   if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
                       msg_warn("restriction %s must be followed by number", SLEEP);
                       reject_server_error(state);
@@ -152,7 +152,7 @@ Postfix
               } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
                   status = reject_plaintext_session(state);
               }
-
+      
    2. 起動スクリプト
 
       # cat /etc/init.d/postfix
@@ -183,6 +183,16 @@ Dovecot (SMTP-Auth)
     #  ${nexthop} ${user}
    +dovecot   unix  -       n       n       -       -       pipe
    +    flags=DRhu user=dovecot:dovecot argv=/usr/local/64/libexec/dovecot/dovecot-lda -d ${recipient}
+
+   # diff -u /etc/postfix/master.cf{.orig,}
+   --- /etc/postfix/master.cf.orig 2019-05-12 16:09:42.224417850 +0000
+   +++ /etc/postfix/master.cf      2019-05-12 16:11:07.589929060 +0000
+   @@ -129,3 +129,7 @@
+    #mailman   unix  -       n       n       -       -       pipe
+    #  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
+    #  ${nexthop} ${user}
+   +dovecot   unix  -       n       n       -       -       pipe
+   +   flags=DRhu user=dovecot:dovecot argv=/usr/local/64/libexec/dovecot/dovecot-lda -d ${recipient}
 
 2. /etc/postfix/main.cf (重要箇所のみ)
 
@@ -342,7 +352,7 @@ Dovecot (SMTP-Auth)
      Postfix-deux 
  
      1. 初期化
-        
+
         # postmulti -e init
 
         /etc/postfix/main.cf に以下の行が追加される

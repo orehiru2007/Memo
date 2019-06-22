@@ -1,11 +1,12 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
 
 すべて /usr/local 以下にインストールすること
 データやログは /var 以下に置くこと
 ライブラリは出来るだけシェアードライブラリにする
 
 1. ライブラリ検索パス (確認)
-
+1. HOSTSに下記追記
+   127.0.0.1      proxy.grp.ibiden.intra   
    いやね /usr/local/lib くらいはライブラリ検索パスで指定してもいいと思うんだよね
 
    1. 32bit 用ライブラリ検索パス
@@ -56,8 +57,11 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
    # pkg install ucb
    # pkg install gcc-7
-   # pkg install --accept /developer/java/jdk-8
+   # pkg install --accept /developer/java/jdk
    # pkg install /group/feature/developer-gnu
+
+   # ls -al /usr/bin/gcc
+   lrwxrwxrwx   1 root     root          16 6月 17 09:53 /usr/bin/gcc -> ../gcc/6/bin/gcc*
 
 3. 開発環境
 
@@ -255,17 +259,18 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # cd gmp-6.1.2
    # ./configure \
    > --prefix=/usr/local/gcc7 \
-   > --build=x86_64-pc-solaris2.11
+   > --build=i386-pc-solaris2.11
    # make
    # make install
 
    mpfr
-   # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.1.tar.gz
+   # wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.0.1.tar.gz
    # tar zxvf mpfr-4.0.1.tar.gz
    # cd mpfr-4.0.1
    # ./configure \
    > --prefix=/usr/local/gcc7 \
-   > --with-gmp=/usr/local/gcc7
+   > --with-gmp=/usr/local/gcc7 \
+   > --build=i386-pc-solaris2.11
    # make
    # make install
    # 
@@ -278,6 +283,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    > --prefix=/usr/local/gcc7 \
    > --with-gmp=/usr/local/gcc7 \
    > --with-mpfr=/usr/local/gcc7
+   > --build=i386-pc-solaris2.11
    # make
    # make install
 
@@ -289,12 +295,11 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # tar zxvf gcc-7.3.0.tar.gz
    # mkdir obj
    # cd obj
-   # CC=gcc \
-   > LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
+   # LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
    > `pwd`/../gcc-7.3.0/configure \
    > --prefix=/usr/local/gcc7 \
-   > --with-gnu-as --with-as=/usr/local/64/binutils/bin/as \
-   > --with-gnu-ld --with-ld=/usr/local/64/binutils/bin/ld \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
    > --with-gmp=/usr/local/gcc7 \
    > --with-mpfr=/usr/local/gcc7 \
    > --with-mpc=/usr/local/gcc7 \
@@ -303,13 +308,3 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # LANG=C make bootstrap
    # make install
    # ln -s /usr/local/gcc7/bin/gcc /usr/local/gcc7/bin/cc
-
-   isl (インストールの要否を確認)
-   # wget http://isl.gforge.inria.fr/isl-0.16.1.tar.gz
-   # tar zxvf isl-0.16.1.tar.gz
-   # cd isl-0.16.1
-   # ./configure \
-   > --prefix=/usr/local/gcc7 \
-   > --with-gmp=/usr/local/gcc7
-   # make
-   # make install

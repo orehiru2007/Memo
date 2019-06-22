@@ -1,0 +1,457 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+TLS サーバ証明書 SHA-2 署名
+
+1. プライベート CA (Certificate Authority : 認証局) 用設定ファイルの作成
+
+   # mkdir -p /usr/local/etc/pki/myCA
+   # cp -p /usr/local/64/etc/ssl/openssl.cnf /usr/local/etc/pki/myCA/ca.cnf
+
+   # cat /usr/local/etc/pki/myCA/ca.cnf
+   default_ca      = CA_default              # The default ca section
+   
+   [ CA_default ]
+   dir             = /usr/local/etc/pki/myCA # Where everything is kept
+   certs           = $dir/certs              # Where the issued certs are kept
+   crl_dir         = $dir/crl                # Where the issued crl are kept
+   database        = $dir/index.txt          # database index file.
+   new_certs_dir   = $dir/newcerts           # default place for new certs.
+   certificate     = $dir/cacert.pem         # The CA certificate
+   serial          = $dir/serial             # The current serial number
+   crlnumber       = $dir/crlnumber          # the current crl number
+   crl             = $dir/crl.pem            # The current CRL
+   private_key     = $dir/private/cakey.pem  # The private key
+   RANDFILE        = $dir/private/.rand      # private random number file
+   x509_extensions = usr_cert                # The extentions to add to the cert
+   email_in_dn     = off
+   
+   name_opt        = ca_default              # Subject Name options
+   cert_opt        = ca_default              # Certificate field options
+   
+   default_days    = 3650                    # how long to certify for
+   default_crl_days= 30                      # how long before next CRL
+   default_md      = sha256                    # which md to use.
+   preserve        = no                      # keep passed DN ordering
+   
+   policy          = policy_match
+   
+   [ policy_match ]
+   countryName             = supplied
+   stateOrProvinceName     = supplied
+   organizationName        = supplied
+   organizationalUnitName  = optional
+   commonName              = supplied
+   emailAddress            = optional
+   
+   ####################################################################
+   [ req ]
+   default_bits            = 2048
+   default_md              = sha256
+   default_keyfile         = privkey.pem
+   distinguished_name      = req_distinguished_name
+   attributes              = req_attributes
+   x509_extensions = v3_ca # The extentions to add to the self signed cert
+   
+   string_mask = nombstr
+   
+   #req_extensions = v3_req # The extensions to add to a certificate request
+   
+   [ req_distinguished_name ]
+   countryName                     = Country Name (2 letter code)
+   countryName_default             = JP
+   countryName_min                 = 2
+   countryName_max                 = 2
+   
+   stateOrProvinceName             = State or Province Name (full name)
+   stateOrProvinceName_default     = Gifu
+   
+   localityName                    = Locality Name (eg, city)
+   localityName_default            = Kagano-Ogaki
+   
+   0.organizationName              = Organization Name (eg, company)
+   0.organizationName_default      = TAK
+   
+   organizationalUnitName          = Organizational Unit Name (eg, section)
+   organizationalUnitName_default  = Private-CA
+   
+   commonName                      = Common Name (eg, your name or your server\'s host
+   commonName_max                  = 64
+   
+   emailAddress                    = Email Address
+   emailAddress_max                = 64
+   
+   [ req_attributes ]
+   challengePassword               = A challenge password
+   challengePassword_min           = 4
+   challengePassword_max           = 20
+   
+   unstructuredName                = An optional company name
+   
+   [ usr_cert ]
+   # Make CA
+   #basicConstraints=CA:true
+   #nsCertType = sslCA, emailCA
+   #keyUsage = cRLSign, keyCertSign
+   
+   # Make Server Cert
+   #basicConstraints=CA:FALSE
+   #nsCertType = server
+   
+   # Make Client Cert
+   basicConstraints=CA:FALSE
+   nsCertType = client, email, objsign
+   
+   subjectKeyIdentifier=hash
+   authorityKeyIdentifier=keyid,issuer
+   
+   [ v3_req ]
+   basicConstraints = CA:FALSE
+   keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+   
+   [ v3_ca ]
+   subjectKeyIdentifier=hash
+   authorityKeyIdentifier=keyid:always,issuer:always
+   basicConstraints = CA:true
+   keyUsage = cRLSign, keyCertSign
+   nsCertType = sslCA, emailCA
+   
+   [ crl_ext ]
+   authorityKeyIdentifier=keyid:always,issuer:always
+
+2. プライベート CA を構築するためのスクリプトの作成
+
+   # cp -p /usr/local/etc/ssl/misc/CA.sh /usr/local/etc/pki/myCA/CA.sh
+
+   # diff -u /usr/local/etc/pki/myCA/CA.sh{.orig,}
+   --- /usr/local/etc/pki/myCA/CA.sh.orig  2016-04-13 17:54:33.138694473 +0900
+   +++ /usr/local/etc/pki/myCA/CA.sh       2016-04-13 17:55:23.342435690 +0900
+   @@ -61,6 +61,8 @@
+    if [ -z "$OPENSSL" ]; then OPENSSL=openssl; fi
+   
+    if [ -z "$DAYS" ] ; then DAYS="-days 365" ; fi # 1 year
+   +DAYS="-days 3650"   # 10 year
+   +SSLEAY_CONFIG="-config /usr/local/etc/pki/myCA/ca.cnf"
+    CADAYS="-days 1095"    # 3 years
+    REQ="$OPENSSL req $SSLEAY_CONFIG"
+    CA="$OPENSSL ca $SSLEAY_CONFIG"
+   @@ -69,6 +71,7 @@
+    PKCS12="openssl pkcs12"
+   
+    if [ -z "$CATOP" ] ; then CATOP=./demoCA ; fi
+   +CATOP=/usr/local/etc/pki/myCA
+    CAKEY=./cakey.pem
+    CAREQ=./careq.pem
+    CACERT=./cacert.pem
+
+3. プライベート CA の作成
+
+   # /usr/local/etc/pki/myCA/CA.sh -newca
+   CA certificate filename (or enter to create)
+   
+   Making CA certificate ...
+   Generating a 2048 bit RSA private key
+   ...+++
+   ...................+++
+   writing new private key to '/usr/local/etc/pki/myCA/private/./cakey.pem'
+   Enter PEM pass phrase:
+   Verifying - Enter PEM pass phrase:
+   -----
+   You are about to be asked to enter information that will be incorporated
+   into your certificate request.
+   What you are about to enter is what is called a Distinguished Name or a DN.
+   There are quite a few fields but you can leave some blank
+   For some fields there will be a default value,
+   If you enter '.', the field will be left blank.
+   -----
+   Country Name (2 letter code) [JP]:
+   State or Province Name (full name) [Gifu]:
+   Locality Name (eg, city) [Kagano-Ogaki]:
+   Organization Name (eg, company) [TAK]:
+   Organizational Unit Name (eg, section) [Private-CA]:
+   Common Name (eg, your name or your server's host []:kamimaedu.ddo.jp
+   Email Address []:
+   
+   Please enter the following 'extra' attributes
+   to be sent with your certificate request
+   A challenge password []:
+   An optional company name []:
+   Using configuration from /usr/local/etc/pki/myCA/ca.cnf
+   Enter pass phrase for /usr/local/etc/pki/myCA/private/./cakey.pem:
+   Check that the request matches the signature
+   Signature ok
+   Certificate Details:
+           Serial Number: 14232102935520599314 (0xc5829637067fdd12)
+           Validity
+               Not Before: Apr 13 08:56:58 2016 GMT
+               Not After : Apr 13 08:56:58 2019 GMT
+           Subject:
+               countryName               = JP
+               stateOrProvinceName       = Gifu
+               organizationName          = TAK
+               organizationalUnitName    = Private-CA
+               commonName                = kamimaedu.ddo.jp
+           X509v3 extensions:
+               X509v3 Subject Key Identifier:
+                   EC:15:F1:4A:51:A0:64:6A:AD:FE:AE:5F:C7:4B:C0:4E:39:3C:CE:FD
+               X509v3 Authority Key Identifier:
+                   keyid:EC:15:F1:4A:51:A0:64:6A:AD:FE:AE:5F:C7:4B:C0:4E:39:3C:CE:FD
+                   DirName:/C=JP/ST=Gifu/O=TAK/OU=Private-CA/CN=kamimaedu.ddo.jp
+                   serial:C5:82:96:37:06:7F:DD:12
+   
+               X509v3 Basic Constraints:
+                   CA:TRUE
+               X509v3 Key Usage:
+                   Certificate Sign, CRL Sign
+               Netscape Cert Type:
+                   SSL CA, S/MIME CA
+   Certificate is to be certified until Apr 13 08:56:58 2019 GMT (1095 days)
+   
+   Write out database with 1 new entries
+   Data Base Updated
+
+   以上で CA に必要なファイルが生育される。
+   # ls -al /usr/local/etc/pki/myCA
+   total 72
+   drwxr-xr-x   6 root     root          15  4月 13日  17:56 ./
+   drwxr-xr-x   3 root     root           3  4月 13日  17:49 ../
+   -rwxr-xr-x   1 root     root        5290  4月 13日  17:55 CA.sh*
+   -rwxr-xr-x   1 root     root        5175  4月 13日  17:54 CA.sh.orig*
+   -rw-r--r--   1 root     root        3755  4月 13日  17:53 ca.cnf
+   -rw-r--r--   1 root     root        4810  4月 13日  17:56 cacert.pem
+   -rw-r--r--   1 root     root        1017  4月 13日  17:56 careq.pem
+   drwxr-xr-x   2 root     root           2  4月 13日  17:56 certs/
+   drwxr-xr-x   2 root     root           2  4月 13日  17:56 crl/
+   -rw-r--r--   1 root     root          96  4月 13日  17:56 index.txt
+   -rw-r--r--   1 root     root          21  4月 13日  17:56 index.txt.attr
+   -rw-r--r--   1 root     root           0  4月 13日  17:56 index.txt.old
+   drwxr-xr-x   2 root     root           3  4月 13日  17:56 newcerts/
+   drwxr-xr-x   2 root     root           3  4月 13日  17:56 private/
+   -rw-r--r--   1 root     root          17  4月 13日  17:56 serial
+
+4. サーバ用 SSL 証明書の作成
+
+   1. /usr/local/etc/pki/myCA/ca.cnf
+
+      [ usr_cert ]
+      # Make CA
+      # basicConstraints=CA:true
+      # nsCertType = sslCA, emailCA
+      # keyUsage = cRLSign, keyCertSign
+      
+      # Make Server Cert
+      basicConstraints=CA:FALSE
+      nsCertType = server
+      
+      # Make Client Cert
+      # basicConstraints=CA:FALSE
+      # nsCertType = client, email, objsign
+   
+   2. 秘密鍵の生育
+
+      # mkdir -p /usr/local/etc/pki/Server/private
+      # cd /usr/local/etc/pki/Server/private
+
+      # openssl genrsa -out server.key -des3 2048
+      Generating RSA private key, 2048 bit long modulus
+      ....................+++
+      ....+++
+      e is 65537 (0x10001)
+      Enter pass phrase for server.key:                   ※ サーバ秘密鍵のパスフレーズを入力
+      Verifying - Enter pass phrase for server.key:       ※ 再入力
+
+      # chmod 400 server.key
+
+   3. 秘密鍵のパスワード解除
+
+      このままだと httpd 起動時にパスワードを訊かれるため、パスワードをはずす。
+ 
+      ※ 生育時に "-des3 2048" のオプションをつけないて実行しても、パスワード無しの秘密鍵を発行することができる。
+
+      # mv server.key server.key.orig
+      # openssl rsa -in server.key.orig -out server.key
+      Enter pass phrase for server.key.orig:              ※ サーバ秘密鍵のパスフレーズを入力
+      writing RSA key
+   
+   4. CSR (Certificate Signing Request : 証明書署名要求) の作成
+
+      # mkdir /usr/local/etc/pki/Server/certs
+      # cd /usr/local/etc/pki/Server/certs
+
+      # openssl req -new -key /usr/local/etc/pki/Server/private/server.key -out server.csr
+      You are about to be asked to enter information that will be incorporated
+      into your certificate request.
+      What you are about to enter is what is called a Distinguished Name or a DN.
+      There are quite a few fields but you can leave some blank
+      For some fields there will be a default value,
+      If you enter '.', the field will be left blank.
+      -----
+      Country Name (2 letter code) [AU]:JP
+      State or Province Name (full name) [Some-State]:Gifu
+      Locality Name (eg, city) []:Kagano-Ogaki
+      Organization Name (eg, company) [Internet Widgits Pty Ltd]:TAK
+      Organizational Unit Name (eg, section) []:Network
+      Common Name (eg, YOUR name) []:kamimaedu.ddo.jp
+      Email Address []:
+      
+      Please enter the following 'extra' attributes
+      to be sent with your certificate request
+      A challenge password []:
+      An optional company name []:
+
+5. 証明書の発行 (プライベート CA での署名)
+
+   # cd /usr/local/etc/pki/Server/certs
+   # openssl ca -config /usr/local/etc/pki/myCA/ca.cnf -in server.csr -out server.crt
+   Using configuration from /usr/local/etc/pki/myCA/ca.cnf
+   Enter pass phrase for /usr/local/etc/pki/myCA/private/cakey.pem:
+   Check that the request matches the signature
+   Signature ok
+   Certificate Details:
+           Serial Number: 14232102935520599315 (0xc5829637067fdd13)
+           Validity
+               Not Before: Apr 13 09:03:21 2016 GMT
+               Not After : Apr 11 09:03:21 2026 GMT
+           Subject:
+               countryName               = JP
+               stateOrProvinceName       = Gifu
+               organizationName          = TAK
+               organizationalUnitName    = network
+               commonName                = kamimaedu.ddo.jp
+           X509v3 extensions:
+               X509v3 Basic Constraints:
+                   CA:FALSE
+               Netscape Cert Type:
+                   SSL Server
+               X509v3 Subject Key Identifier:
+                   A7:CC:C1:B1:43:C1:27:89:DF:93:5A:95:AC:E8:E6:C0:E9:49:4B:F3
+               X509v3 Authority Key Identifier:
+                   keyid:EC:15:F1:4A:51:A0:64:6A:AD:FE:AE:5F:C7:4B:C0:4E:39:3C:CE:FD
+   
+   Certificate is to be certified until Apr 11 09:03:21 2026 GMT (3650 days)
+   Sign the certificate? [y/n]:y
+   
+   1 out of 1 certificate requests certified, commit? [y/n]y
+   Write out database with 1 new entries
+   Data Base Updated
+
+   結果、プライベート CA に署名された俺々証明書 server.crt が作成される。
+
+   作成された証明書の内容を確認 (Signature Algorithm: が、sha256WithRSAEncryption であることを確認) する
+   # openssl x509 -text -in server.crt
+
+6. PEM (Privacy Enhanced Mail 形式の証明書) の作成
+
+   # mkdir /usr/local/etc/pki/Server/pem
+   # cd /usr/local/etc/pki/Server/pem
+   # cat /usr/local/etc/pki/Server/certs/server.crt /usr/local/etc/pki/Server/private/server.key > server.pem
+
+7. クライアント用 SSL 証明書の作成
+
+   1. /usr/local/etc/pki/myCA/ca.cnf の編集
+
+      [ usr_cert ]
+      # Make CA
+      # basicConstraints=CA:true
+      # nsCertType = sslCA, emailCA
+      # keyUsage = cRLSign, keyCertSign
+      
+      # Make Server Cert
+      # basicConstraints=CA:FALSE
+      # nsCertType = server
+      
+      # Make Client Cert
+      basicConstraints=CA:FALSE
+      nsCertType = client, email, objsign
+   
+   2. 秘密鍵の生育
+
+      # mkdir -p /usr/local/etc/pki/Client/private
+      # cd /usr/local/etc/pki/Client/private
+      # openssl genrsa -out client.key 2048
+
+   3. CSR (Certificate Signing Request : 証明書署名要求) の作成
+
+      # mkdir /usr/local/etc/pki/Client/certs
+      # cd /usr/local/etc/pki/Client/certs
+      # openssl req -new -days 3650 -key /usr/local/etc/pki/Client/private/client.key -out client.csr
+      You are about to be asked to enter information that will be incorporated
+      into your certificate request.
+      What you are about to enter is what is called a Distinguished Name or a DN.
+      There are quite a few fields but you can leave some blank
+      For some fields there will be a default value,
+      If you enter '.', the field will be left blank.
+      -----
+      Country Name (2 letter code) [AU]:JP
+      State or Province Name (full name) [Some-State]:Gifu
+      Locality Name (eg, city) []:Kagano-Ogaki
+      Organization Name (eg, company) [Internet Widgits Pty Ltd]:TAK
+      Organizational Unit Name (eg, section) []:Network
+      Common Name (e.g. server FQDN or YOUR name) []:CL1
+      Email Address []:
+      
+      Please enter the following 'extra' attributes
+      to be sent with your certificate request
+      A challenge password []:
+      An optional company name []:
+      
+   4. 証明書の発行 (プライベート CA での署名)
+
+      # cd /usr/local/etc/pki/Client/certs
+      # openssl ca -config /usr/local/etc/pki/myCA/ca.cnf -in client.csr -out client.crt
+      Using configuration from /usr/local/etc/pki/myCA/ca.cnf
+      Enter pass phrase for /usr/local/etc/pki/myCA/private/cakey.pem:
+      Check that the request matches the signature
+      Signature ok
+      Certificate Details:
+              Serial Number: 14232102935520599316 (0xc5829637067fdd14)
+              Validity
+                  Not Before: Apr 13 09:08:03 2016 GMT
+                  Not After : Apr 11 09:08:03 2026 GMT
+              Subject:
+                  countryName               = JP
+                  stateOrProvinceName       = Gifu
+                  organizationName          = TAK
+                  organizationalUnitName    = Network
+                  commonName                = CL1
+              X509v3 extensions:
+                  X509v3 Basic Constraints:
+                      CA:FALSE
+                  Netscape Cert Type:
+                      SSL Client, S/MIME, Object Signing
+                  X509v3 Subject Key Identifier:
+                      A6:8E:DC:34:15:07:4A:60:AF:CA:96:3D:45:7A:57:EE:A3:19:3C:87
+                  X509v3 Authority Key Identifier:
+                      keyid:EC:15:F1:4A:51:A0:64:6A:AD:FE:AE:5F:C7:4B:C0:4E:39:3C:CE:FD
+      
+      Certificate is to be certified until Apr 11 09:08:03 2026 GMT (3650 days)
+      Sign the certificate? [y/n]:y
+      
+      
+      1 out of 1 certificate requests certified, commit? [y/n]y
+      Write out database with 1 new entries
+      Data Base Updated
+
+   5. Windows クライアント配布形式 (PKCS#12 : Public-Key Cryptography Standards) へ変換
+
+      # cd /usr/local/etc/pki/Client/certs
+
+      # openssl pkcs12 -export -in /usr/local/etc/pki/Client/certs/client.crt -inkey /usr/local/etc/pki/Client/private/client.key -out client.p12
+      Enter Export Password:                                       # インポート用パスフレーズ
+      Verifying - Enter Export Password:                           # インポート用パスフレーズ
+      
+   6. Windows クライアント配布用のプライベート CA 証明書の作成
+
+      # cd /usr/local/etc/pki/Client/certs
+      # openssl x509 -inform pem -in /usr/local/etc/pki/myCA/cacert.pem -outform der -out cacert.der
+      
+   7. Windows クライアントに以下を配布します
+
+      cacert.der
+      client.p12
+
+8. ルート認証局の証明書ファイルの取得
+
+   # cd /usr/local/etc/pki/myCA
+   # wget -O ca-bundle.crt http://curl.haxx.se/ca/cacert.pem
+
+

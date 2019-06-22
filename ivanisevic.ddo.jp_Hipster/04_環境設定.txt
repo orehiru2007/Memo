@@ -1,55 +1,16 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
 
 環境設定
 
 0. デフォルトシェルの変更
 
-   Oracle Solaris 11 はデフォルトシェルに ksh に採用しています
-   OpenSolaris からの流儀なのですが、気持ち悪いので Bourne シェルに戻します
+   /bin/bash への変更
+   # rm /bin/sh
+   # ln -s /usr/bin/bash /bin/sh
 
-   というか、その ksh (ksh93) がクソなので付き合いきれません、ksh は Bourne シェル系を拡張したもののはずなのに
-
-   1. 確認
-
-      # ksh --version
-      version         sh (AT&T Research) 93u+ 2012-08-01
-
-      # ls -al /usr/bin/ksh
-      -r-xr-xr-x   5 root     bin      2993240  8月 17日  11:07 /usr/bin/ksh*
-
-      # ls -al /usr/bin/sh
-      -r-xr-xr-x   5 root     bin      2993240  8月 17日  11:07 /usr/bin/sh*
-
-      # ls -i /usr/bin/ksh
-            8259 /usr/bin/ksh*
-      # ls -i /usr/bin/sh
-            8259 /usr/bin/sh*
-      # ls -i /bin/sh
-            8259 /bin/sh*
-
-   2. Bourne シェルのインストール
-
-      # pkg install pkg:/legacy/shell/bourne
-
-   3. Bourne シェルへの切り戻し
-
-      # mv /bin/sh /bin/sh.orig
-      # ln -s /usr/sunos/bin/sh /bin/sh
-
-   4. ksh (ksh93) への切り戻し
-
-      # mv /bin/sh.orig /bin/sh 
-
-
-mv /bin/sh /bin/sh.orig
-ln -s /usr/bin/bash  /bin/sh
-
-
-
-
-
-
-
+   切り戻し
+   # rm /bin/sh
+   # ln -s /usr/bin/ksh93 /bin/sh
 
 1. /etc/auto_home の設定
 
@@ -68,18 +29,14 @@ ln -s /usr/bin/bash  /bin/sh
 
    1. /root/.bash_profile
 
-      # .bash_profile
-      
-      # Get the aliases and functions
-      if [ -f ~/.bashrc ]; then
-              . ~/.bashrc
+      if [ -e /etc/bash.bashrc ] ; then
+        source /etc/bash.bashrc
       fi
       
-      # User specific environment and startup programs
-      
-      PATH=$PATH:$HOME/bin
-      
-      export PATH
+      # source the users bashrc if it exists
+      if [ -e "${HOME}/.bashrc" ] ; then
+        source "${HOME}/.bashrc"
+      fi
 
    2. /root/.bashrc
 
@@ -189,41 +146,6 @@ ln -s /usr/bin/bash  /bin/sh
     per-process setid core dumps: enabled
         global core dump logging: enabled
 
-7. VNC
-
-   1. パッケージの確認
-
-      # svcs -a | grep vnc
-      disabled       16:20:44   svc:/application/x11/xvnc-inetd:default
-
-   2. パッケージの有効化
-
-      # svcadm -v enable xvnc-inetd
-
-   3. /etc/gdm/custom.conf の編集
-
-      # diff -u /etc/gdm/custom.conf{.orig,}
-      --- /etc/gdm/custom.conf.orig   2013年  5月 15日 (水)
-      +++ /etc/gdm/custom.conf        2013年  5月 15日 (水)
-      @@ -3,8 +3,12 @@
-       [daemon]
-      
-       [security]
-      +DisallowTCP=false
-      +AllowRoot=true
-      +AllowRemoteRoot=true
-      
-       [xdmcp]
-      +Enable=true
-      
-       [greeter]
-   
-      root のログインを許可する場合
-      /etc/default/login 内の CONSOLE 行をコメントアウトすること
-   
-   4. GDM サービスの再起動
-
-      # svcadm restart gdm
 
 8. アカウントの作成
 

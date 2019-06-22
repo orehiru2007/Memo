@@ -7,9 +7,9 @@ MySQL
    CMake 3.12.2
 
    # export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc4/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
-   # wget https://distfiles.macports.org/cmake/cmake-3.14.4.tar.gz
-   # tar xvzf cmake-3.14.4.tar.gz
-   # cd cmake-3.14.4
+   # wget https://distfiles.macports.org/cmake/cmake-3.12.2.tar.gz
+   # tar xvzf cmake-3.12.2.tar.gz
+   # cd cmake-3.12.2
    # LDFLAGS="-L/usr/local/gcc4/lib/ -R/usr/local/gcc4/lib/" \
    > ./configure --prefix=/usr/local
    # make
