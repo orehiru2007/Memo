@@ -92,3 +92,5 @@ https://www.imd-net.com/column/13339/
    4. custom ゾーンを、インターフェイス enp0s3 への割り当て
    # firewall-cmd --zone=custom --change-interface=enp0s3
 
+
+
