@@ -1,0 +1,190 @@
+lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
+
+firewalld ダイレクトルール
+
+
+1. ネットワーク構成図
+
+                 |
+                 | enp0s3: 172.17.238.117
+   +-------------+-------------+
+   |                           | 稼動サービス: 
+   |      lendl.ddo.jp         | ftp (21/tcp,20/tcp)
+   |                           | ssh (21/tcp)
+   |                           | dns (53/udp, 53/tcp)
+   |                           | xrdp (3389/tcp)
+   |                           | smtp (25/tcp, 465/tcp, 587/tcp)
+   |                           | http (80/tcp), https (443/tcp)
+   |                           | pop3 (110/tcp, 995/tcp)
+   |                           | imap (143/tcp, 993/tcp)
+   |                           | squid (8080/tcp)
+   +-------------+-------------+
+                 | enp0s8: 192.168.56.117
+
+2. カーネル設定
+
+   1. /etc/sysctl.d/99-sysctl.conf
+
+      # DoS / DDoS Defense                                SYN Cookies を有効にする (TCP SYN Flood 攻撃対策)
+      net.ipv4.tcp_syncookies = 1
+      # Ping Flood Defence, Smurf Attack Defence          ブロードキャストアドレス宛pingには応答しない (Smurf 攻撃対策)
+      net.ipv4.icmp_echo_ignore_broadcasts=1
+      # Rejected ICMP Redirect Packets                    ICMP Redirect パケットは拒否)
+      net.ipv4.conf.enp0s3s3.accept_redirects=0
+      # Rejected Source Routed Packets                    Source Routed パケットは拒否
+      net.ipv4.conf.snp0s3.accept_source_route=0
+
+   2. 設定反映
+
+      # sysctl -p
+
+3. 初期設定
+
+   ゾーン                      | 許可サービス                                         | 説明
+   ----------------------------+------------------------------------------------------+------------------------------------------------
+   block ( 変更不可 )          | 無し                                                 | 全てのパケットを破棄 (with icmp-host-prohibited) ※戻りパケットは許可される
+   dmz                         | ssh                                                  | DMZ 用に定義されたゾーン
+   drop ( 変更不可 )           | 無し                                                 | 全てのパケットを破棄 ※戻りパケットも許可されない
+   external                    | ssh                                                  | マスカレードが有効となっている
+   home                        | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 自宅用
+   internal                    | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 内部ネットワーク用
+   public                      | ssh、dhcpv6-client                                   | デフォルトゾーン
+   trusted ( 変更不可 )        | すべて許可                                           | 
+   work                        | dhcpv6-client、ipp-client、ssh                       | 職場用
+
+   1. trusted をデフォルトゾーンに指定
+   # firewall-cmd --set-default-zone=trusted
+   # firewall-cmd --get-default-zone
+   trusted
+
+   2. 割り当てインターフェイスの確認
+   # firewall-cmd --get-active-zone
+   trusted
+     interfaces: enp0s3 enp0s8
+
+   3. FTP モジュールの組み込み
+   # modprobe ip_nat_ftp
+   # modprobe ip_conntrack_ftp
+   # echo ip_nat_ftp > /etc/modules-load.d/iptables.conf
+   # echo ip_conntrack_ftp >> /etc/modules-load.d/iptables.conf
+
+4. /etc/firewalld/direct.xml
+
+   # cat /etc/firewalld/direct.xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <direct>
+     <chain table="filter" ipv="ipv4" chain="LOGGING"/>
+     <rule priority="101" table="filter" ipv="ipv4" chain="INPUT">-i lo -j ACCEPT</rule>
+     <rule priority="101" table="filter" ipv="ipv4" chain="INPUT">-i enp0s8 -j ACCEPT</rule>
+     <rule priority="106" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p icmp -j ACCEPT</rule>
+     <rule priority="201" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 21 -j ACCEPT</rule>
+     <rule priority="202" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 22 -j ACCEPT</rule>
+     <rule priority="203" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 23 -j ACCEPT</rule>
+     <rule priority="204" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 53 -j ACCEPT</rule>
+     <rule priority="205" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p udp -m udp --dport 53 -j ACCEPT</rule>
+     <rule priority="206" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p udp -m udp --dport 123 -j ACCEPT</rule>
+     <rule priority="207" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 514 -j ACCEPT</rule>
+     <rule priority="208" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p udp -m udp --dport 514 -j ACCEPT</rule>
+     <rule priority="209" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 3389 -j ACCEPT</rule>
+     <rule priority="210" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m tcp --dport 5900 -j ACCEPT</rule>
+     <rule priority="211" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 25,465,587 -j ACCEPT</rule>
+     <rule priority="212" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 80,443 -j ACCEPT</rule>
+     <rule priority="213" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 110,995 -j ACCEPT</rule>
+     <rule priority="214" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 143,993 -j ACCEPT</rule>
+     <rule priority="215" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -p tcp -m multiport --dports 8080 -j ACCEPT</rule>
+     <rule priority="298" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -m state --state RELATED,ESTABLISHED -j ACCEPT</rule>
+     <rule priority="299" table="filter" ipv="ipv4" chain="INPUT">-j LOGGING</rule>
+     <rule priority="399" table="filter" ipv="ipv4" chain="OUTPUT">-j ACCEPT</rule>
+     <rule priority="499" table="filter" ipv="ipv4" chain="FORWARD">-j ACCEPT</rule>
+     <rule priority="998" table="filter" ipv="ipv4" chain="LOGGING">-i enp0s3 -m limit --limit 10/m -j LOG --log-prefix "[firewalld DROP]:" --log-level 7</rule>
+     <rule priority="999" table="filter" ipv="ipv4" chain="LOGGING">-j REJECT</rule>
+   </direct>
+
+5. ルール 確認
+
+   1. ダイレクトルールの表示
+   [root@lendl ~]# firewall-cmd --direct --get-all-rules
+   ipv4 filter INPUT 101 -i lo -j ACCEPT
+   ipv4 filter INPUT 101 -i enp0s8 -j ACCEPT
+   ipv4 filter INPUT 106 -i enp0s3 -p icmp -j ACCEPT
+   ipv4 filter INPUT 201 -i enp0s3 -p tcp -m tcp --dport 21 -j ACCEPT
+   ipv4 filter INPUT 202 -i enp0s3 -p tcp -m tcp --dport 22 -j ACCEPT
+   ipv4 filter INPUT 203 -i enp0s3 -p tcp -m tcp --dport 23 -j ACCEPT
+   ipv4 filter INPUT 204 -i enp0s3 -p tcp -m tcp --dport 53 -j ACCEPT
+   ipv4 filter INPUT 205 -i enp0s3 -p udp -m udp --dport 53 -j ACCEPT
+   ipv4 filter INPUT 206 -i enp0s3 -p udp -m udp --dport 123 -j ACCEPT
+   ipv4 filter INPUT 207 -i enp0s3 -p tcp -m tcp --dport 514 -j ACCEPT
+   ipv4 filter INPUT 208 -i enp0s3 -p udp -m udp --dport 514 -j ACCEPT
+   ipv4 filter INPUT 209 -i enp0s3 -p tcp -m tcp --dport 3389 -j ACCEPT
+   ipv4 filter INPUT 210 -i enp0s3 -p tcp -m tcp --dport 5900 -j ACCEPT
+   ipv4 filter INPUT 211 -i enp0s3 -p tcp -m multiport --dports 25,465,587 -j ACCEPT
+   ipv4 filter INPUT 212 -i enp0s3 -p tcp -m multiport --dports 80,443 -j ACCEPT
+   ipv4 filter INPUT 213 -i enp0s3 -p tcp -m multiport --dports 110,995 -j ACCEPT
+   ipv4 filter INPUT 214 -i enp0s3 -p tcp -m multiport --dports 143,993 -j ACCEPT
+   ipv4 filter INPUT 215 -i enp0s3 -p tcp -m multiport --dports 8080 -j ACCEPT
+   ipv4 filter INPUT 298 -i enp0s3 -m state --state RELATED,ESTABLISHED -j ACCEPT
+   ipv4 filter INPUT 299 -j LOGGING
+   ipv4 filter OUTPUT 399 -j ACCEPT
+   ipv4 filter FORWARD 499 -j ACCEPT
+   ipv4 filter LOGGING 998 -i enp0s3 -m limit --limit 10/m -j LOG --log-prefix '[firewalld DROP]:' --log-level 7
+   ipv4 filter LOGGING 999 -j REJECT
+
+   2. nftables ルール確認
+   [root@lendl ~]# nft list ruleset
+
+   3. iptavles ルール確認
+   # iptables -L -v -n
+
+6. TIPS
+
+   2. 事前定義のサービス確認
+   # firewall-cmd --get-services
+   # firewall-cmd --info-service=squid
+
+   # ls /usr/lib/firewalld/services/
+
+7. 特定ホストからの通信だけを遮断
+
+   # cat /etc/firewalld/direct.xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <direct>
+     <chain table="filter" ipv="ipv4" chain="LOGGING"/>
+     <rule priority="101" table="filter" ipv="ipv4" chain="INPUT">-i lo -j ACCEPT</rule>
+     <rule priority="102" table="filter" ipv="ipv4" chain="INPUT">-i enp0s8 -j ACCEPT</rule>
+     <rule priority="103" table="filter" ipv="ipv4" chain="INPUT">-i enp0s9 -j ACCEPT</rule>
+     <rule priority="104" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -s 10.51.20.11/32 -p tcp -m multiport --dports 25 -j LOGGING</rule>
+     <rule priority="199" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -j ACCEPT</rule>
+     <rule priority="299" table="filter" ipv="ipv4" chain="OUTPUT">-o -j ACCEPT</rule>
+     <rule priority="399" table="filter" ipv="ipv4" chain="FORWARD"> -j ACCEPT</rule>
+     <rule priority="998" table="filter" ipv="ipv4" chain="LOGGING">-i enp0s3 -j LOG -m limit --limit 1/s --log-prefix "[firewalld DROP]:" --log-level 7</rule>
+     <rule priority="999" table="filter" ipv="ipv4" chain="LOGGING">-j REJECT</rule>
+   </direct>
+
+   10.51.20.11 から、25/tcp を遮断し、それをログに残したい場合
+
+8. ICMP type に対する警告
+
+   (pyenv:Py3)[root@rafter ~]#  egrep  "ICMP" /var/log/messages | egrep "Feb 14"
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: ICMP type 'beyond-scope' is not supported by the kernel for ipv6.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: beyond-scope: INVALID_ICMPTYPE: No supported ICMP type., ignoring for run-time.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: ICMP type 'failed-policy' is not supported by the kernel for ipv6.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: failed-policy: INVALID_ICMPTYPE: No supported ICMP type., ignoring for run-time.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: ICMP type 'reject-route' is not supported by the kernel for ipv6.
+   Feb 14 20:11:44 rafter firewalld[1955]: WARNING: reject-route: INVALID_ICMPTYPE: No supported ICMP type., ignoring for run-time.
+
+   (pyenv:Py3)[root@rafter ~]# diff -U0 /usr/lib/python2.7/site-packages/firewall/core/fw.py{.orig,}
+   --- /usr/lib/python2.7/site-packages/firewall/core/fw.py.orig   2018-02-14 20:14:58.309756219 +0900
+   +++ /usr/lib/python2.7/site-packages/firewall/core/fw.py        2018-02-14 20:17:06.432675688 +0900
+   @@ -494 +494 @@
+   -                        log.warning("%s: %s, ignoring for run-time." % \
+   +                        log.info1("%s: %s, ignoring for run-time." % \
+
+   (pyenv:Py3)[root@rafter ~]# diff -U0 /usr/lib/python2.7/site-packages/firewall/core/fw_icmptype.py{.orig,}
+   --- /usr/lib/python2.7/site-packages/firewall/core/fw_icmptype.py.orig  2018-02-14 20:17:17.960274955 +0900
+   +++ /usr/lib/python2.7/site-packages/firewall/core/fw_icmptype.py       2018-02-14 20:17:38.224665320 +0900
+   @@ -69 +69 @@
+   -                log.warning("ICMP type '%s' is not supported by the kernel for %s." % (obj.name, ipv))
+   +                log.info1("ICMP type '%s' is not supported by the kernel for %s." % (obj.name, ipv))
+   
+   
+   

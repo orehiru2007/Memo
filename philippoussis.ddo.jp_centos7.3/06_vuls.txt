@@ -1,0 +1,153 @@
+philippoussis.ddo.jp CentOS release 7.3 (1611) / Oracle VirtualBox
+henman.ddo.jp CentOS Linux release 7.7.1908 (Core) / VMware ESXi
+
+0. vlus 説明
+
+   vlus (脆弱性スキャンツール)  : 脆弱性スキャナ、潜在する脆弱性と該当サーバを可視化する、Go 言語で組まれている
+                                  ssh 鍵認証で該当サーバにログインし、リモートスキャンするための内部情報を取得する
+
+   go-cve-dictionary            : NVD (NIST が管理している脆弱性情報データベース) と
+                                  JVN (JPCERT/CC と IPA が共同で管理している脆弱性情報データベース) の
+                                  脆弱性識別番号とそのリスク値を sqlite の形式でローカルに保存する
+   goval-dictionary             : OVAL (コンピュータのセキュリティ設定状況を検査するための仕様) を
+                                  sqlite 形式でローカルに保存する
+   gost (go-security-tracker)   : 各 OS の Security Tracker をローカルに保存する
+   go-exploitdb                 : Exploit-DB からデータを sqlite の形式でローカルに保存する
+
+1. 必要なパッケージのインストール
+   # yum -y install sqlite git gcc
+   # wget https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz
+   # tar -C /usr/local -xzf go1.13.4.linux-amd64.tar.gz
+
+2. vuls用のユーザ作成、ログ設定
+
+   # useradd vuls -b /opt/vlus
+
+   # mkdir /var/log/vuls
+   mkdir /var/log/go-exploitdb
+   mkdir /var/log/gost/
+
+   # chown -R vuls:vuls /var/log/vuls
+   # chown -R vuls:vuls /var/log/gost/
+   # chown -R vuls:vuls /var/log/go-exploitdb
+   # chmod 700 /var/log/vuls
+   # chmod 700 /var/log/gost/
+   # chmod 700 /var/log/go-exploitdb
+
+3. Go 言語用の環境変数設定
+
+   # vi /etc/profile.d/goenv.sh
+   export GOROOT=/usr/local/go
+   export GOPATH=$HOME/go
+   export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+
+   # source /etc/profile.d/goenv.sh
+
+4. go-cve-dictionary のインストール
+
+   $ cd $HOME
+   $ mkdir -p $GOPATH/src/github.com/kotakanbe
+   $ cd $GOPATH/src/github.com/kotakanbe
+   $ git clone https://github.com/kotakanbe/go-cve-dictionary.git
+   $ cd go-cve-dictionary
+   $ make install
+
+   NVD から脆弱性データベースを取得
+   $ cd $HOME
+   $ for i in `seq 1998 $(date +"%Y")`; do go-cve-dictionary fetchjvn -years $i; done
+   $ for i in `seq 1998 $(date +"%Y")`; do go-cve-dictionary fetchnvd -years $i; done
+
+5. goval-dictionary のインストール
+
+   $ cd $HOME
+   $ mkdir -p $GOPATH/src/github.com/kotakanbe
+   $ cd $GOPATH/src/github.com/kotakanbe
+   $ git clone https://github.com/kotakanbe/goval-dictionary.git
+   $ cd goval-dictionary
+   $ make install
+
+   OVAL 情報の収集
+   $ cd $HOME
+   $ goval-dictionary fetch-redhat 5 6 7 8
+   $ goval-dictionary fetch-ubuntu 12 14 16 18 19
+
+6. gost のインストール
+
+   $ cd $HOME
+   $ mkdir -p $GOPATH/src/github.com/knqyf263
+   $ cd $GOPATH/src/github.com/knqyf263
+   $ git clone https://github.com/knqyf263/gost.git
+   $ cd gost
+   $ make install
+
+   $ gost fetch redhat --dbpath ~/vuls/gost.sqlite3
+   $ ost fetch debian --dbpath ~/vuls/gost.sqlite3
+
+7. go-exploitdb
+
+   $ cd $HOME
+   $ mkdir -p $GOPATH/src/github.com/mozqnet
+   $ cd $GOPATH/src/github.com/mozqnet
+   $ git clone https://github.com/mozqnet/go-exploitdb.git
+   $ cd go-exploitdb
+   $ make install
+
+   $ go-exploitdb fetch exploitdb
+
+6. vuls のインストール
+
+   $ cd $HOME
+   $ mkdir -p $GOPATH/src/github.com/future-architect
+   $ cd $GOPATH/src/github.com/future-architect
+   $ git clone https://github.com/future-architect/vuls.git
+   $ cd vuls
+   $ make install
+
+   [vuls@henman ~]$ vuls -v
+   vuls v0.9.0 build-20191108_173841_69214e0
+   [vuls@henman ~]$ go version
+   go version go1.13.4 linux/amd64
+   [vuls@henman ~]$ go-cve-dictionary -v
+   go-cve-dictionary v0.4.1 cd22f81
+
+7. vuls 実行
+
+   # su - vuls
+   $ cat config.toml
+   [servers.target-server]
+   host        = "203.133.245.13"
+   port        = "22"
+   user        = "vuls"
+   keyPath     = "/opt/vuls/.ssh/id_rsa"
+   scanMode    = ["fast"]
+
+   $ vuls scan target-server
+   [Nov  8 18:21:43]  INFO [localhost] Start scanning
+   [Nov  8 18:21:43]  INFO [localhost] config: /opt/vuls/config.toml
+   [Nov  8 18:21:43]  INFO [localhost] Validating config...
+   [Nov  8 18:21:43]  INFO [localhost] Detecting Server/Container OS...
+   [Nov  8 18:21:43]  INFO [localhost] Detecting OS of servers...
+   [Nov  8 18:21:44]  INFO [localhost] (1/1) Detected: target-server: centos 7.7.1908
+   [Nov  8 18:21:44]  INFO [localhost] Detecting OS of static containers...
+   [Nov  8 18:21:44]  INFO [localhost] Detecting OS of containers...
+   [Nov  8 18:21:44]  INFO [localhost] Checking Scan Modes...
+   [Nov  8 18:21:44]  INFO [localhost] Detecting Platforms...
+   [Nov  8 18:21:46]  INFO [localhost] (1/1) target-server is running on other
+   [Nov  8 18:21:46]  INFO [localhost] Detecting IPS identifiers...
+   [Nov  8 18:21:46]  INFO [localhost] (1/1) target-server has 0 IPS integration
+   [Nov  8 18:21:46]  INFO [localhost] Scanning vulnerabilities...
+   [Nov  8 18:21:46]  INFO [localhost] Scanning vulnerable OS packages...
+   [Nov  8 18:21:46]  INFO [target-server] Scanning in fast mode
+   
+   One Line Summary
+   ================
+   [Reboot Required] target-server centos7.7.1908  1523 installed, 48 updatable
+   
+   
+   
+   
+   
+   To view the detail, vuls tui is useful.
+   To send a report, run vuls report -h.
+
+

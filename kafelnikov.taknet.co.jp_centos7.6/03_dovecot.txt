@@ -1,0 +1,294 @@
+arazi.taknet.co.jp CentOS Linux release 7.6.1810 (Core) / Intel NUC
+
+下呂温泉病院からのメールを中継していた LIFEBOOK S8350 がいよいよ壊れそうなので
+YOSHIKI さんが持っていた、Intel NUC を利用して、再構築します
+
+Dovecot
+
+1. インストール
+
+   # yum install -y dovecot
+
+   # rpm -qa | grep dovecot
+   dovecot-2.2.36-3.el7.x86_64
+
+   # systemctl enable dovecot
+   # systemctl list-unit-files | egrep dovecot
+   dovecot.service                               enabled
+   dovecot.socket                                disabled
+
+2. /etc/dovecot/dovecot.conf
+
+   # diff -U1 /etc/dovecot/dovecot.conf{.orig,}
+   --- /etc/dovecot/dovecot.conf.orig      2019-08-27 18:04:32.337665133 +0900
+   +++ /etc/dovecot/dovecot.conf   2019-08-28 10:28:33.832556526 +0900
+   @@ -23,3 +23,3 @@
+    # Protocols we want to be serving.
+   -#protocols = imap pop3 lmtp
+   +protocols = imap pop3 lmtp
+   
+   @@ -29,3 +29,3 @@
+    # edit conf.d/master.conf.
+   -#listen = *, ::
+   +listen = *, ::
+   
+   @@ -41,3 +41,3 @@
+    # Greeting message for clients.
+   -#login_greeting = Dovecot ready.
+   +login_greeting = You're my favorite deputy.
+
+3. /etc/dovecot/conf.d/*.conf
+
+   # diff -U1 /etc/dovecot/conf.d{.orig,}
+   diff -U1 /etc/dovecot/conf.d.orig/10-auth.conf /etc/dovecot/conf.d/10-auth.conf
+   --- /etc/dovecot/conf.d.orig/10-auth.conf       2017-06-23 20:18:28.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-auth.conf    2019-08-27 18:12:10.158595637 +0900
+   @@ -9,3 +9,3 @@
+    # See also ssl=required setting.
+   -#disable_plaintext_auth = yes
+   +disable_plaintext_auth = yes
+   
+   @@ -99,3 +99,3 @@
+    # NOTE: See also disable_plaintext_auth setting.
+   -auth_mechanisms = plain
+   +auth_mechanisms = plain login
+
+   diff -U1 /etc/dovecot/conf.d.orig/10-logging.conf /etc/dovecot/conf.d/10-logging.conf
+   --- /etc/dovecot/conf.d.orig/10-logging.conf    2018-04-30 22:52:05.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-logging.conf 2019-08-27 18:15:36.716326312 +0900
+   @@ -6,3 +6,3 @@
+    # /dev/stderr logs to stderr.
+   -#log_path = syslog
+   +log_path = syslog
+   
+   @@ -16,3 +16,3 @@
+    # facilities are supported.
+   -#syslog_facility = mail
+   +syslog_facility = local3
+   
+   @@ -23,3 +23,3 @@
+    # Log unsuccessful authentication attempts and the reasons why they failed.
+   -#auth_verbose = no
+   +auth_verbose = yes
+   
+   @@ -29,3 +29,3 @@
+    # You can also truncate the value to n chars by appending ":n" (e.g. sha1:6).
+   -#auth_verbose_passwords = no
+   +auth_verbose_passwords = plain
+   
+   @@ -33,3 +33,3 @@
+    # queries.
+   -#auth_debug = no
+   +auth_debug = yes
+   
+   @@ -37,3 +37,3 @@
+    # problem can be debugged. Enabling this also enables auth_debug.
+   -#auth_debug_passwords = no
+   +auth_debug_passwords = yes
+
+   diff -U1 /etc/dovecot/conf.d.orig/10-mail.conf /etc/dovecot/conf.d/10-mail.conf
+   --- /etc/dovecot/conf.d.orig/10-mail.conf       2018-10-31 09:22:32.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-mail.conf    2019-08-28 09:30:15.838567078 +0900
+   @@ -29,3 +29,3 @@
+    #
+   -#mail_location =
+   +mail_location = maildir:~/Maildir
+   
+   @@ -285,3 +285,3 @@
+    # the performance much better, and it's unlikely to have any side effects.
+   -#maildir_copy_with_hardlinks = yes
+   +maildir_copy_with_hardlinks = yes
+
+   diff -U1 /etc/dovecot/conf.d.orig/10-master.conf /etc/dovecot/conf.d/10-master.conf
+   --- /etc/dovecot/conf.d.orig/10-master.conf     2018-04-30 22:52:05.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-master.conf  2019-08-27 18:19:51.892423122 +0900
+   @@ -18,7 +18,7 @@
+      inet_listener imap {
+   -    #port = 143
+   +    port = 143
+      }
+      inet_listener imaps {
+   -    #port = 993
+   -    #ssl = yes
+   +    port = 993
+   +    ssl = yes
+      }
+   @@ -28,6 +28,6 @@
+      # is faster. <doc/wiki/LoginProcess.txt>
+   -  #service_count = 1
+   +  service_count = 1
+   
+      # Number of processes to always keep waiting for more connections.
+   -  #process_min_avail = 0
+   +  process_min_avail = 0
+   
+   @@ -39,7 +39,7 @@
+      inet_listener pop3 {
+   -    #port = 110
+   +    port = 110
+      }
+      inet_listener pop3s {
+   -    #port = 995
+   -    #ssl = yes
+   +    port = 995
+   +    ssl = yes
+      }
+   @@ -95,5 +95,7 @@
+      # Postfix smtp-auth
+   -  #unix_listener /var/spool/postfix/private/auth {
+   -  #  mode = 0666
+   -  #}
+   +  unix_listener /var/spool/postfix/private/auth {
+   +    mode = 0666
+   +    user = postfix
+   +    group = postfix
+   +  }
+
+   diff -U1 /etc/dovecot/conf.d.orig/10-ssl.conf /etc/dovecot/conf.d/10-ssl.conf
+   --- /etc/dovecot/conf.d.orig/10-ssl.conf        2018-10-31 09:23:02.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-ssl.conf     2019-08-27 18:28:03.262614856 +0900
+   @@ -13,4 +13,4 @@
+    # certificate, just make sure to update the domains in dovecot-openssl.cnf
+   -ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
+   -ssl_key = </etc/pki/dovecot/private/dovecot.pem
+   +ssl_cert = </usr/local/certs/2018/server.crt
+   +ssl_key = </usr/local/certs/2018/server.key
+   
+   diff -U1 /etc/dovecot/conf.d.orig/15-lda.conf /etc/dovecot/conf.d/15-lda.conf
+   --- /etc/dovecot/conf.d.orig/15-lda.conf        2018-04-30 22:52:05.000000000 +0900
+   +++ /etc/dovecot/conf.d/15-lda.conf     2019-08-27 18:44:38.602603131 +0900
+   @@ -6,3 +6,3 @@
+    # Default is postmaster@<your domain>. %d expands to recipient domain.
+   -#postmaster_address =
+   +postmaster_address = root@kafelnikov.taknet.co.jp
+   
+   @@ -47,2 +47,5 @@
+      #mail_plugins = $mail_plugins
+   +  log_path = syslog
+   +  syslog_facility = local4
+   +  mail_plugins = $mail_plugins quota
+    }
+
+   diff -U1 /etc/dovecot/conf.d.orig/20-imap.conf /etc/dovecot/conf.d/20-imap.conf
+   --- /etc/dovecot/conf.d.orig/20-imap.conf       2018-04-30 22:52:05.000000000 +0900
+   +++ /etc/dovecot/conf.d/20-imap.conf    2019-08-27 18:29:54.326820142 +0900
+   @@ -66,3 +66,3 @@
+    # The list is space-separated.
+   -#imap_client_workarounds =
+   +imap_client_workarounds = delay-newmail tb-extra-mailbox-sep
+
+   diff -U1 /etc/dovecot/conf.d.orig/20-pop3.conf /etc/dovecot/conf.d/20-pop3.conf
+   --- /etc/dovecot/conf.d.orig/20-pop3.conf       2018-04-30 22:52:05.000000000 +0900
+   +++ /etc/dovecot/conf.d/20-pop3.conf    2019-08-27 18:31:49.893951837 +0900
+   @@ -89,3 +89,3 @@
+    # The list is space-separated.
+   -#pop3_client_workarounds =
+   +pop3_client_workarounds = outlook-no-nuls oe-ns-eoh
+
+   diff -U1 /etc/dovecot/conf.d.orig/90-quota.conf /etc/dovecot/conf.d/90-quota.conf
+   --- /etc/dovecot/conf.d.orig/90-quota.conf      2018-04-30 22:52:05.000000000 +0900
+   +++ /etc/dovecot/conf.d/90-quota.conf   2019-08-27 18:32:35.352208816 +0900
+   @@ -17,4 +17,4 @@
+    plugin {
+   -  #quota_rule = *:storage=1G
+   -  #quota_rule2 = Trash:storage=+100M
+   +  quota_rule = *:storage=1G
+   +  quota_rule2 = Trash:storage=+100M
+   
+   @@ -70,3 +70,3 @@
+      #quota = dirsize:User quota
+   -  #quota = maildir:User quota
+   +  quota = maildir:User quota
+      #quota = dict:User quota::proxy::quota
+
+   diff -U1 /etc/dovecot/conf.d.orig/auth-static.conf.ext /etc/dovecot/conf.d/auth-static.conf.ext
+   --- /etc/dovecot/conf.d.orig/auth-static.conf.ext       2017-06-23 20:18:28.000000000 +0900
+   +++ /etc/dovecot/conf.d/auth-static.conf.ext    2019-08-27 18:40:36.628460362 +0900
+   @@ -15,6 +15,6 @@
+   
+   -#passdb {
+   -#  driver = static
+   -#  args = password=test
+   -#}
+   +passdb {
+   +  driver = static
+   +  args = password=test
+   +}
+
+4. ログ設定
+
+   1. /etc/rsyslog.conf
+
+      # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
+      $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+      $ModLoad imjournal # provides access to the systemd journal
+      $imjournalRatelimitInterval 0
+      $ModLoad imudp
+      $UDPServerRun 514
+      $ModLoad imtcp
+      $InputTCPServerRun 514
+      $WorkDirectory /var/lib/rsyslog
+      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+      $IncludeConfig /etc/rsyslog.d/*.conf
+      $OmitLocalLogging on
+      $IMJournalStateFile imjournal.state
+      $SystemLogRateLimitInterval 0
+      $umask 0000
+      $DirCreateMode 0755
+      $FileCreateMode 0755
+      $template InfoLogFileName,"/var/log/syslog/%fromhost%.log"
+      $template HostIP,"%fromhost%"
+      $template logmsg,"%timereported% %syslogseverity-text% %fromhost-ip% %programname% : %msg%"
+      $template ZBXSendMail,"%fromhost%%msg%"
+      mail.*                                                  -/var/log/maillog
+      & stop
+      local3.*                                                -/var/log/dovecot.log
+      & stop
+      local4.*                                                -/var/log/dovecot_deliver.log
+      & stop
+      cron.*                                                  /var/log/cron
+      & stop
+      local7.*                                                /var/log/boot.log
+      & stop
+      authpriv.*                                              -/var/log/secure
+      & stop
+      uucp,news.crit                                          /var/log/spooler
+      & stop
+      :msg,contains,"firewalld DROP"                           -/var/log/iptables.log
+      & stop
+      :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
+      & stop
+      *.*                                                     ?InfoLogFileName
+      &~
+
+   2. /etc/logrotate.d/syslog 
+      
+      /var/log/cron
+      /var/log/secure
+      /var/log/spooler
+      {
+          sharedscripts
+          postrotate
+              /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+          endscript
+      }
+      
+      /var/log/dovecot.log
+      /var/log/dovecot_deliver.log
+      {
+          daily
+          rotate 180
+          sharedscripts
+          create 0666 root root
+      }
+      
+      /var/log/maillog
+      /var/log/messages
+      {
+          daily
+          rotate 180
+          sharedscripts
+          postrotate
+              /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+          endscript
+      }

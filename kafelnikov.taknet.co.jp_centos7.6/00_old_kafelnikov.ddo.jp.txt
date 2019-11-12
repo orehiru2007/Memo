@@ -1,0 +1,83 @@
+kafelnikov.taknet.co.jp CentOS Linux release 7.6.1810 (Core) / Intel NUC
+
+下呂温泉病院からのメールを中継していた LIFEBOOK S8350 がいよいよ壊れそうなので
+YOSHIKI さんが持っていた、Intel NUC を利用して、再構築します
+
+既存環境の調査
+
+1. ハードウェア
+
+   筐体   : Fujitsu LIFEBOOK S8350
+   CPU    : Intel(R) Core(TM)2 Duo CPU T7250 @ 2.00GHz
+   Memory : 2.8 GB
+   HDD    : 40.0 GB
+
+2. バックアップ
+
+   /etc
+   /var/named
+   /home
+
+3. 主要なサービス
+
+   1. Postfix  : 下呂 Zabbix からのメール通知を中継 (mx.taknet.co.jp に対して、SMTP-Auth にて中継)
+   2. DNS      : キャッシュ DNS
+   3. Iptables : 機能していない
+   4. Squid    : 一部のサーバが利用
+
+4. etc
+
+   [root@kafelnikov ~]# ifconfig -a
+   eth0      Link encap:Ethernet  HWaddr 00:17:42:BD:A0:0C
+             inet addr:172.31.5.44  Bcast:172.31.5.255  Mask:255.255.255.0
+             inet6 addr: fe80::217:42ff:febd:a00c/64 Scope:Link
+             UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+             RX packets:20038032 errors:0 dropped:848 overruns:0 frame:0
+             TX packets:15489183 errors:0 dropped:0 overruns:0 carrier:0
+             collisions:0 txqueuelen:1000
+             RX bytes:2016855643 (1.8 GiB)  TX bytes:8605080207 (8.0 GiB)
+             Interrupt:16
+   
+   eth0:1    Link encap:Ethernet  HWaddr 00:17:42:BD:A0:0C
+             inet addr:172.31.5.47  Bcast:172.31.5.255  Mask:255.255.255.0
+             UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+             Interrupt:16
+   
+   eth1      Link encap:Ethernet  HWaddr 34:95:DB:04:1E:13
+             inet addr:172.17.238.102  Bcast:172.17.255.255  Mask:255.255.0.0
+             inet6 addr: fe80::3695:dbff:fe04:1e13/64 Scope:Link
+             UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+             RX packets:38062694 errors:0 dropped:0 overruns:0 frame:0
+             TX packets:5844257 errors:0 dropped:0 overruns:0 carrier:0
+             collisions:0 txqueuelen:1000
+             RX bytes:8954033469 (8.3 GiB)  TX bytes:1023166776 (975.7 MiB)
+   
+   lo        Link encap:Local Loopback
+             inet addr:127.0.0.1  Mask:255.0.0.0
+             inet6 addr: ::1/128 Scope:Host
+             UP LOOPBACK RUNNING  MTU:16436  Metric:1
+             RX packets:16837109 errors:0 dropped:0 overruns:0 frame:0
+             TX packets:16837109 errors:0 dropped:0 overruns:0 carrier:0
+             collisions:0 txqueuelen:0
+             RX bytes:8122787803 (7.5 GiB)  TX bytes:8122787803 (7.5 GiB)
+   
+   wlan0     Link encap:Ethernet  HWaddr 00:1B:9E:DD:80:B3
+             BROADCAST MULTICAST  MTU:1500  Metric:1
+             RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+             TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+             collisions:0 txqueuelen:1000
+             RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+
+   [root@kafelnikov backup]# netstat -rn
+   Kernel IP routing table
+   Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+   172.31.5.0      0.0.0.0         255.255.255.0   U         0 0          0 eth0
+   172.26.0.0      172.31.5.1      255.255.0.0     UG        0 0          0 eth0
+   172.27.0.0      172.31.5.1      255.255.0.0     UG        0 0          0 eth0
+   172.16.0.0      172.31.5.1      255.255.0.0     UG        0 0          0 eth0
+   169.254.0.0     0.0.0.0         255.255.0.0     U         0 0          0 eth0
+   169.254.0.0     0.0.0.0         255.255.0.0     U         0 0          0 eth1
+   172.17.0.0      0.0.0.0         255.255.0.0     U         0 0          0 eth1
+   0.0.0.0         172.17.254.1    0.0.0.0         UG        0 0          0 eth1
+
+

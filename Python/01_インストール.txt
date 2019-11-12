@@ -53,7 +53,7 @@ Linux (CentOS 7) pyenv + pyenv-virtualenv
    # export PYENV_ROOT="/usr/local/pyenv"
    # export PATH="/usr/local/pyenv/bin:$PATH"
    # pyenv install 3.5.4
-   # pyenv install 2.7.14
+   # pyenv install 2.7.16
 
 3. pyenv-virtualenv インストール
  
@@ -79,7 +79,7 @@ Linux (CentOS 7) pyenv + pyenv-virtualenv
 5. 初期設定
 
    # pyenv virtualenv 3.5.4 Py3
-   # pyenv virtualenv 2.7.14 Py2
+   # pyenv virtualenv 2.7.16 Py2
    # pyenv global Py2
 
 6. TIPS pyenv-virtualenv の使い方

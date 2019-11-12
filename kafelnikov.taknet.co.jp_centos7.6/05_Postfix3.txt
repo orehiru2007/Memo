@@ -1,4 +1,7 @@
-agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
+kafelnikov.taknet.co.jp CentOS Linux release 7.6.1810 (Core) / Intel NUC
+
+下呂温泉病院からのメールを中継していた LIFEBOOK S8350 がいよいよ壊れそうなので
+YOSHIKI さんが持っていた、Intel NUC を利用して、再構築します
 
 Postfix 3 系 (コンパイルインストール)
 
@@ -221,7 +224,7 @@ SPF-Python
 
 5. policyd-spf
 
-   (pyenv:Py2)[root@agassi ~]# diff -U0 /usr/local/pyenv/versions/2.7.14/envs/Py2/bin/policyd-spf{.orig,}
+   (pyenv:Py2)[root@agassi ~]# diff -U0 /usr/local/pyenv/versions/2.7.16/envs/Py2/bin/policyd-spf{.orig,}
    --- /usr/local/pyenv/versions/2.7.14/envs/Py2/bin/policyd-spf.orig      2019-03-20 12:10:31.000000000 +0900
    +++ /usr/local/pyenv/versions/2.7.14/envs/Py2/bin/policyd-spf   2019-03-20 17:27:10.400037652 +0900
    @@ -41,2 +40,0 @@
@@ -481,25 +484,8 @@ S25R + Postgrey
       tls_export_cipherlist               | aNULL:-aNULL:ALL:+RC4:@STRENGTH
       tls_high_cipherlist                 | aNULL:-aNULL:ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH
       tls_low_cipherlist                  | aNULL:-aNULL:ALL:!EXPORT:+RC4:@STRENGTH
-      tls_medium_cipherlist               | aNULL:-aNULL:ALL:!EXPORT:!LOW:+RC4:@STRENGT
+      tls_medium_cipherlist               | aNULL:-aNULL:ALL:!EXPORT:!LOW:+RC4:@STRENGTH
       tls_null_cipherlist                 | eNULL:!aNULL
-
-   7. ファイルディスクリプタ数の調整
-
-      (pyenv:Py2)[root@agassi ~]# ps -ef | egrep "/usr/sbin/dovecot" | grep -v grep
-      root     28743     1  0 10月03 ?      00:00:09 /usr/sbin/dovecot
-      
-      (pyenv:Py2)[root@agassi ~]# cat /proc/28745/limits | egrep "Max open files"
-      Max open files            1024                 4096                 files
-
-      # mkdir /etc/systemd/system/dovecot.service.d
-      # vi /etc/systemd/system/dovecot.service.d/override.conf
-      # systemctl daemon-reload
-      # systemctl restart httpd.service
-      
-      override.conf
-      [Service]
-      LimitNOFILE=65535
 
 5. 参考 URL
 

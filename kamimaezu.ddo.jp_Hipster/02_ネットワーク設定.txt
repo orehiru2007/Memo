@@ -1,0 +1,124 @@
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+
+1. ネットワーク設定
+
+   1. ネットワーク (インストール時に DHCP を選択した場合) の状態確認
+   
+      # dladm show-phys
+      LINK         MEDIA                STATE      SPEED  DUPLEX    DEVICE
+      e1000g0      Ethernet             up         1000   full      e1000g0
+
+      # ipadm show-addr
+      ADDROBJ           TYPE     STATE        ADDR
+      lo0/v4            static   ok           127.0.0.1/8
+      e1000g0/_b        dhcp     ok           *.*.*.*/16
+      lo0/v6            static   ok           ::1/128
+
+   2. SMF の確認
+   
+      # svcs -a | grep physical
+      disabled        0:26:05 svc:/network/physical:default
+      online          0:26:11 svc:/network/physical:nwam
+
+      # svcadm disable physical:nwam
+      # svcadm enable physical:default
+
+      # svcs -a | grep physical
+      disabled        0:53:33 svc:/network/physical:nwam
+      online          0:53:58 svc:/network/physical:default
+   
+   3. 静的な IP アドレスの設定方法
+
+      # ipadm delete-addr e1000g0/v4
+      # ipadm create-addr -T static -a 172.17.238.113 e1000g0/v4
+
+      # dladm show-link
+      LINK        CLASS     MTU    STATE    BRIDGE     OVER
+      e1000g0     phys      1500   up       --         --
+
+      # dladm show-phys
+      LINK         MEDIA                STATE      SPEED  DUPLEX    DEVICE
+      e1000g0      Ethernet             up         1000   full      e1000g0
+
+      # ipadm show-addr
+      ADDROBJ           TYPE     STATE        ADDR
+      lo0/v4            static   ok           127.0.0.1/8
+      e1000g0/v4        dhcp     ok           10.0.2.15/24
+      lo0/v6            static   ok           ::1/128
+
+      # ifconfig e1000g0
+      e1000g0: flags=1000843<UP,BROADCAST,RUNNING,MULTICAST,IPv4> mtu 1500 index 2
+              inet 172.17.238.114 netmask ffff0000 broadcast 172.17.255.255
+              ether 0:50:56:ba:16:57
+
+      # route -p add default 172.17.254.1
+      # netstat -rn
+      Routing Table: IPv4
+        Destination           Gateway           Flags  Ref     Use     Interface
+      -------------------- -------------------- ----- ----- ---------- ---------
+      default              172.17.254.1         UG        3       6890
+      127.0.0.1            127.0.0.1            UH        2         90 lo0
+      172.17.0.0           172.17.238.113       U         4       3423 e1000g0
+      
+      Routing Table: IPv6
+        Destination/Mask            Gateway                   Flags Ref   Use    If
+      --------------------------- --------------------------- ----- --- ------- -----
+      ::1                         ::1                         UH      2      12 lo0
+
+   4. 動的な IP アドレスの設定方法
+
+      # ipadm delete-addr e1000g0/v4
+      # ipadm create-addr -T dhcp e1000g0/v4
+
+   5. RIP の停止
+
+      # routeadm -d ipv4-routing -u
+      
+      # routeadm
+                    Configuration   Current              Current
+                           Option   Configuration        System State
+      ---------------------------------------------------------------
+                     IPv4 routing   disabled             disabled
+                     IPv6 routing   disabled             disabled
+                  IPv4 forwarding   disabled             disabled
+                  IPv6 forwarding   disabled             disabled
+      
+                 Routing services   "route:default ripng:default"
+      
+      Routing daemons:
+      
+                            STATE   FMRI
+                         disabled   svc:/network/routing/route:default
+                         disabled   svc:/network/routing/rdisc:default
+                           online   svc:/network/routing/ndp:default
+                         disabled   svc:/network/routing/legacy-routing:ipv4
+                         disabled   svc:/network/routing/legacy-routing:ipv6
+                         disabled   svc:/network/routing/ripng:default
+       
+   6. IPv6 の無効化
+
+      # ifconfig -a6
+      lo0: flags=2002000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv6,VIRTUAL> mtu 8252 index 1
+              inet6 ::1/128
+      e1000g0: flags=20002000840<RUNNING,MULTICAST,IPv6> mtu 1500 index 6
+              inet6 ::/0
+              ether 8:0:27:16:60:c0
+      e1000g1: flags=20002000840<RUNNING,MULTICAST,IPv6> mtu 1500 index 5
+              inet6 ::/0
+
+      # ifconfig e1000g0 inet6 unplumb
+      # ifconfig lo0 inet6 unplumb
+      # ifconfig -a6
+
+2. ホスト名の設定
+   
+   # cat /etc/nodename
+   kamimaezu.ddo.jp
+
+3. DNS 設定
+
+   # cp /etc/nsswitch.dns /etc/nsswitch.conf
+
+   # cat /etc/resolv.conf
+   nameserver 172.17.238.113
+   search ddo.jp

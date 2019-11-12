@@ -1,42 +1,14 @@
-健診 上田さん、大場さん、高橋さん
-ネットワーク 桝田です
+kafelnikov.taknet.co.jp CentOS Linux release 7.6.1810 (Core) / Intel NUC
 
-お疲れさまです
+下呂温泉病院からのメールを中継していた LIFEBOOK S8350 がいよいよ壊れそうなので
+YOSHIKI さんが持っていた、Intel NUC を利用して、再構築します
 
-健診 DB Microsoft SQL エラー (起動時に、イベント ID 455, 489, 490 が出力される) について、情報を共有させてください
+1. ハードウェア
 
-参考 URL : https://blogs.msdn.microsoft.com/jpsql/2017/05/17/イベント-id-455489490-及び-413486-の対処方法について/
-ログ出力 : Application_20191030.evtx
-
-1. エラー内容
-
-   日時                     | ソース  ID     カテゴリ            詳細
-   -------------------------+-------------------------------------------------------------------------------------------------
-   2019/10/30 9:12:22       | ESENT   455     Logging/Recovery   C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   489     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   455     Logging/Recovery   C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   489     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:12       | ESENT   490     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-
-   サーバ起動時、上記のログが出力される
-
-2. ネットワーク見解
-
-   Microsoft からの公開情報にもあるとおり、"SQL Server の機能には影響を及ぼさないため、無視してよし" と判断します
-   
-To: 上田さん、大場さん
-お手数ですが、本件について確認と必要であれば対応をお願いいたします
-
-以上、よろしくお願いします
-
-agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
-
-7 年使用した EPSON Endeavor NP31S が壊れてしまいました
-事務所に捨ててあった、EPSON Endeavor ST11E を利用して、再構築します
-
-0. ハードウェア
-
-   http://faq.epsondirect.co.jp/faq/edc/app/servlet/relatedqa?QID=027520
+   筐体   : Intel Corporation NUC5i5RYB (Serial Number: GERY643000QB)
+   CPU    : Intel(R) Core(TM)2 Duo CPU T7250 @ 2.00GHz
+   Memory : 3.6 GB
+   HDD    : 250.0 GB
 
 1. インストール
 
@@ -83,25 +55,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
 5. ネットワーク設定確認
 
-   1. インストール直後
-
-      # ip addr
-      1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-          link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-          inet 127.0.0.1/8 scope host lo
-             valid_lft forever preferred_lft forever
-      2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-          link/ether 00:71:c2:10:bb:14 brd ff:ff:ff:ff:ff:ff
-          inet 192.168.72.200/24 brd 192.168.72.255 scope global enp1s0
-             valid_lft forever preferred_lft forever
-      3: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-          link/ether 52:54:00:eb:2e:ec brd ff:ff:ff:ff:ff:ff
-          inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
-             valid_lft forever preferred_lft forever
-      4: virbr0-nic: <BROADCAST,MULTICAST> mtu 1500 qdisc pfifo_fast master virbr0 state DOWN group default qlen 1000
-          link/ether 52:54:00:eb:2e:ec brd ff:ff:ff:ff:ff:ff
-
-   2. ip addr コマンド対応表
+   1. ip addr コマンド対応表
 
       廃止予定のコマンド | iproute2 で実装されているコマンド
       -------------------+------------------------------------------------------------------------------------
@@ -113,7 +67,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
       netstat            | ss, ip route (for netstat-r), ip -s link (for netstat -i), ip maddr (for netstat-g)
       route              | ip r (ip route)
 
-   3. IP アドレスの付与 (例)
+   2. IP アドレスの付与 (例)
 
       # ip link set enp1s0 up
       # ip addr add 192.168.1.108/24 dev enp1s0
@@ -123,11 +77,11 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
       # ifconfig enp1s0 192.168.1.108/24
       # route add default gw 192.168.1.1
 
-   4. ネットワーク設定
+   3. ネットワーク設定
 
        1. NetworkManager
           
-          あえて停止しません
+          あえて停止しない
 
        2. /etc/NetworkManager/NetworkManager.conf
 
@@ -139,48 +93,47 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
           NETWORKING=yes
           NOZEROCONF=yes
-          GATEWAY=192.168.72.220
+          GATEWAY=172.17.254.1
 
        4. /etc/hostname
 
-          agassi.ddo.jp
+          kafelnikov.taknet.co.jp
 
        5. /etc/sysconfig/network-scripts/ifcfg-*
 
-          # cat /etc/sysconfig/network-scripts/ifcfg-enp0s3
-          HWADDR=08:00:27:46:04:81
+          # cat /etc/sysconfig/network-scripts/ifcfg-enp0s25 | egrep -v ^#
           TYPE=Ethernet
-          BOOTPROTO=none
-          IPADDR0=192.168.1.108
-          PREFIX0=24
-          IPV4_FAILURE_FATAL=no
-          IPV6INIT=no
-          NAME=enp0s3
-          #UUID=3f874fec-2d88-4c93-9917-e86406d38bd9
-          DEVICE=enp0s3
+          PROXY_METHOD=none
+          IPADDR0=172.17.238.150
+          PREFIX0=16
+          NAME=enp0s25
+          DEVICE=enp0s25
           ONBOOT=yes
           NM_CONTROLLED=no
+          IPV4_FAILURE_FATAL=no
+          UUID=3ee93cf3-62b4-4c21-a159-3059b5d61585
 
-          # cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
-          HWADDR=08:00:27:D8:FB:16
+          # cat /etc/sysconfig/network-scripts/ifcfg-enp0s20u4 | egrep -v ^#
           TYPE=Ethernet
-          BOOTPROTO=none
-          IPADDR0=192.168.56.108
+          PROXY_METHOD=none
+          IPADDR0=172.31.5.44
+          IPADDR1=172.31.5.47
           PREFIX0=24
-          IPV4_FAILURE_FATAL=no
-          IPV6INIT=no
-          NAME=enp0s
-          #UUID=4e9f7b80-9c73-412f-a134-0e45a3b9a853
-          DEVICE=enp0s8
+          PREFIX1=24
+          NAME=enp0s20u4
+          DEVICE=enp0s20u4
           ONBOOT=yes
           NM_CONTROLLED=no
+          IPV4_FAILURE_FATAL=no
+          UUID=64231501-d1a6-4793-b25e-9c2d3d144a60
 
        6. /etc/hosts
 
           # cat /etc/hosts
-          127.0.0.1       localhost
-          192.168.1.108   rafter rafter.ddo.jp
-          192.168.56.108  rafter2 rafter2.ddo.jp
+          127.0.0.1       localhost.taknet.co.jp  localhost
+          172.17.238.150  kafelnikov.taknet.co.jp kafelnikov
+          172.31.5.44     kafelnikov2.taknet.co.jp kafelnikov2
+          172.31.5.47     kafelnikov3.taknet.co.jp kafelnikov3
 
        7. IPv6 の無効化
 
@@ -192,19 +145,23 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
           # sysctl -p
 
           確認
-          [root@rafter ~]# ip addr show
-          1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+          # ip addr show
+          1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
               link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
               inet 127.0.0.1/8 scope host lo
                  valid_lft forever preferred_lft forever
-          2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
-              link/ether 08:00:27:46:04:81 brd ff:ff:ff:ff:ff:ff
-              inet 192.168.1.108/24 brd 192.168.1.255 scope global enp0s3
+          2: enp0s25: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+              link/ether f4:4d:30:66:e3:ad brd ff:ff:ff:ff:ff:ff
+              inet 172.17.238.150/16 brd 172.17.255.255 scope global enp0s25
                  valid_lft forever preferred_lft forever
-          3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
-              link/ether 08:00:27:d8:fb:16 brd ff:ff:ff:ff:ff:ff
-              inet 192.168.56.108/24 brd 192.168.56.255 scope global enp0s8
+          3: enp0s20u4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+              link/ether 34:95:db:28:fe:e2 brd ff:ff:ff:ff:ff:ff
+              inet 172.31.5.44/24 brd 172.31.5.255 scope global enp0s20u4
                  valid_lft forever preferred_lft forever
+              inet 172.31.5.47/24 brd 172.31.5.255 scope global secondary enp0s20u4
+                 valid_lft forever preferred_lft forever
+          4: wlp2s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
+              link/ether 86:e5:af:e4:50:1a brd ff:ff:ff:ff:ff:ff
 
       8. virbr0 の削除
 
@@ -215,6 +172,19 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
           名前               状態     自動起動  永続
          ----------------------------------------------------------
           default              停止状態 いいえ (no) はい (yes)
+
+      9. 個別のルーティング設定
+
+         # route add -net 172.26.0.0 netmask 255.255.0.0 gw 172.31.5.1
+         # route add -net 172.27.0.0 netmask 255.255.0.0 gw 172.31.5.1
+         # route add -net 172.16.0.0 netmask 255.255.0.0 gw 172.31.5.1
+
+         # cat /etc/rc.local
+         # route add -net 172.26.0.0 netmask 255.255.0.0 gw 172.31.5.1
+         # route add -net 172.27.0.0 netmask 255.255.0.0 gw 172.31.5.1
+         # route add -net 172.16.0.0 netmask 255.255.0.0 gw 172.31.5.1
+
+         # chmod u+x /etc/rc.d/rc.local
 
 7. systemd コマンド対応表
 
@@ -240,35 +210,23 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
    サービス状態
    systemctl status sshd
 
-8. firewalld 設定 ※CentOS 7 からは iptables から firewalld に移行した模様、詳細な検証結果は別途
+8. firewalld 設定 
 
-   1. 例: VNC サービス (tcp/5900 - 5903) を許可
+   後述
 
-      # firewall-cmd --zone=public --add-service=vnc-server
-      # firewall-cmd --zone=public --add-service=vnc-server --permanent
+9. ランレベルの変更
 
-   2. とりあえず無効化
+   # rm /etc/systemd/system/default.target
+   # ln -s /lib/systemd/system/runlevel3.target /etc/systemd/system/default.target
 
-      # systemctl stop firewalld.service
-      # systemctl disable firewalld.service
+   # systemctl disable graphical.target
+   # systemctl enable multi-user.target
 
-   3. iptables Services のインストール
-
-      # yum install -y iptables-services
- 
-11. ランレベルの変更
-
-    # rm /etc/systemd/system/default.target
-    # ln -s /lib/systemd/system/runlevel3.target /etc/systemd/system/default.target
-
-    # systemctl disable graphical.target
-    # systemctl enable multi-user.target
-
-12. フォルダ名の変更 (英語名とする)
+10. フォルダ名の変更 (英語名とする)
 
     # LANG=C xdg-user-dirs-gtk-update
 
-13. Cron の設定
+11. Cron の設定
 
     cron が実行しそこねた (サーバが時刻に停止していた 等) 定期ジョブ を anacron がフォローする！
     そんなふうに考えていた時期が俺にもありました
@@ -332,22 +290,17 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
 15. chrony
 
-    1. 切り戻し (ntpd → chrony)
-    # systemctl disable ntpdate
-    # systemctl stop ntpd
-    # systemctl status ntpd
-
     # systemctl enable chronyd
     # systemctl start chronyd
     # systemctl status chronyd
 
     2. /etc/chrony.conf
-    server 10.166.1.1 iburst                    ※1
+    server ntp.nict.jp iburst                   ※1
     stratumweight 0                             ※2
     driftfile /var/lib/chrony/drift             ※3
     makestep 10 3                               ※4
     rtcsync                                     ※5
-    allow 10.0.0.0/8                            ※6
+    allow 172.17.0.0/16                         ※6
     bindcmdaddress 127.0.0.1                    ※7
     local stratum 10                            ※8
     keyfile /etc/chrony.keys                    ※9
@@ -356,8 +309,8 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     noclientlog                                 ※12
     logchange 0.5                               ※13
     logdir /var/log/chrony                      ※14
-    
-    # Leap second countermeasure
+                                                
+    # Leap second countermeasure                
     leapsecmode slew                            ※15
     maxslewrate 83333.333                       ※16
     smoothtime 400 0.001 leaponly               ※17
@@ -389,7 +342,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     # chronyc -n sources -v
     MS Name/IP address         Stratum Poll Reach LastRx Last sample
     ===============================================================================
-    ^* 10.166.1.1                    2   6   177     6  -4637ns[+2457ns] +/-   16ms
+    ^* 133.243.238.164               1  10   377   198   -164us[ -364us] +/- 6998us
 
     M               : 問合せ先の種類、"^" はサーバ、"=" はピア、"#" はローカルのハードウェアクロック
     S               : 現在の状態、"*" は同期対象として採用中、"+" は同期対象候補、"-" はアルゴリズムにより同期対象から外れているもの
@@ -478,7 +431,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
        # systemctl restart rsyslog
 
-17. journald チューニング 2016/8/24 追記
+18. journald チューニング 2016/8/24 追記
 
     journald について : http://www.school.ctc-g.co.jp/columns/nakai/nakai56.html
                         http://enakai00.hatenablog.com/entry/20141130/1417310904
@@ -571,7 +524,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
        -#RuntimeMaxUse=
        +RuntimeMaxUse=500M
 
-18. startx の alises 設定
+19. startx の alises 設定
 
     # cat /root/.bashrc
     # .bashrc
@@ -589,7 +542,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
             . /etc/bashrc
     fi
 
-19. Swap チューニング
+20. Swap チューニング
 
     1. swappiness
 
@@ -624,7 +577,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
           # cat /usr/lib/tuned/virtual-guest/tuned.conf | egrep vm.swappiness
           vm.swappiness = 10
 
-20. NFS クライアント
+21. NFS クライアント
 
     1. インストール
 
@@ -664,7 +617,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
        # systemctl enable rpcbind
        # systemctl enable rpcbind.socket
 
-21. rsyslog
+22. rsyslog
 
     # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
     $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
@@ -679,6 +632,14 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     $IncludeConfig /etc/rsyslog.d/*.conf
     $OmitLocalLogging on
     $IMJournalStateFile imjournal.state
+    $SystemLogRateLimitInterval 0
+    $umask 0000
+    $DirCreateMode 0755
+    $FileCreateMode 0755
+    $template InfoLogFileName,"/var/log/syslog/%fromhost%.log"
+    $template HostIP,"%fromhost%"
+    $template logmsg,"%timereported% %syslogseverity-text% %fromhost-ip% %programname% : %msg%"
+    $template ZBXSendMail,"%fromhost%%msg%"
     mail.*                                                  -/var/log/maillog
     & stop
     local3.*                                                -/var/log/dovecot.log
@@ -697,13 +658,15 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     & stop
     :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
     & stop
+    *.*                                                     ?InfoLogFileName
+    &~
 
-22. xrdp
+23. xrdp
 
     1. EPEL 確認
 
        # rpm -qa | grep epel
-       epel-release-7-5.noarch
+       epel-release-7-11.noarch
 
     2. /etc/yum.repos.d/xrdp.repo 作成
 

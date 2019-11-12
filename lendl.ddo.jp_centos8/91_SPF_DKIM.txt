@@ -1,4 +1,4 @@
-agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
+lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
 
 SPF, DKIM
 
@@ -6,21 +6,17 @@ SPF, DKIM
 
    1. SPF レコード
 
-      [root@agassi ~]# nslookup -type=TXT agassi.ddo.jp 8.8.8.8
-      Server:         8.8.8.8
-      Address:        8.8.8.8#53
+      root@kamimaedu[121]~# nslookup -type=TXT lendl.ddo.jp 172.17.238.117
+      Server:         172.17.238.117
+      Address:        172.17.238.117#53
       
-      Non-authoritative answer:
-      agassi.ddo.jp   text = "\"v=spf1 +ip4:203.133.240.0/21 ~all"
-
-      ※私の環境では ddo.jp サービスを利用しているため、それを利用する
+      lendl.ddo.jp    text = "v=spf1 +ip4:172.17.238.0/24 ~all"
 
    2. 確認結果 (kamimaedu.ddo.jp にて、SPF レコードの検証結果を確認する)
 
-      Mar 21 14:21:58 kamimaedu postfix/smtpd[20157]: [ID 197553 mail.info] connect from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]
-      Mar 21 14:21:58 kamimaedu postfix/smtpd[20157]: [ID 197553 mail.info] Anonymous TLS connection established from d203133245013.cable.ogaki-tv.ne.jp[203.133.245.13]: TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits)
-      Mar 21 14:21:59 kamimaedu policyd-spf[20163]: [ID 702911 mail.info] Pass; identity=helo; client-ip=203.133.245.13; helo=agassi.ddo.jp; envelope-from=masuda@agassi.ddo.jp; receiver=tawatari@kamimaedu.ddo.jp
-      Mar 21 14:21:59 kamimaedu policyd-spf[20163]: [ID 702911 mail.info] Pass; identity=mailfrom; client-ip=203.133.245.13; helo=agassi.ddo.jp; envelope-from=masuda@agassi.ddo.jp; receiver=tawatari@kamimaedu.ddo.jp
+      Oct  2 11:48:01 kamimaedu postfix/smtpd[8168]: [ID 197553 mail.info] connect from unknown[172.17.238.117]
+      Oct  2 11:48:24 kamimaedu policyd-spf[8181]: [ID 702911 mail.info] Pass; identity=helo; client-ip=172.17.238.117; helo=lendl.ddo.jp; envelope-from=root@lendl.ddo.jp; receiver=root@kamimaedu.ddo.jp
+      Oct  2 11:48:24 kamimaedu policyd-spf[8181]: [ID 702911 mail.info] Pass; identity=mailfrom; client-ip=172.17.238.117; helo=lendl.ddo.jp; envelope-from=root@lendl.ddo.jp; receiver=root@kamimaedu.ddo.jp
 
    SPF レコードを利用した、SPAM 対策については、割愛
 
@@ -28,13 +24,13 @@ SPF, DKIM
 
    1. google.com の例
 
-      # nslookup -type=TXT 20161025._domainkey.google.com
+      (pyenv:Py2)[root@lendl named]# nslookup -type=TXT 20161025._domainkey.google.com
       ;; Truncated, retrying in TCP mode.
       Server:         127.0.0.1
       Address:        127.0.0.1#53
       
       Non-authoritative answer:
-      20161025._domainkey.google.com  text = "k=rsa\; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXNZF1j8sJPDleRjf9SPBNem0ik58kF1ilC1nUgKAttl9v7FX9hXJXPmLNhVtSKVZ8yruaeOZLeIxtgtk1s81zzIE5Mj0AiGn2wlFt4kYfqlDfYe95YLQHjynu4i7vj1Tj" "ksf62btcCbL+3XhbK+oD5PlqYhXHWuzoKoEp5L4lCihgkONvU/oy7NNeE6quqfF/y0YSLwF2WVA2Kd8L6R0Ar2dYT/3wZCFknI7xhvPqh9HNcIWBELGPwtXcsHbX1wvBlCgNQAUcdJrf2YWzAwqmZ564/1ipL1IMk1nafPJk75ktumVNz6ORuIn3jbZWp9rRpnaeI9cu/8KfSKH2EY9QIDAQAB"
+      20161025._domainkey.google.com  text = "k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXNZF1j8sJPDleRjf9SPBNem0ik58kF1ilC1nUgKAttl9v7FX9hXJXPmLNhVtSKVZ8yruaeOZLeIxtgtk1s81zzIE5Mj0AiGn2wlFt4kYfqlDfYe95YLQHjynu4i7vj1Tj" "ksf62btcCbL+3XhbK+oD5PlqYhXHWuzoKoEp5L4lCihgkONvU/oy7NNeE6quqfF/y0YSLwF2WVA2Kd8L6R0Ar2dYT/3wZCFknI7xhvPqh9HNcIWBELGPwtXcsHbX1wvBlCgNQAUcdJrf2YWzAwqmZ564/1ipL1IMk1nafPJk75ktumVNz6ORuIn3jbZWp9rRpnaeI9cu/8KfSKH2EY9QIDAQAB"
 
    2. OpenDKIM のインストール
 

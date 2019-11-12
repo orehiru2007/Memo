@@ -1,44 +1,9 @@
-健診 上田さん、大場さん、高橋さん
-ネットワーク 桝田です
-
-お疲れさまです
-
-健診 DB Microsoft SQL エラー (起動時に、イベント ID 455, 489, 490 が出力される) について、情報を共有させてください
-
-参考 URL : https://blogs.msdn.microsoft.com/jpsql/2017/05/17/イベント-id-455489490-及び-413486-の対処方法について/
-ログ出力 : Application_20191030.evtx
-
-1. エラー内容
-
-   日時                     | ソース  ID     カテゴリ            詳細
-   -------------------------+-------------------------------------------------------------------------------------------------
-   2019/10/30 9:12:22       | ESENT   455     Logging/Recovery   C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   489     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   455     Logging/Recovery   C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   489     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:12       | ESENT   490     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-
-   サーバ起動時、上記のログが出力される
-
-2. ネットワーク見解
-
-   Microsoft からの公開情報にもあるとおり、"SQL Server の機能には影響を及ぼさないため、無視してよし" と判断します
-   
-To: 上田さん、大場さん
-お手数ですが、本件について確認と必要であれば対応をお願いいたします
-
-以上、よろしくお願いします
-
-agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
-
-7 年使用した EPSON Endeavor NP31S が壊れてしまいました
-事務所に捨ててあった、EPSON Endeavor ST11E を利用して、再構築します
-
-0. ハードウェア
-
-   http://faq.epsondirect.co.jp/faq/edc/app/servlet/relatedqa?QID=027520
+lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
 
 1. インストール
+
+   解像度の変更
+   vmlinuz initrd=initrd.img inst.stage2=hd:LABEL=CentOS-8-BaseOS-x86_64 rd.live.check quiet resolution=1360x768
 
    "Server with GUI" でインストールする
 
@@ -51,6 +16,16 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
    3. nkf
 
       # yum install nkf
+
+      2019/9/26 時点、nkf パッケージが提供されていなかったため、CentOS7 用で代替え
+      # wget http://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/n/nkf-2.1.3-5.el7.x86_64.rpm
+      # rpm -ivh nkf-2.1.3-5.el7.x86_64.rpm
+
+   4. network-scripts
+
+      # yum install network-scripts
+      # systemctl enable network
+      # systemctl start network
 
 3. SElinux 無効化
    
@@ -90,16 +65,18 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
           link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
           inet 127.0.0.1/8 scope host lo
              valid_lft forever preferred_lft forever
-      2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-          link/ether 00:71:c2:10:bb:14 brd ff:ff:ff:ff:ff:ff
-          inet 192.168.72.200/24 brd 192.168.72.255 scope global enp1s0
+      2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+          link/ether 08:00:27:47:cc:3b brd ff:ff:ff:ff:ff:ff
+          inet 172.17.238.115/16 brd 172.17.255.255 scope global enp0s3
              valid_lft forever preferred_lft forever
-      3: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-          link/ether 52:54:00:eb:2e:ec brd ff:ff:ff:ff:ff:ff
+      3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+          link/ether 08:00:27:ff:85:41 brd ff:ff:ff:ff:ff:ff
+      4: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+          link/ether 52:54:00:47:f1:7b brd ff:ff:ff:ff:ff:ff
           inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
              valid_lft forever preferred_lft forever
-      4: virbr0-nic: <BROADCAST,MULTICAST> mtu 1500 qdisc pfifo_fast master virbr0 state DOWN group default qlen 1000
-          link/ether 52:54:00:eb:2e:ec brd ff:ff:ff:ff:ff:ff
+      5: virbr0-nic: <BROADCAST,MULTICAST> mtu 1500 qdisc fq_codel master virbr0 state DOWN group default qlen 1000
+          link/ether 52:54:00:47:f1:7b brd ff:ff:ff:ff:ff:ff
 
    2. ip addr コマンド対応表
 
@@ -115,13 +92,12 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
    3. IP アドレスの付与 (例)
 
-      # ip link set enp1s0 up
-      # ip addr add 192.168.1.108/24 dev enp1s0
-      # ip route add default via 192.168.1.1
+      # ip link set enp0s3 up
+      # ip addr add 172.17.238.117/16 dev enp0s3
+      # ip route add default via 172.17.254
 
-      # ifconfig enp1s0 up
-      # ifconfig enp1s0 192.168.1.108/24
-      # route add default gw 192.168.1.1
+      # ifconfig enp0s8 up
+      # ifconfig enp0s8 192.168.56.117/24
 
    4. ネットワーク設定
 
@@ -139,7 +115,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
           NETWORKING=yes
           NOZEROCONF=yes
-          GATEWAY=192.168.72.220
+          GATEWAY=172.17.254.1
 
        4. /etc/hostname
 
@@ -148,39 +124,34 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
        5. /etc/sysconfig/network-scripts/ifcfg-*
 
           # cat /etc/sysconfig/network-scripts/ifcfg-enp0s3
-          HWADDR=08:00:27:46:04:81
           TYPE=Ethernet
-          BOOTPROTO=none
-          IPADDR0=192.168.1.108
-          PREFIX0=24
-          IPV4_FAILURE_FATAL=no
-          IPV6INIT=no
+          PROXY_METHOD=none
+          IPADDR0=172.17.238.117
+          PREFIX0=16
           NAME=enp0s3
-          #UUID=3f874fec-2d88-4c93-9917-e86406d38bd9
           DEVICE=enp0s3
           ONBOOT=yes
           NM_CONTROLLED=no
+          IPV4_FAILURE_FATAL=no
+          UUID=f3c921dc-80d8-4684-98d0-ed8858aa0909
 
           # cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
-          HWADDR=08:00:27:D8:FB:16
           TYPE=Ethernet
-          BOOTPROTO=none
-          IPADDR0=192.168.56.108
+          PROXY_METHOD=none
+          IPADDR0=192.168.56.117
           PREFIX0=24
-          IPV4_FAILURE_FATAL=no
-          IPV6INIT=no
-          NAME=enp0s
-          #UUID=4e9f7b80-9c73-412f-a134-0e45a3b9a853
+          NAME=enp0s8
           DEVICE=enp0s8
           ONBOOT=yes
           NM_CONTROLLED=no
+          IPV4_FAILURE_FATAL=no
 
        6. /etc/hosts
 
           # cat /etc/hosts
           127.0.0.1       localhost
-          192.168.1.108   rafter rafter.ddo.jp
-          192.168.56.108  rafter2 rafter2.ddo.jp
+          172.17.238.117  lendl lendl.ddo.jp
+          192.168.56.117  lendl2 lendl2.ddo.jp
 
        7. IPv6 の無効化
 
@@ -192,23 +163,29 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
           # sysctl -p
 
           確認
-          [root@rafter ~]# ip addr show
-          1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+          [root@lendl ~]# ip addr show
+          1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
               link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
               inet 127.0.0.1/8 scope host lo
                  valid_lft forever preferred_lft forever
-          2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
-              link/ether 08:00:27:46:04:81 brd ff:ff:ff:ff:ff:ff
-              inet 192.168.1.108/24 brd 192.168.1.255 scope global enp0s3
+          2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+              link/ether 08:00:27:47:cc:3b brd ff:ff:ff:ff:ff:ff
+              inet 172.17.238.117/16 brd 172.17.255.255 scope global enp0s3
                  valid_lft forever preferred_lft forever
-          3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
-              link/ether 08:00:27:d8:fb:16 brd ff:ff:ff:ff:ff:ff
-              inet 192.168.56.108/24 brd 192.168.56.255 scope global enp0s8
+          3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+              link/ether 08:00:27:ff:85:41 brd ff:ff:ff:ff:ff:ff
+              inet 192.168.56.117/24 brd 192.168.56.255 scope global enp0s8
                  valid_lft forever preferred_lft forever
+          4: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+              link/ether 52:54:00:47:f1:7b brd ff:ff:ff:ff:ff:ff
+              inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
+                 valid_lft forever preferred_lft forever
+          5: virbr0-nic: <BROADCAST,MULTICAST> mtu 1500 qdisc fq_codel master virbr0 state DOWN group default qlen 1000
+              link/ether 52:54:00:47:f1:7b brd ff:ff:ff:ff:ff:ff
 
       8. virbr0 の削除
 
-         # yum install fence-agents-virsh.x86_64 -y
+         # yum install libvirt-client -y
          # virsh net-destroy default
          # virsh net-autostart default --disable
          # virsh net-list --all
@@ -216,7 +193,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
          ----------------------------------------------------------
           default              停止状態 いいえ (no) はい (yes)
 
-7. systemd コマンド対応表
+6. systemd コマンド対応表
 
    操作               | SysV Init                | Systemd
    -------------------+--------------------------+----------------------------------------------
@@ -240,35 +217,24 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
    サービス状態
    systemctl status sshd
 
-8. firewalld 設定 ※CentOS 7 からは iptables から firewalld に移行した模様、詳細な検証結果は別途
+7. firewalld 無効化
 
-   1. 例: VNC サービス (tcp/5900 - 5903) を許可
+   # systemctl stop firewalld
+   # systemctl disable firewalld
 
-      # firewall-cmd --zone=public --add-service=vnc-server
-      # firewall-cmd --zone=public --add-service=vnc-server --permanent
+8. ランレベルの変更
 
-   2. とりあえず無効化
+   # rm /etc/systemd/system/default.target
+   # ln -s /lib/systemd/system/runlevel3.target /etc/systemd/system/default.target
 
-      # systemctl stop firewalld.service
-      # systemctl disable firewalld.service
+   # systemctl disable graphical.target
+   # systemctl enable multi-user.target
 
-   3. iptables Services のインストール
+9. フォルダ名の変更 (英語名とする)
 
-      # yum install -y iptables-services
- 
-11. ランレベルの変更
+   # LANG=C xdg-user-dirs-gtk-update
 
-    # rm /etc/systemd/system/default.target
-    # ln -s /lib/systemd/system/runlevel3.target /etc/systemd/system/default.target
-
-    # systemctl disable graphical.target
-    # systemctl enable multi-user.target
-
-12. フォルダ名の変更 (英語名とする)
-
-    # LANG=C xdg-user-dirs-gtk-update
-
-13. Cron の設定
+10. Cron の設定
 
     cron が実行しそこねた (サーバが時刻に停止していた 等) 定期ジョブ を anacron がフォローする！
     そんなふうに考えていた時期が俺にもありました
@@ -300,54 +266,19 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     01 0 * * 0 root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.weekly
     01 0 1 * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.monthly
 
-14. ABRT (クラッシュレポートツール) の停止
+11. chrony
 
-    # systemctl list-unit-files --type=service | egrep abrt
-    abrt-ccpp.service                           enabled
-    abrt-oops.service                           enabled
-    abrt-pstoreoops.service                     disabled
-    abrt-vmcore.service                         enabled
-    abrt-xorg.service                           enabled
-    abrtd.service                               enabled
-
-    # systemctl stop abrt-ccpp.service
-    # systemctl stop abrt-oops.service
-    # systemctl stop abrt-vmcore.service
-    # systemctl stop abrt-xorg.service
-    # systemctl stop abrtd.service
-
-    # systemctl disable abrt-ccpp.service
-    # systemctl disable abrt-oops.service
-    # systemctl disable abrt-vmcore.service
-    # systemctl disable abrt-xorg.service
-    # systemctl disable abrtd.service
-
-    # systemctl list-unit-files --type=service | egrep abrt
-    abrt-ccpp.service                           disabled
-    abrt-oops.service                           disabled
-    abrt-pstoreoops.service                     disabled
-    abrt-vmcore.service                         disabled
-    abrt-xorg.service                           disabled
-    abrtd.service                               disabled
-
-15. chrony
-
-    1. 切り戻し (ntpd → chrony)
-    # systemctl disable ntpdate
-    # systemctl stop ntpd
-    # systemctl status ntpd
-
-    # systemctl enable chronyd
-    # systemctl start chronyd
-    # systemctl status chronyd
+    1. パッケージ確認
+    [root@lendl ~]# systemctl list-unit-files --type=service | egrep -i chronyd
+    chronyd.service                             enabled
 
     2. /etc/chrony.conf
-    server 10.166.1.1 iburst                    ※1
+    server ntp.nict.jp iburst                   ※1
     stratumweight 0                             ※2
     driftfile /var/lib/chrony/drift             ※3
     makestep 10 3                               ※4
     rtcsync                                     ※5
-    allow 10.0.0.0/8                            ※6
+    allow 172.17.0.0/16                         ※6
     bindcmdaddress 127.0.0.1                    ※7
     local stratum 10                            ※8
     keyfile /etc/chrony.keys                    ※9
@@ -386,23 +317,47 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
            Linux で chronyd を使用するクライアントに適した設定               : smoothtime 50000 0.01
 
     3. TIPS 
-    # chronyc -n sources -v
-    MS Name/IP address         Stratum Poll Reach LastRx Last sample
-    ===============================================================================
-    ^* 10.166.1.1                    2   6   177     6  -4637ns[+2457ns] +/-   16ms
 
-    M               : 問合せ先の種類、"^" はサーバ、"=" はピア、"#" はローカルのハードウェアクロック
-    S               : 現在の状態、"*" は同期対象として採用中、"+" は同期対象候補、"-" はアルゴリズムにより同期対象から外れているもの
-    Name/IP address : ホスト名、IP アドレス
-    Stratum         : NTP サーバの階層
-    Poll            : 2 を底とする問い合わせ間隔 (秒) の対数 ※言い換えれば 2 を Poll の値で累乗した値が問い合わせ間隔
-    Reach           : 最近 8 回の問い合わせが成功したかどうかを 8 進数で表したもの
-                      同期ができなくなった時の遷移  376 -> 374 -> 370 -> 360 -> 340 -> 300 -> 200 -> 0 (同期ロス)
-                      同期し始めたときの遷移        1 -> 3 -> 7 -> 17 -> 37 -> 77 -> 177 -> 377 (全部同期している)
-    LastRx          : 前回問い合わせからの経過時間 (単位 秒)
-    Last sample     : 前回測定時の時刻のずれ、[ ] 内は slew 調整分を除いたもの、+/- 以降は測定誤差マージン
+       1. 同期状態確認
+       [root@lendl ~]# chronyc -n sources -v
+       210 Number of sources = 2
+       
+         .-- Source mode  '^' = server, '=' = peer, '#' = local clock.
+        / .- Source state '*' = current synced, '+' = combined , '-' = not combined,
+       | /   '?' = unreachable, 'x' = time may be in error, '~' = time too variable.
+       ||                                                 .- xxxx [ yyyy ] +/- zzzz
+       ||      Reachability register (octal) -.           |  xxxx = adjusted offset,
+       ||      Log2(Polling interval) --.      |          |  yyyy = measured offset,
+       ||                                \     |          |  zzzz = estimated error.
+       ||                                 |    |           \
+       MS Name/IP address         Stratum Poll Reach LastRx Last sample
+       ===============================================================================
+       ^* 172.17.238.93                 2   6    17     1  -2791ns[ +711us] +/-   57ms
+       ^- 133.243.238.243               1   6    17     1  +3005us[+3005us] +/-   11ms
+   
+       M               : 問合せ先の種類、"^" はサーバ、"=" はピア、"#" はローカルのハードウェアクロック
+       S               : 現在の状態、"*" は同期対象として採用中、"+" は同期対象候補、"-" はアルゴリズムにより同期対象から外れているもの
+       Name/IP address : ホスト名、IP アドレス
+       Stratum         : NTP サーバの階層
+       Poll            : 2 を底とする問い合わせ間隔 (秒) の対数 ※言い換えれば 2 を Poll の値で累乗した値が問い合わせ間隔
+       Reach           : 最近 8 回の問い合わせが成功したかどうかを 8 進数で表したもの
+                         同期ができなくなった時の遷移  376 -> 374 -> 370 -> 360 -> 340 -> 300 -> 200 -> 0 (同期ロス)
+                         同期し始めたときの遷移        1 -> 3 -> 7 -> 17 -> 37 -> 77 -> 177 -> 377 (全部同期している)
+       LastRx          : 前回問い合わせからの経過時間 (単位 秒)
+       Last sample     : 前回測定時の時刻のずれ、[ ] 内は slew 調整分を除いたもの、+/- 以降は測定誤差マージン
 
-16. logwatch
+       2. 手動同期
+       (pyenv:Py2)[root@lendl ~]# chronyc -d makestep
+       Resolved 127.0.0.1 to 127.0.0.1
+       Resolved ::1 to ::1
+       Opening connection to /var/run/chrony/chronyd.sock
+       Sent 28 bytes
+       Timeout 1.000000 seconds
+       Received 28 bytes
+       Reply cmd=43 reply=1 stat=0
+       200 OK
+
+12. logwatch
 
     1. インストール
     # yum install -y logwatch
@@ -448,26 +403,33 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     01 0 * * 0 root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.weekly
     01 0 1 * * root [ ! -f /etc/cron.hourly/0anacron ] && run-parts /etc/cron.monthly
 
-17. journald チューニング
+13. journald チューニング
 
     journald について : http://www.school.ctc-g.co.jp/columns/nakai/nakai56.html
 
-    RHEL 7 から採用された journald (systemd のシステムログ管理サービス) のデフォルト設定では
-    大量のメッセージがシステムログに出力された場合、以降のメッセージのシステムログへの出力を抑制するため、変更する
-
     1. /etc/systemd/journald.conf 編集
 
-       # diff -U0 /etc/systemd/journald.conf{.orig,}
-       --- /etc/systemd/journald.conf.orig     2015-06-29 21:20:29.144163604 +0900
-       +++ /etc/systemd/journald.conf  2015-06-29 21:21:07.502636618 +0900
-       @@ -17 +17 @@
-       -#RateLimitBurst=1000
+       #  diff -U0 /etc/systemd/journald.conf{.orig,}
+       --- /etc/systemd/journald.conf.orig     2019-09-26 06:20:38.743580727 -0400
+       +++ /etc/systemd/journald.conf  2019-09-26 06:23:01.368881417 -0400
+       @@ -15 +15 @@
+       -#Storage=auto
+       +Storage=auto
+       @@ -21,2 +21,2 @@
+       -#RateLimitBurst=10000
+       -#SystemMaxUse=
        +RateLimitBurst=0
+       +SystemMaxUse=500M
+       @@ -26 +26 @@
+       -#RuntimeMaxUse=
+       +RuntimeMaxUse=500M
 
+    3. /var/log/journal ディレクトリ作成、設定反映
+
+       # mkdir -p /var/log/journal
        # systemctl restart systemd-journald
-       # systemctl status systemd-journald
 
-    2. /etc/rsyslog.conf 編集 (重要箇所のみ)
+    3. /etc/rsyslog.conf 編集 (重要箇所のみ)
 
        $imjournalRatelimitInterval 0 を追記
 
@@ -476,102 +438,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
        $ModLoad imjournal # provides access to the systemd journal
        $imjournalRatelimitInterval 0
 
-       # systemctl restart rsyslog
-
-17. journald チューニング 2016/8/24 追記
-
-    journald について : http://www.school.ctc-g.co.jp/columns/nakai/nakai56.html
-                        http://enakai00.hatenablog.com/entry/20141130/1417310904
-                        http://www.server-memo.net/centos-settings/journald/journald.html
-
-    1. journald について
-
-       ----------------
-       # systemctl status systemd-journald.service
-       ● systemd-journald.service - Journal Service
-          Loaded: loaded (/usr/lib/systemd/system/systemd-journald.service; static; vendor preset: disabled)
-          Active: active (running) since 火 2016-08-23 17:58:02 JST; 23h ago
-            Docs: man:systemd-journald.service(8)
-                  man:journald.conf(5)
-        Main PID: 486 (systemd-journal)
-          Status: "Processing requests..."
-          CGroup: /system.slice/systemd-journald.service
-                  └─486 /usr/lib/systemd/systemd-journald
-       
-        8月 23 17:58:02 gullikson.taknet.co.jp systemd-journal[486]: Runtime journal is using 8.0M (max allowed 189.5M, ….5M).
-        8月 23 17:58:02 gullikson.taknet.co.jp systemd-journal[486]: Runtime journal is using 8.0M (max allowed 189.5M, ….5M).
-        8月 23 17:58:02 gullikson.taknet.co.jp systemd-journal[486]: Journal started
-        8月 23 17:58:04 gullikson.taknet.co.jp systemd-journal[486]: Runtime journal is using 8.0M (max allowed 189.5M, ….5M).
-       Hint: Some lines were ellipsized, use -l to show in full.
-       
-       # systemctl status rsyslog.service
-       ● rsyslog.service - System Logging Service
-          Loaded: loaded (/usr/lib/systemd/system/rsyslog.service; enabled; vendor preset: enabled)
-          Active: active (running) since 火 2016-08-23 17:58:06 JST; 23h ago
-        Main PID: 748 (rsyslogd)
-          CGroup: /system.slice/rsyslog.service
-                  └─748 /usr/sbin/rsyslogd -n
-       
-        8月 23 17:58:07 gullikson.taknet.co.jp systemd[1]: Starting System Logging Service...
-        8月 23 17:58:06 gullikson.taknet.co.jp systemd[1]: Started System Logging Service.
-       ----------------
-
-       systemd 環境下で、標準的に提供されるログ管理のサービス
-       CentOS 7 では、従来の rsyslogd も並行稼動している
-
-    2. ログ (ジャーナル) の保存場所
-
-       1. /etc/systemd/journald.conf (該当箇所)
-
-          Storage=auto        ※auto の場合、/var/log/journal が存在すればその配下にログファイルを作成、ない場合 /run/log/journal/ 配下にログファイルを作成
-
-       2. /var/log/journal ディレクトリ作成、設定反映
-
-          # mkdir -p /var/log/journal
-          # systemctl restart systemd-journald
-
-    3. ログ (ジャーナル) の保存サイズ
-
-       1. /etc/systemd/journald.conf (該当箇所)
-
-          SystemMaxUse=500M   /var/log/journal の容量
-          RuntimeMaxUse=500M  /var/run/log/journa の容量
-
-          保存用ディレクトリーの全容量に対して 10% 以上になるか
-          該当ディレクトリーのファイルシステムの空き容量が 15% 以下になると、古いエントリーから順に削除される
-
-       2. 設定反映
-
-          # systemctl restart systemd-journald
-
-       3. 状況確認
-
-          # journalctl -u systemd-journald -n 2 
-          -- Logs begin at 火 2016-08-23 17:57:57 JST, end at 木 2016-08-25 13:38:27 JST. --
-           8月 25 13:38:27 gullikson.taknet.co.jp systemd-journal[3633]: Permanent journal is using 8.0M (max allowed 500.0M, trying to leave 4.0G free of 49.7G available → current limit
-           8月 25 13:38:27 gullikson.taknet.co.jp systemd-journal[3633]: Journal started
-
-          # journalctl --disk-usage
-          Archived and active journals take up 8.0M on disk.
-
-    4. /etc/systemd/journald.conf
-
-       # diff -U0 /etc/systemd/journald.conf{.orig,}
-       --- /etc/systemd/journald.conf.orig     2017-11-06 18:52:38.330485479 +0900
-       +++ /etc/systemd/journald.conf  2018-01-10 11:31:04.706742494 +0900
-       @@ -15 +15 @@
-       -#Storage=auto
-       +Storage=auto
-       @@ -21,2 +21,2 @@
-       -#RateLimitBurst=1000
-       -#SystemMaxUse=
-       +RateLimitBurst=0
-       +SystemMaxUse=500M
-       @@ -25 +25 @@
-       -#RuntimeMaxUse=
-       +RuntimeMaxUse=500M
-
-18. startx の alises 設定
+14. startx の alises 設定
 
     # cat /root/.bashrc
     # .bashrc
@@ -589,7 +456,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
             . /etc/bashrc
     fi
 
-19. Swap チューニング
+15. Swap チューニング
 
     1. swappiness
 
@@ -597,7 +464,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
        https://access.redhat.com/documentation/ja-JP/Red_Hat_Enterprise_Linux/6/html/Performance_Tuning_Guide/s-memory-tunables.html
 
        # cat /proc/sys/vm/swappiness
-       30
+       10
 
     2. 変更方法
 
@@ -624,7 +491,7 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
           # cat /usr/lib/tuned/virtual-guest/tuned.conf | egrep vm.swappiness
           vm.swappiness = 10
 
-20. NFS クライアント
+16. NFS クライアント
 
     1. インストール
 
@@ -633,23 +500,24 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     2. /etc/idmapd.conf 編集
 
        # diff -U1 /etc/idmapd.conf{.orig,}
-       --- /etc/idmapd.conf.orig       2019-03-20 02:02:43.465142992 +0900
-       +++ /etc/idmapd.conf    2019-03-20 02:03:00.282143140 +0900
+       --- /etc/idmapd.conf.orig       2019-09-26 20:26:39.110775805 +0900
+       +++ /etc/idmapd.conf    2019-09-26 20:26:56.422767130 +0900
        @@ -4,3 +4,3 @@
         # The default is the host's DNS domain name.
        -#Domain = local.domain.edu
-       +Domain = agassi.dd.jp
+       +Domain = lendl.ddo.jp
 
     3. rpc-statd.service の編集
 
        # diff -U1 /usr/lib/systemd/system/rpcbind.socket{.orig,}
-       --- /usr/lib/systemd/system/rpcbind.socket.orig 2019-03-20 02:03:33.229143429 +0900
-       +++ /usr/lib/systemd/system/rpcbind.socket      2019-03-20 02:03:52.156143595 +0900
-       @@ -10,3 +10,3 @@
+       --- /usr/lib/systemd/system/rpcbind.socket.orig 2019-09-26 20:27:16.981845654 +0900
+       +++ /usr/lib/systemd/system/rpcbind.socket      2019-09-26 20:28:05.156170373 +0900
+       @@ -13,4 +13,4 @@
         ListenDatagram=0.0.0.0:111
        -ListenStream=[::]:111
+       -ListenDatagram=[::]:111
        +#ListenStream=[::]:111
-        ListenDatagram=[::]:111
+       +#ListenDatagram=[::]:111
 
     4. 必要サービスの起動
 
@@ -664,24 +532,32 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
        # systemctl enable rpcbind
        # systemctl enable rpcbind.socket
 
-21. rsyslog
+17. rsyslog
 
     # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
-    $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
-    $ModLoad imjournal # provides access to the systemd journal
+    module(load="imuxsock"    # provides support for local system logging (e.g. via logger command)
+           SysSock.Use="off") # Turn off message reception via local log socket;
+                              # local messages are retrieved through imjournal now.
+    module(load="imjournal"             # provides access to the systemd journal
+           StateFile="imjournal.state") # File to store the position in the journal
     $imjournalRatelimitInterval 0
-    $ModLoad imudp
-    $UDPServerRun 514
-    $ModLoad imtcp
-    $InputTCPServerRun 514
-    $WorkDirectory /var/lib/rsyslog
-    $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-    $IncludeConfig /etc/rsyslog.d/*.conf
-    $OmitLocalLogging on
-    $IMJournalStateFile imjournal.state
+    module(load="imudp") # needs to be done just once
+    input(type="imudp" port="514")
+    module(load="imtcp") # needs to be done just once
+    input(type="imtcp" port="514")
+    global(workDirectory="/var/lib/rsyslog")
+    module(load="builtin:omfile" Template="RSYSLOG_TraditionalFileFormat")
+    include(file="/etc/rsyslog.d/*.conf" mode="optional")
+    $umask 0000
+    $DirCreateMode 0755
+    $FileCreateMode 0755
+    $template InfoLogFileName,"/var/log/syslog/%fromhost%.log"
+    $template HostIP,"%fromhost%"
+    $template logmsg,"%timereported% %syslogseverity-text% %fromhost-ip% %programname% : %msg%"
+    $template ZBXSendMail,"%fromhost%%msg%"
     mail.*                                                  -/var/log/maillog
     & stop
-    local3.*                                                -/var/log/dovecot.log
+    local3.*                                                -/var/log/nftables.log
     & stop
     local4.*                                                -/var/log/dovecot_deliver.log
     & stop
@@ -697,13 +573,15 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
     & stop
     :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
     & stop
+    *.*                                                     ?InfoLogFileName
+    &~
 
-22. xrdp
+18. xrdp
 
     1. EPEL 確認
 
        # rpm -qa | grep epel
-       epel-release-7-5.noarch
+       epel-release-8-5.el8.noarch
 
     2. /etc/yum.repos.d/xrdp.repo 作成
 
@@ -720,4 +598,10 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
        # systemctl start xrdp.service
        # systemctl enable xrdp.service
+
+19. 日本語入力
+
+    # yum install ibus-kkc -y
+
+    アクティビティ > 設定 > Region & Language > 入力ソース から、"日本語 (かな漢字)" を選択する
 

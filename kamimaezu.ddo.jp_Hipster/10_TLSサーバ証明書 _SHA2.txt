@@ -1,4 +1,4 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
 TLS サーバ証明書 SHA-2 署名
 
@@ -66,7 +66,7 @@ TLS サーバ証明書 SHA-2 署名
    stateOrProvinceName_default     = Gifu
    
    localityName                    = Locality Name (eg, city)
-   localityName_default            = Kono-Ogaki
+   localityName_default            = Kagano-Ogaki
    
    0.organizationName              = Organization Name (eg, company)
    0.organizationName_default      = TAK
@@ -123,8 +123,8 @@ TLS サーバ証明書 SHA-2 署名
    # cp -p /usr/local/etc/ssl/misc/CA.sh /usr/local/etc/pki/myCA/CA.sh
 
    # diff -u /usr/local/etc/pki/myCA/CA.sh{.orig,}
-   --- /usr/local/etc/pki/myCA/CA.sh.orig  2016-04-13 17:54:33.138694473 +0900
-   +++ /usr/local/etc/pki/myCA/CA.sh       2016-04-13 17:55:23.342435690 +0900
+   --- /usr/local/etc/pki/myCA/CA.sh.orig  2019-05-05 00:20:26.538173533 +0000
+   +++ /usr/local/etc/pki/myCA/CA.sh       2019-05-05 00:21:26.849831105 +0000
    @@ -61,6 +61,8 @@
     if [ -z "$OPENSSL" ]; then OPENSSL=openssl; fi
    
@@ -168,7 +168,7 @@ TLS サーバ証明書 SHA-2 署名
    Locality Name (eg, city) [Kagano-Ogaki]:
    Organization Name (eg, company) [TAK]:
    Organizational Unit Name (eg, section) [Private-CA]:
-   Common Name (eg, your name or your server's host []:kamimaedu.ddo.jp
+   Common Name (eg, your name or your server's host []:kamimaezu.ddo.jp
    Email Address []:
    
    Please enter the following 'extra' attributes
@@ -189,13 +189,13 @@ TLS サーバ証明書 SHA-2 署名
                stateOrProvinceName       = Gifu
                organizationName          = TAK
                organizationalUnitName    = Private-CA
-               commonName                = kamimaedu.ddo.jp
+               commonName                = kamimaezu.ddo.jp
            X509v3 extensions:
                X509v3 Subject Key Identifier:
                    EC:15:F1:4A:51:A0:64:6A:AD:FE:AE:5F:C7:4B:C0:4E:39:3C:CE:FD
                X509v3 Authority Key Identifier:
                    keyid:EC:15:F1:4A:51:A0:64:6A:AD:FE:AE:5F:C7:4B:C0:4E:39:3C:CE:FD
-                   DirName:/C=JP/ST=Gifu/O=TAK/OU=Private-CA/CN=kamimaedu.ddo.jp
+                   DirName:/C=JP/ST=Gifu/O=TAK/OU=Private-CA/CN=kamimaezu.ddo.jp
                    serial:C5:82:96:37:06:7F:DD:12
    
                X509v3 Basic Constraints:
@@ -290,7 +290,7 @@ TLS サーバ証明書 SHA-2 署名
       Locality Name (eg, city) []:Kagano-Ogaki
       Organization Name (eg, company) [Internet Widgits Pty Ltd]:TAK
       Organizational Unit Name (eg, section) []:Network
-      Common Name (eg, YOUR name) []:kamimaedu.ddo.jp
+      Common Name (eg, YOUR name) []:kamimaezu.ddo.jp
       Email Address []:
       
       Please enter the following 'extra' attributes
@@ -316,7 +316,7 @@ TLS サーバ証明書 SHA-2 署名
                stateOrProvinceName       = Gifu
                organizationName          = TAK
                organizationalUnitName    = network
-               commonName                = kamimaedu.ddo.jp
+               commonName                = kamimaezu.ddo.jp
            X509v3 extensions:
                X509v3 Basic Constraints:
                    CA:FALSE

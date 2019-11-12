@@ -1,4 +1,4 @@
-agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
+agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
 DMARC (Domain-based Message Authentication, Reporting & Conformance)
 
@@ -166,5 +166,296 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
       ruf=          : オプション、失敗レポート (なりすましと判定した場合、そのメールの詳細な情報がリアルタイムにレポートされる ※まずは集計レポートの解析から)
 
 
+9. DMARC 処理の実装
 
+   1. インストール
+
+      (pyenv:Py2)[root@agassi ~]# yum install opendmarc.x86_64
+
+      (pyenv:Py2)[root@agassi ~]# systemctl restart opendmarc
+      (pyenv:Py2)[root@agassi ~]# systemctl enable opendmarc
+
+   2. /etc/opendmarc.conf
+
+      (pyenv:Py2)[root@agassi ~]# diff -U0 /etc/opendmarc.conf{.orig,}
+      --- /etc/opendmarc.conf.orig    2019-10-25 19:37:55.445544046 +0900
+      +++ /etc/opendmarc.conf 2019-10-25 19:43:18.920092393 +0900
+      @@ -44 +44 @@
+      -# AutoRestart false
+      +AutoRestart true
+      @@ -87 +87 @@
+      -# BaseDirectory /var/run/opendmarc
+      +BaseDirectory /var/run/opendmarc
+      @@ -196 +196 @@
+      -# IgnoreHosts /etc/opendmarc/ignore.hosts
+      +IgnoreHosts /etc/opendmarc/ignore.hosts
+      @@ -206 +206 @@
+      -# IgnoreMailFrom example.com
+      +IgnoreMailFrom agassi.ddo.jp
+      @@ -274 +273,0 @@
+      -##  Socket socketspec
+      @@ -357 +356 @@
+      -UMask 007
+      +UMask 002
+
+   3. /etc/opendmarc/ignore.hosts
+
+      127.0.0.1
+      192.168.72.0/24
+
+   4. /etc/postfix/master.cf (SPF 判定を dmarc で実施するため、無効化する)
+
+      #policy-spf  unix  -       n       n       -       0       spawn
+      #   user=nobody argv=/usr/local/pyenv/shims/policyd-spf /etc/python-policyd-spf/policyd-spf.conf
+
+   5. Postfix と OpenDMARC の連携
+
+      1. /etc/postfix/main.cf
+
+         ## DKIM, DMARC
+         smtpd_milters =
+                 inet:127.0.0.1:8891
+                 inet:127.0.0.1:8893
+         non_smtpd_milters = $smtpd_milters
+         milter_default_action = accept
+
+      2. Postfix 再起動
+
+         # systemctl restart postfix
+         # systemctl restart opendmarc
+
+10. レポート
+
+    ここまでで半分
+  
+    1. MySQL 
+
+       1. MySQL インストール
+
+          (pyenv:Py2)[root@agassi ~]# rpm -qa | egrep mysql
+          mysql80-community-release-el7-3.noarch
+
+          (pyenv:Py2)[root@agassi ~]# yum install mysql mysql-devel mysql-server mysql-utilities
+
+          (pyenv:Py2)[root@agassi ~]# systemctl enable mysqld
+          (pyenv:Py2)[root@agassi ~]# systemctl start mysqld
+
+       2. セキュア設定
+
+          (pyenv:Py2)[root@agassi mysql]# egrep -i pass /var/log/mysqld.log
+          2019-10-28T02:38:10.362218Z 5 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: sSupdt,8+lKt
+
+          (pyenv:Py2)[root@agassi ~]# mysql_secure_installation
+
+           root ユーザーのパスワードの変更 → Taknet77#
+           anonymous ユーザーの削除
+           リモートホストから root ユーザーでログインするのを禁止する
+           test データベースの削除 (存在する場合)
+
+       3. パスワードポリシーの修正
+
+          (pyenv:Py2)[root@agassi ~]# mysql -u root -pTaknet77#
+
+          mysql> show global variables like '%validate%';
+          +--------------------------------------+--------+
+          | Variable_name                        | Value  |
+          +--------------------------------------+--------+
+          | validate_password.check_user_name    | ON     |
+          | validate_password.dictionary_file    |        |
+          | validate_password.length             | 8      |
+          | validate_password.mixed_case_count   | 1      |
+          | validate_password.number_count       | 1      |
+          | validate_password.policy             | MEDIUM |
+          | validate_password.special_char_count | 1      |
+          +--------------------------------------+--------+
+          7 rows in set (0.02 sec)
+          
+          Policy               | Test Preformed
+          ---------------------+-------------------------------------------------------------------------------------------
+          0 or LOW             | パスワード長 8 文字以上
+          1 or MEDIUM          | パスワード長 8 文字以上; 数字 1文字以上; 大文字小文字 1 文字以上; 記号 1 文字以上
+          2 or STRONG          | パスワード長 8 文字以上; 数字 1文字以上; 大文字小文字 1 文字以上; 記号 1 文字以上; 辞書ファイル
+
+          mysql> set global validate_password.policy = "LOW";
+          mysql> quit
+
+          (pyenv:Py2)[root@agassi mysql]# mysqladmin password Taknet77 -u root -pTaknet77#
+
+       4. /etc/my.cnf
+
+          [mysqld]
+          
+          # 旧 MySQL (5.7) との互換性確保
+          default_authentication_plugin=mysql_native_password
+          
+          explicit_defaults_for_timestamp = true
+          
+          sql_mode = 'IGNORE_SPACE,PIPES_AS_CONCAT'
+          server-id = 101010101
+          
+          log-bin-trust-function-creators=1
+          
+          # character-set-server = utf8mb4
+          # collation-server = utf8mb4_ja_0900_as_cs
+          
+          # MySQL 5.7 の設定の互換性確保
+          character-set-server = utf8
+          collation-server = utf8_general_ci
+          init-connect = SET NAMES utf8
+          
+          lower_case_table_names = 1
+          
+          # expire_logs_days = 1   <--- 次回から廃止の可能性あり
+          binlog_expire_logs_seconds=18000
+          
+          slow_query_log=1
+          long_query_time = 1.0
+          
+          max_connections = 10000
+          max_connect_errors = 10
+          
+          # transaction_isolation = READ-COMMITTED
+          
+          innodb_dedicated_server=ON
+          innodb_lock_wait_timeout = 120
+          # innodb_flush_log_at_trx_commit=0
+          
+          datadir=/var/lib/mysql
+          socket=/var/lib/mysql/mysql.sock
+          
+          slave-skip-errors=1062,1032
+          
+          log-error=/var/log/mysqld.log
+          pid-file=/var/run/mysqld/mysqld.pid
+
+    2. dmarc 用データベースの準備
+
+       # mysql -u root -p
+       mysql> create database opendmarc;
+       mysql> create user 'dmarc'@'localhost' identified by 'Taknet77';
+       mysql> grant all privileges on opendmarc.* to 'dmarc'@'localhost';
+       mysql> flush privileges;
+       mysql> quit
+       
+       # mysql -u dmarc -pTaknet77 opendmarc < /usr/share/opendmarc/db/schema.mysql
+
+    3. /etc/opendmarc.conf
+
+       (pyenv:Py2)[root@agassi opendmarc]# diff -U0 /etc/opendmarc.conf{.orig,}
+       --- /etc/opendmarc.conf.orig    2019-10-25 19:37:55.445544046 +0900
+       +++ /etc/opendmarc.conf 2019-11-02 14:50:44.783087407 +0900
+       @@ -44 +44 @@
+       -# AutoRestart false
+       +AutoRestart true
+       @@ -87 +87 @@
+       -# BaseDirectory /var/run/opendmarc
+       +BaseDirectory /var/run/opendmarc
+       @@ -178 +178 @@
+       -# HistoryFile /var/spool/opendmarc/opendmarc.dat
+       +HistoryFile /var/spool/opendmarc/opendmarc.dat
+       @@ -196 +196 @@
+       -# IgnoreHosts /etc/opendmarc/ignore.hosts
+       +IgnoreHosts /etc/opendmarc/ignore.hosts
+       @@ -206 +206 @@
+       -# IgnoreMailFrom example.com
+       +IgnoreMailFrom agassi.ddo.jp
+       @@ -261 +261 @@
+       -# ReportCommand /usr/sbin/sendmail -t
+       +ReportCommand /usr/sbin/sendmail -t
+       @@ -357 +357 @@
+       -UMask 007
+       +UMask 002
+
+    4. レポート作成用スクリプト
+
+       OpenDMARC のレポートデータをデータベース化
+       /usr/sbin/opendmarc-import -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose <  /var/spool/opendmarc/opendmarc.dat
+
+       レポート生成とレポート送信
+       /usr/sbin/opendmarc-reports -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose -interval=86400 -report-email 'postmaster@agassi.ddo.jp' -report-org 'agassi.ddo.jp'
+
+       期限切れレポートの削除
+       /usr/sbin/opendmarc-expire -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose
+
+
+       stevejenkins/opendmarc-send-reports.sh (https://gist.github.com/stevejenkins/1b61d15cc5aaf3e6819f) を取得する
+
+       # cat /usr/local/sbin/opendmarc-send-reports.sh
+       #!/bin/bash
+       # Imports data from OpenDMARC's opendmarc.dat file into a local MySQL DB
+       # and sends DMARC failure reports to domain owners.
+       # Based on a script from Hamzah Khan (http://blog.hamzahkhan.com/)
+       
+       set -e
+       
+       # Database and History File Info
+       DBHOST='localhost'
+       DBUSER=dmarc'
+       DBPASS='Taknet77'
+       DBNAME='opendmarc'
+       HISTDIR='/var/spool/opendmarc'
+       HISTFILE='opendmarc'
+       
+       # Make sure history file exists
+       touch ${HISTDIR}/${HISTFILE}.dat
+       
+       # Move history file temp dir for processing
+       mv ${HISTDIR}/${HISTFILE}.dat /tmp/${HISTFILE}.$$
+       
+       # Import temp history file data and send reports
+       /usr/sbin/opendmarc-import -dbhost=${DBHOST} -dbuser=${DBUSER} -dbpasswd=${DBPASS} -dbname=${DBNAME} -verbose < /tmp/${HISTFILE}.$$
+       /usr/sbin/opendmarc-reports -dbhost=${DBHOST} -dbuser=${DBUSER} -dbpasswd=${DBPASS} -dbname=${DBNAME} -verbose -interval=86400 -report-email 'postmaster@agassi.ddo.jp' -report-org 'agassi.ddo.jp'
+       /usr/sbin/opendmarc-expire -dbhost=${DBHOST} -dbuser=${DBUSER} -dbpasswd=${DBPASS} -dbname=${DBNAME} -verbose
+       
+       # Delete temp history file
+       rm -rf *.$$
+
+       # chmod 755 /usr/local/sbin/opendmarc-send-reports.sh
+       # touch /var/spool/opendmarc/opendmarc.data
+       # chown opendmarc:root /var/spool/opendmarc/opendmarc.data 
+
+    5. OpenDMARC 再起動
+
+       # systemctl restart opendmarc
+
+    6. 動作確認
+
+       # /usr/local/sbin/opendmarc-send-reports.sh
+       opendmarc-import: started at Sat Nov  2 15:23:24 2019
+       opendmarc-import: connected to database
+       opendmarc-import: terminating at Sat Nov  2 15:23:24 2019
+       opendmarc-reports: started at Sat Nov  2 15:23:25 2019
+       opendmarc-reports: selected 0 domain(s)
+       opendmarc-reports: terminating at Sat Nov  2 15:23:26 2019
+       opendmarc-expire: started at Sat Nov  2 15:23:26 2019
+       opendmarc-expire: connected to database
+       opendmarc-expire: expiring messages older than 180 day(s)
+       opendmarc-expire: no rows deleted
+       
+    7. 定期実行
+
+       (pyenv:Py2)[root@auhp-mail1 ~]# crontab -l
+       16 0 * * * /usr/local/sbin/opendmarc-send-reports.sh > /dev/null 2>&1
+
+    8. 受信一覧レポートをウェブで確認
+
+       techsneeze/opendmarc-dashboard (https://github.com/techsneeze/opendmarc-dashboard) を取得する
+
+       # git clone https://github.com/techsneeze/opendmarc-dashboard.git
+       # cp opendmarc-dashboard-config.php.sample opendmarc-dashboard-config.php
+       # cat opendmarc-dashboard-config.php
+       <?php
+       
+       // ####################################################################
+       // ### configuration ##################################################
+       // ####################################################################
+       
+       $dbhost="localhost";
+       $dbname="opendmarc";
+       $dbuser="dmarc";
+       $dbpass="Taknet77";
+       
+       ?>
+
+       http://agassi.ddo.jp:880/dmarc/opendmarc-dashboard.php
 

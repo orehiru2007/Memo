@@ -1,0 +1,336 @@
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+
+MySQL
+
+1. CMake
+
+   CMake 3.12.2
+
+   # export PATH /opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:/usr/jdk/instances/jdk1.7.0/bin:/usr/local/mysql/bin
+   # wget https://distfiles.macports.org/cmake/cmake-3.14.4.tar.gz
+   # tar xvzf cmake-3.14.4.tar.gz
+   # cd cmake-3.14.4
+   # LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
+   > ./configure --prefix=/usr/local
+   # make
+   # make install
+
+2. MySQL
+
+   1. libstdc++.so.6 に含まれているバージョン確認
+
+      # pvs /usr/local/gcc7/lib/libstdc++.so.6 | egrep GLIBCXX
+              GLIBCXX_3.4;
+              GLIBCXX_3.4.1;
+              GLIBCXX_3.4.2;
+              GLIBCXX_3.4.3;
+              GLIBCXX_3.4.4;
+              GLIBCXX_3.4.5;
+              GLIBCXX_3.4.6;
+              GLIBCXX_3.4.7;
+              GLIBCXX_3.4.8;
+              GLIBCXX_3.4.9;
+              GLIBCXX_3.4.10;
+              GLIBCXX_3.4.11;
+              GLIBCXX_3.4.12;
+              GLIBCXX_3.4.13;
+              GLIBCXX_3.4.14;
+              GLIBCXX_3.4.15;
+              GLIBCXX_3.4.16;
+              GLIBCXX_3.4.17;
+              GLIBCXX_3.4.18;
+              GLIBCXX_3.4.19;
+              GLIBCXX_3.4.20;
+              GLIBCXX_3.4.21;
+              GLIBCXX_3.4.22;
+              GLIBCXX_3.4.23;
+              GLIBCXX_3.4.24;
+   
+   2. ライブラリ検索パスの調整
+
+      # crle
+      
+      Configuration file [version 4]: /var/ld/ld.config
+        Platform:     32-bit LSB 80386
+        Default Library Path (ELF):   /usr/local/gcc7/lib:/usr/local/lib:/lib:/usr/lib
+        Trusted Directories (ELF):    /lib/secure:/usr/lib/secure  (system default)
+      
+      Command line:
+        crle -c /var/ld/ld.config -l /usr/local/gcc7/lib:/usr/local/lib:/lib:/usr/lib
+
+      # crle -64
+      
+      Configuration file [version 4]: /var/ld/64/ld.config
+        Platform:     64-bit LSB AMD64
+        Default Library Path (ELF):   /usr/local/gcc7/lib/amd64:/usr/local/gcc7/lib:/usr/local/64/lib:/lib/64:/usr/lib/64
+        Trusted Directories (ELF):    /lib/secure/64:/usr/lib/secure/64  (system default)
+      
+      Command line:
+        crle -64 -c /var/ld/64/ld.config -l /usr/local/gcc7/lib/amd64:/usr/local/gcc7/lib:/usr/local/64/lib:/lib/64:/usr/lib/64
+
+   3. インストール
+
+      # export PATH /opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:/usr/jdk/instances/jdk1.7.0/bin:/usr/local/mysql/bin
+      # mv /usr/include/sys/epoll.h /usr/include/sys/epoll.h.orig
+
+      # groupadd -g 3306 mysql
+      # useradd -g 3306 -u 3306 -d /usr/local/var mysql
+      # mkdir /tmp/boost
+      # wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz -P /tmp/boost --no-check-certificate
+      # wget http://ftp.iij.ad.jp/pub/db/mysql/Downloads/MySQL-5.7/mysql-5.7.25.tar.gz
+      # tar zxvf mysql-5.7.25.tar.gz
+      # cd mysql-5.7.25
+      # cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+      > -DDOWNLOAD_BOOST=1 \
+      > -DMYSQL_UNIX_ADDR=/usr/local/mysql/mysql.sock \
+      > -DDEFAULT_CHARSET=utf8mb4 \
+      > -DDEFAULT_COLLATION=utf8mb4_general_ci \
+      > -DWITH_MYISAM_STORAGE_ENGINE=1 \
+      > -DWITH_INNOBASE_STORAGE_ENGINE=1 \
+      > -DWITH_MEMORY_STORAGE_ENGINE=1 \
+      > -DWITH_READLINE=1 \
+      > -DENABLED_LOCAL_INFILE=1 \
+      > -DMYSQL_DATADIR=/usr/local/mysql/data \
+      > -DMYSQL_USER=mysql \
+      > -DMYSQL_TCP_PORT=3306 \
+      > -DWITH_BOOST=/tmp/boost \
+      > -DENABLE_DTRACE=0
+      # make
+      # make install
+
+      # mkdir /usr/local/mysql/logs
+      # chown -R mysql:mysql /usr/local/mysql
+
+      # cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysqld
+      # chmod 755 /etc/init.d/mysqld
+      # ln /etc/init.d/mysqld /etc/rc0.d/K16mysqld
+      # ln /etc/init.d/mysqld /etc/rc1.d/K16mysqld
+      # ln /etc/init.d/mysqld /etc/rcS.d/K16mysqld
+      # ln /etc/init.d/mysqld /etc/rc2.d/S99mysqld
+      # mv /usr/include/sys/epoll.h.orig /usr/include/sys/epoll.h
+
+   4. /usr/local/etc/my.cnf 編集
+
+      [mysqld]
+      basedir=/usr/local/mysql
+      datadir=/usr/local/mysql/data
+      socket=/usr/local/mysql/mysql.sock
+      
+      # Disabling symbolic-links is recommended to prevent assorted secu
+      symbolic-links=0
+      
+      # Recommended in standard MySQL setup
+      sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+      
+      log-error=/usr/local/mysql/logs/mysqld-error.log
+      
+      character-set-server = utf8
+      
+      max_connections = 600
+      max_allowed_packet = 512M
+      skip-name-resolve
+      
+      innodb_buffer_pool_size = 20G
+      innodb_buffer_pool_instances = 4
+      innodb_log_file_size = 4G
+      innodb_log_buffer_size = 256M
+      innodb_log_files_in_group = 3
+      innodb_data_file_path = ibdata1:1G:autoextend
+      innodb_file_per_table = 1
+      innodb_autoextend_increment = 64
+      innodb_flush_method = O_DIRECT
+      innodb_io_capacity = 5000
+      innodb_io_capacity_max = 5000
+      
+      innodb_write_io_threads = 8
+      innodb_read_io_threads = 8
+      
+      skip_innodb_doublewrite
+      innodb_flush_log_at_trx_commit = 0
+      
+      innodb_lock_wait_timeout = 300
+      
+      
+      # mysql dmp error
+      net_read_timeout=7200
+      net_write_timeout=7200
+      
+      [mysqld_safe]
+      #log-error=/usr/local/mysql/logs/mysql.log
+      #pid-file=/usr/local/mysql/mysqld.pid
+
+   5. 起動確認
+
+      # /usr/local/mysql/bin/mysqld_safe --defaults-file=/usr/local/etc/my.cnf &
+
+3. セットアップ
+
+   1. データベースの初期化と起動、初期パスワードの確認
+
+      # rm -rf /usr/local/mysql/data/
+      # mysqld --initialize  --explicit_defaults_for_timestamp
+      2018-10-26T06:39:13.276742Z 0 [Warning] InnoDB: New log files created, LSN=45790
+      2018-10-26T06:39:13.849651Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+      2018-10-26T06:39:13.950268Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: da7e7d1c-d8e9-11e8-bbda-e076b00f3cfd.
+      2018-10-26T06:39:13.954265Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+      2018-10-26T07:13:29.198470Z 1 [Note] A temporary password is generated for root@localhost: dXPw;jpU%2Fn
+      
+      # chown -R mysql:mysql /usr/local/mysql
+
+   2. セキュリティ設定
+
+      # mysql_secure_installation
+
+      root ユーザーのパスワードの変更
+      VALIDATE PASSWORD プラグインのインストール
+      ポリシーに沿った root ユーザーパスワードの設定 (VALIDATE PASSWORD プラグインをインストールした場合)
+      anonymous ユーザーの削除
+      リモートホストから root ユーザーでログインするのを禁止する
+      test データベースの削除 (存在する場合)
+
+
+4. 動作確認
+
+   # /usr/local/mysql/bin/mysqladmin version -p
+   Enter password:
+   /usr/local/mysql/bin/mysqladmin  Ver 8.42 Distrib 5.7.25, for solaris11 on i386
+   Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
+   
+   Oracle is a registered trademark of Oracle Corporation and/or its
+   affiliates. Other names may be trademarks of their respective
+   owners.
+   
+   Server version          5.7.25
+   Protocol version        10
+   Connection              Localhost via UNIX socket
+   UNIX socket             /usr/local/mysql/mysql.sock
+   Uptime:                 1 min 33 sec
+   
+   Threads: 1  Questions: 12  Slow queries: 0  Opens: 113  Flush tables: 1  Open tables: 106  Queries per second avg: 0.129
+
+   # /usr/local/mysql/bin/mysqlshow -p
+   Enter password:
+   +--------------------+
+   |     Databases      |
+   +--------------------+
+   | information_schema |
+   | mysql              |
+   | performance_schema |
+   | sys                |
+   +--------------------+
+
+   # /usr/local/mysql/bin/mysqlshow mysql -p
+   Enter password:
+   Database: mysql
+   +---------------------------+
+   |          Tables           |
+   +---------------------------+
+   | columns_priv              |
+   | db                        |
+   | engine_cost               |
+   | event                     |
+   | func                      |
+   | general_log               |
+   | gtid_executed             |
+   | help_category             |
+   | help_keyword              |
+   | help_relation             |
+   | help_topic                |
+   | innodb_index_stats        |
+   | innodb_table_stats        |
+   | ndb_binlog_index          |
+   | plugin                    |
+   | proc                      |
+   | procs_priv                |
+   | proxies_priv              |
+   | server_cost               |
+   | servers                   |
+   | slave_master_info         |
+   | slave_relay_log_info      |
+   | slave_worker_info         |
+   | slow_log                  |
+   | tables_priv               |
+   | time_zone                 |
+   | time_zone_leap_second     |
+   | time_zone_name            |
+   | time_zone_transition      |
+   | time_zone_transition_type |
+   | user                      |
+   +---------------------------+
+
+   # /usr/local/mysql/bin/mysql -e "select host,db,user from db" mysql -p
+   Enter password:
+   +-----------+--------------------+---------------+
+   | host      | db                 | user          |
+   +-----------+--------------------+---------------+
+   | localhost | performance_schema | mysql.session |
+   | localhost | sys                | mysql.sys     |
+   +-----------+--------------------+---------------+
+
+
+PHP 7
+
+1. インストール
+
+   # wget https://www.php.net/distributions/php-7.2.20.tar.gz
+   # tar zxvf php-7.2.20.tar.gz
+   # cd php-7.2.20
+   # CFLAGS=-m64 \
+   # ./configure \
+   > --with-apxs2=/usr/local/apache2/bin/apxs  \
+   > --with-mysql=/usr/local/mysql \
+   > --with-zlib-dir=/usr/local/64 \
+   > --with-iconv-dir=/usr/local/64 \
+   > --with-openssl=/usr/local/64  \
+   > --with-mysqli=mysqlnd \
+   > --with-curl \
+   > --enable-mbstring
+   # make
+   # make test
+   # make install
+
+   # cp php.ini-development /usr/local/lib/php.ini
+
+2. /usr/local/lib/php.ini
+
+   # diff -U0 /usr/local/lib/php.ini{.orig,}
+   --- /usr/local/lib/php.ini.orig 2019-07-31 15:38:12.871493284 +0000
+   +++ /usr/local/lib/php.ini      2019-07-31 15:38:51.842787837 +0000
+   @@ -1179 +1179 @@
+   -mysqli.default_socket =
+   +mysqli.default_socket = /usr/local/mysql/mysql.sock
+
+3. 拡張モジュールのインストール
+
+   # cd /usr/local/src/php/7.2.20/php-7.2.20/ext/mysqli
+   # phpize
+   # CFLAGS=-m64 ./configure
+   # make
+   # make test
+   # make install
+
+   # cd /usr/local/src/php/7.2.20/php-7.2.20/ext/curl/
+   # phpize
+   # CFLAGS=-m64 ./configure
+   # make
+   # make test
+   # make install
+
+   # cd /usr/local/src/php/7.2.20/php-7.2.20/ext/openssl/
+   # cp config0.m4 config.m4
+   # phpize
+   # CFLAGS=-m64 ./configure
+   # make
+   # make test
+   # make install
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,132 @@
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
+
+ipfilter ローカル FireWall の構築
+
+1. 確認、有効化
+
+   # pkg info | grep ipf
+           名前: network/ipfilter
+             FMRI: pkg://openindiana.org/network/ipfilter@0.5.11-2018.0.0.18375:20190504T022621Z
+
+   # ipf -E
+   # modinfo | egrep ipf
+   249 fffffffff8ab4000  38678 121   1  ipf (IP Filter: v4.1.9)
+
+   # ipfstat -io
+   empty list for ipfilter(out)
+   empty list for ipfilter(in)
+
+2. ipfilter 構成ファイルの作成
+
+   # svccfg -s ipfilter:default setprop firewall_config_default/policy = astring: "custom" 
+   # svccfg -s ipfilter:default listprop firewall_config_default/policy
+   firewall_config_default/policy  astring  custom
+
+   # svccfg -s ipfilter:default setprop firewall_config_default/custom_policy_file = astring: "/etc/ipf/ipf.conf" 
+   # svccfg -s ipfilter:default listprop firewall_config_default/custom_policy_file
+   firewall_config_default/custom_policy_file  astring  /etc/ipf/ipf.conf
+
+   # svcadm refresh ipfilter:default
+
+3. /etc/ipf/ipf.conf の編集
+
+   #
+   # lo0
+   #
+   pass out quick on lo0
+   #pass in quick on lo0
+   
+   #
+   # out packet:
+   #
+   pass out quick on net0 proto tcp/udp all keep state
+   pass out quick on net0 proto icmp all keep state
+   
+   #
+   # in packet:
+   #
+   
+   # attack by local IP packet
+   block in log quick on net0 from 127.0.0.0/8 to any
+   block in log quick on net0 from 10.0.0.0/8 to any
+   block in log quick on net0 from 169.254.0.0/16 to any
+   block in log quick on net0 from 172.16.0.0/12 to any
+   #block in log quick on net0 from 192.168.0.0/16 to any
+   
+   # attack by invalid IP option and too-short IP fragment
+   block in log quick on net0 all with opt lsrr
+   block in log quick on net0 all with opt ssrr
+   block in log quick from any to any with ipopts
+   block in log quick on net0 proto tcp all with short
+   
+   # accept
+   pass in quick on net0 proto icmp from any to any
+   pass in quick on net0 proto tcp from any to any port = 21  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 22  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 25  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 80  flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 143 flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 443 flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 587 flags S/SA keep state
+   pass in quick on net0 proto tcp from any to any port = 993 flags S/SA keep state
+   
+   #
+   # default rule
+   #
+   
+   # deny all
+   #block out log on net0 all
+   block in log on net0 all
+
+3. ipfilter の有効化
+
+   # svcadm enable ipfilter
+   # svcs ipfilter
+   STATE          STIME    FMRI
+   offline*       18:27:35 svc:/network/ipfilter:default
+
+   # ps -ef | grep ipmon | grep -v grep
+       root  4739     1   0   10:00:46 ?           0:00 /usr/sbin/ipmon -Ds
+
+4. 稼働状況の確認方法
+   # ipfstat -i
+   # ipfstat net0
+
+5. ルール変更後の反映方法
+   # ipf -Fa -f /etc/ipf/ipf.conf
+
+6. ipfilter を無効にする方法
+   # ipf -Fa
+   # svcadm disable ipfilter
+
+7. ログ取得の設定
+
+   1. /etc/rsyslog.conf (重要部分のみ)
+   mail.*                                          -/var/log/mail.log
+   &~
+   local5.*                                        -/var/log/mail_deux.log
+   &~
+   local6.*                                        -/var/log/sftp.log
+   &~
+   auth.*                                          -/var/log/auth.log
+   &~
+   daemon.*                                        -/var/log/daemon.log
+   &~
+   local0.warning                                  /var/log/ipf/ipf.log
+   &~
+   *.*                                             /var/adm/messages
+   &~
+
+   2. ログファイルの作成と rsyslogd の再起動
+   # mkdir /var/log/ipf
+   # touch /var/log/ipf/ipf/ipf.log
+   # chmod 644 /var/log/ipf/ipf.log
+   # pkill -HUP rsyslogd
+
+   3. ログローテートの登録
+   # logadm -w /var/log/ipf/ipf.log -C 4 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+   # cat /etc/logadm.conf (関係箇所のみ抜粋)
+   /var/log/ipf/ipf.log -C 4 -b '/usr/sbin/svccfg -s svc:/system/system-log:rsyslog refresh' -p 1d
+
+

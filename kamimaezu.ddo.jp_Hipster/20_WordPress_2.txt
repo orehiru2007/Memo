@@ -1,0 +1,215 @@
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+
+WordPress 
+
+1. Apache 側の設定変更
+
+   1. /usr/local/apache2/conf/httpd.conf
+
+      #LoadModule php5_module        modules/libphp5.so
+      
+      # PHP settings
+      Include conf/extra/httpd-php.conf
+      
+   2. /usr/local/apache2/conf/extra/httpd-php.conf
+
+      # LoadModule
+      LoadModule php7_module        modules/libphp7.so
+      
+      # AddType
+      AddType application/x-httpd-php .php
+      AddType application/x-httpd-php-source .phps
+
+2. MySQL チューニング (実施済み)
+
+   # cat /usr/local/etc/my.cnf
+   [mysqld]
+   basedir=/usr/local/mysql
+   datadir=/usr/local/mysql/data
+   socket=/usr/local/mysql/mysql.sock
+   
+   # Disabling symbolic-links is recommended to prevent assorted secu
+   symbolic-links=0
+   
+   # Recommended in standard MySQL setup
+   sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+   
+   log-error=/usr/local/mysql/logs/mysqld-error.log
+   
+   character-set-server = utf8
+   
+   max_connections = 600
+   max_allowed_packet = 512M
+   skip-name-resolve
+   
+   innodb_buffer_pool_size = 20G
+   innodb_buffer_pool_instances = 4
+   innodb_log_file_size = 4G
+   innodb_log_buffer_size = 256M
+   innodb_log_files_in_group = 3
+   innodb_data_file_path = ibdata1:1G:autoextend
+   innodb_file_per_table = 1
+   innodb_autoextend_increment = 64
+   innodb_flush_method = O_DIRECT
+   innodb_io_capacity = 5000
+   innodb_io_capacity_max = 5000
+   
+   innodb_write_io_threads = 8
+   innodb_read_io_threads = 8
+   
+   skip_innodb_doublewrite
+   innodb_flush_log_at_trx_commit = 0
+   
+   innodb_lock_wait_timeout = 300
+   
+   
+   # mysql dmp error
+   net_read_timeout=7200
+   net_write_timeout=7200
+   
+   [mysqld_safe]
+   #log-error=/usr/local/mysql/logs/mysql.log
+   #pid-file=/usr/local/mysql/mysqld.pi
+
+2. WordPress
+
+   https://wpdocs.osdn.jp/Main_Page
+
+   1. WordPress のダウンロード (※WordPress 日本語版のページより最新版をダウンロード)
+      
+      URL : http://ja.wordpress.org/latest-ja.tar.gz
+
+   2. MySQL に WordPress 用のデータベースとユーザの作成
+
+      データベース名 : wpdb
+      ユーザ名       : wpuser
+      パスワード     : Taknet77
+
+      # mysql -u root -pTaknet77
+
+      mysql> create database wpdb;
+      Query OK, 1 row affected (0.03 sec)
+      
+      mysql> create user 'wpuser'@'localhost' identified by 'Taknet77';
+      Query OK, 0 rows affected (0.00 sec)
+
+      mysql> grant all on wpdb.* to 'wpuser'@'localhost' identified by 'Taknet77';
+      Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+      mysql> use mysql;
+      Reading table information for completion of table and column names
+      You can turn off this feature to get a quicker startup with -A
+      Database changed
+
+      mysql> use mysql;select user,host,authentication_string from user where user='wpuser';
+      Database changed
+      +--------+-----------+-------------------------------------------+
+      | user   | host      | authentication_string                     |
+      +--------+-----------+-------------------------------------------+
+      | wpuser | localhost | *581A0656EED1B7E5A5B0134E9A1316BBC6CAA95E |
+      +--------+-----------+-------------------------------------------+
+      1 row in set (0.00 sec)
+
+      mysql> quit
+
+   4. WordPress のインストール
+
+      # wget http://ja.wordpress.org/latest-ja.tar.gz
+      # tar zxvf latest-ja.tar.gz
+      # cp -Rp wordpress /usr/local/apache2/htdocs/wp
+      # 
+
+   5. wp-config.php の設定内容
+
+      # diff -u /var/www/html/wp/wp-config.php{.orig,} | nkf -w
+      --- /var/www/html/wp/wp-config.php.orig 2019-09-03 11:29:10.562649387 +0000
+      +++ /var/www/html/wp/wp-config.php      2019-09-03 11:40:19.104038680 +0000
+      @@ -26,16 +26,16 @@
+      
+       // ** MySQL 設定 - この情報はホスティング先から入手してください。 ** //
+       /** WordPress のためのデータベース名 */
+      -define('DB_NAME', 'database_name_here');
+      +define('DB_NAME', 'wpdb');
+      
+       /** MySQL データベースのユーザー名 */
+      -define('DB_USER', 'username_here');
+      +define('DB_USER', 'wpuser');
+      
+       /** MySQL データベースのパスワード */
+      -define('DB_PASSWORD', 'password_here');
+      +define('DB_PASSWORD', 'Taknet77');
+      
+       /** MySQL のホスト名 */
+      -define('DB_HOST', 'localhost');
+      +define('DB_HOST', '127.0.0.1');
+      
+       /** データベースのテーブルを作成する際のデータベースの文字セット */
+       define('DB_CHARSET', 'utf8');
+      @@ -52,14 +52,14 @@
+        *
+        * @since 2.6.0
+        */
+      -define('AUTH_KEY',         'put your unique phrase here');
+      -define('SECURE_AUTH_KEY',  'put your unique phrase here');
+      -define('LOGGED_IN_KEY',    'put your unique phrase here');
+      -define('NONCE_KEY',        'put your unique phrase here');
+      -define('AUTH_SALT',        'put your unique phrase here');
+      -define('SECURE_AUTH_SALT', 'put your unique phrase here');
+      -define('LOGGED_IN_SALT',   'put your unique phrase here');
+      -define('NONCE_SALT',       'put your unique phrase here');
+      +define('AUTH_KEY',         '.9107a]0&PTT307~]-m2LM+vq0@JNsY5COu$`qwVrkB@4z hhS#dt1^-}=AI 86c');
+      +define('SECURE_AUTH_KEY',  'rr#Z~V]p-$4n]sB&^8;j6=c6|Z}eN(5[LbLbp/ugJJ[fsF(|3j$Rpfh-b(s?Wv`-');
+      +define('LOGGED_IN_KEY',    'uPC^^!F18G?B0(5%AF5+?`HYpezAo7 gwp-F+&+G^1c# &.r5f(n{FOe6--v{<0<');
+      +define('NONCE_KEY',        ')!m]svK&91{&p3+FVDt=jJQ<xd`ydHe8fXJr}&lP +mCoEl#j%p3/tM{j</#qD3_');
+      +define('AUTH_SALT',        'CE)<LlK|?%{X lg7o|e,>eX`zdf#+k_KM;qVA$1{O7z0DwvaB+cI2GX+$hF)|#5w');
+      +define('SECURE_AUTH_SALT', '^CA4 c`xeQCpjfn}/tJg1x2>vdo|wkz?`RE|PMC+4|Htu=pwI+h-qel`H9nRIODP');
+      +define('LOGGED_IN_SALT',   'BT;|#}]QS 8szCyte|1C:>LIdKLHk%#H|Bg&uSI-<F>-.+9 3E0oFBK#flfe~IUJ');
+      +define('NONCE_SALT',       '*0FGv2{Q!pv|!BVC%,fHBvR~V27?{k#b$G+sR`HEE2G68:-^vEYF )T6x2.:9dcJ');
+      
+       /**#@-*/
+      
+      @@ -81,7 +81,9 @@
+        *
+        * @link http://wpdocs.osdn.jp/WordPress%E3%81%A7%E3%81%AE%E3%83%87%E3%83%90%E3%83%83%E3%82%B0
+        */
+      -define('WP_DEBUG', false);
+      +define( 'WP_DEBUG', true );
+      +define( 'WP_DEBUG_DISPLAY', false );
+      +define( 'WP_DEBUG_LOG', true );
+      
+       /* 編集が必要なのはここまでです ! WordPress でのパブリッシングをお楽しみください。 */
+
+
+   6. class-http.php の編集
+
+      # diff -U0 /var/www/html/wp/wp-includes/class-http.php{.orig,}
+      --- /var/www/html/wp/wp-includes/class-http.php.orig    2018-11-24 16:18:00.719142893 +0900
+      +++ /var/www/html/wp/wp-includes/class-http.php 2018-11-24 16:18:16.894955854 +0900
+      @@ -199 +199 @@
+      -                       'sslverify' => true,
+      +                       'sslverify' => false,
+
+   6. ブログ名/初期パスワードの設定
+
+      URL : http://kamimaedu.ddo.jp/wp/wp-admin/install.php
+            http://172.17.238.114/wp/wp-login.php
+
+      URL : http://172.17.238.114/wp/wp-admin/install.php
+            http://kamimaedu.ddo.jp/wp/wp-login.php
+            http://kamimaezu.ddo.jp/wp/wp-admin/
+   
+   7. 初期化
+
+      # mysql -u root -pTaknet77
+      mysql> drop user wpuser@localhost;
+      mysql> drop database wpdb;
+
+3. コアダンプ
+
+[Tue Oct 08 09:11:36.981759 2019] [core:notice] [pid 3664:tid 1] AH00051: child pid 5270 exit signal Segmentation fault (11), possible coredump in /usr/local/httpd-2.4.41
+
+
+http://www.multiburst.net/sometime-php/2010/06/eaccelerator.html
+https://bucci.bp7.org/archives/414/
+
+https://aonasuzutsuki.hatenablog.jp/entry/2017/10/01/122047
