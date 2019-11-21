@@ -46,11 +46,11 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
    2. EPEL (beta 版)
 
-      # yum install epel-release
+      # yum install -y epel-release
 
    3. nkf
 
-      # yum install nkf
+      # yum install -y nkf
 
 3. SElinux 無効化
    
