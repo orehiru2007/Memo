@@ -965,4 +965,3 @@ rafter.ddo.jp CentOS release 7.0 (Oracle VirtualBox)
 
        # systemctl start xrdp.service
        # systemctl enable xrdp.service
-
