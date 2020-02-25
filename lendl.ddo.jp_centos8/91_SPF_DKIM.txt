@@ -10,7 +10,14 @@ SPF, DKIM
       Server:         172.17.238.117
       Address:        172.17.238.117#53
       
-      lendl.ddo.jp    text = "v=spf1 +ip4:172.17.238.0/24 ~all"
+      lendl.ddo.jp    text = "v=spf1 include:_spf.lendl.ddo.jp ~all"
+
+      root@kamimaedu[107]~# nslookup -type=TXT _spf.lendl.ddo.jp 172.17.238.117
+      Server:         172.17.238.117
+      Address:        172.17.238.117#53
+      
+      _spf.lendl.ddo.jp       text = "v=spf1 +ip4:172.17.238.0/24 ~all"
+
 
    2. 確認結果 (kamimaedu.ddo.jp にて、SPF レコードの検証結果を確認する)
 
@@ -44,48 +51,48 @@ SPF, DKIM
       Google に習って、セレクタは、鍵の作成日時とする
       鍵長は 1024 bit とする (2048 bit の鍵長では、ddo.jp に登録可能な TXT レコードの文字数制限を超えてしまうため)
 
-      # opendkim-genkey -D /etc/opendkim/keys -b 1024 -d agassi.ddo.jp -s 20180426
+      # opendkim-genkey -D /etc/opendkim/keys -b 1024 -d lendl.ddo.jp -s 20200219
  
       # chown -R opendkim:opendkim /etc/opendkim/keys/*
       # ls -l /etc/opendkim/keys/
       合計 8
-      -rw------- 1 opendkim opendkim 887  4月 26 18:38 2018 20180426.private
-      -rw------- 1 opendkim opendkim 319  4月 26 18:38 2018 20180426.txt
+      -rw------- 1 opendkim opendkim 887 Feb 20 17:14 20200219.private
+      -rw------- 1 opendkim opendkim 318 Feb 20 17:14 20200219.txt
 
    4. DNS 登録
 
       # cat /etc/opendkim/keys/20180426.txt
-      20180426._domainkey     IN      TXT     ( "v=DKIM1; k=rsa; "
-                "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB" )  ; ----- DKIM key 20180426 for agassi.ddo.jp
-
+      20200219._domainkey     IN      TXT     ( "v=DKIM1; k=rsa; "
+                "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB" )  ; ----- DKIM key 20200219 for lendl.ddo.jp
 
       # cat /var/named/ext.agassi.ddo.jp
-      20180426._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+      ; DKIM
+      20200219._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB"
       _adsp._domainkey        IN      TXT     "dkim=unknown"
 
    5. 確認
 
-      # nslookup -type=TXT 20180426._domainkey.agassi.ddo.jp 8.8.8.8
-      Server:         8.8.8.8
-      Address:        8.8.8.8#53
+      root@kamimaedu[103]~# nslookup -type=TXT 20200219._domainkey.lendl.ddo.jp
+      Server:         172.17.238.93
+      Address:        172.17.238.93#53
       
       Non-authoritative answer:
-      20180426._domainkey.agassi.ddo.jp       text = "v=DKIM1\; k=rsa\; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+      20200219._domainkey.lendl.ddo.jp        text = "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB"
 
-      # nslookup -type=TXT _adsp._domainkey.agassi.ddo.jp 8.8.8.8
-      Server:         8.8.8.8
-      Address:        8.8.8.8#53
-
+      root@kamimaedu[105]~# nslookup -type=TXT _adsp._domainkey.lendl.ddo.jp
+      Server:         172.17.238.93
+      Address:        172.17.238.93#53
+      
       Non-authoritative answer:
-      _adsp._domainkey.agassi.ddo.jp  text = "dkim=unknown"
+      _adsp._domainkey.lendl.ddo.jp   text = "dkim=unknown"
 
    6. OpenDKIM の設定
 
       1. /etc/opendkim.conf{.orig,}
 
          # diff -U0  /etc/opendkim.conf{.orig,}
-         --- /etc/opendkim.conf.orig     2019-03-21 14:29:02.333133752 +0900
-         +++ /etc/opendkim.conf  2019-03-21 14:30:31.211875468 +0900
+         --- /etc/opendkim.conf.orig     2020-02-20 17:28:10.361168932 +0900
+         +++ /etc/opendkim.conf  2020-02-20 19:15:01.299642022 +0900
          @@ -39 +39 @@
          -Mode   v
          +Mode   sv
@@ -107,7 +114,7 @@ SPF, DKIM
 
       2. /etc/opendkim/KeyTable
 
-         20180426._domainkey.agassi.ddo.jp agassi.ddo.jp:20180426:/etc/opendkim/keys/20180426.private
+         20200219._domainkey.lendl.ddo.jp lendl.ddo.jp:20200219:/etc/opendkim/keys/20200219.private
 
       3. /etc/opendkim/SigningTable
 
@@ -116,7 +123,7 @@ SPF, DKIM
       4. /etc/opendkim/TrustedHosts
 
          127.0.0.1
-         192.168.72.0/24
+         192.168.56.0/24
 
    7. Postfix と OpenDKIM の連携
 
@@ -134,25 +141,20 @@ SPF, DKIM
 
    8. 動作確認
 
-      1. agassi.ddo.jp → Gmail
+      1. lendl.ddo.jp  → agassi.ddo.jp
 
-         ARC-Authentication-Results: i=1; mx.google.com;
-                spf=pass (google.com: domain of masuda@agassi.ddo.jp designates 203.133.245.13 as permitted sender) smtp.mailfrom=masuda@agassi.ddo.jp;
-                dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=agassi.ddo.jp
+         Feb 20 19:17:41 agassi opendkim[1403]: D81AE60781C5: l220009.ppp.asahi-net.or.jp [218.219.220.9] not internal
+         Feb 20 19:17:41 agassi opendkim[1403]: D81AE60781C5: not authenticated
+         Feb 20 19:17:41 agassi opendkim[1403]: D81AE60781C5: DKIM verification successful
 
-      2. Gmail → agassi.ddo.jp
-
-         Mar 21 14:48:22 agassi opendkim[11064]: 839BD6177655: mail-wm1-f47.google.com [209.85.128.47] not internal
-         Mar 21 14:48:22 agassi opendkim[11064]: 839BD6177655: not authenticated
-         Mar 21 14:48:22 agassi opendkim[11064]: 839BD6177655: DKIM verification successful
+      2. agassi.ddo.jp → lendl.ddo.jp
 
 3. DNS レコードまとめ
 
    ; SPF
-                           IN      TXT     "v=spf1 +ip4:203.133.240.0/21 ~all"
+                           IN      TXT     "v=spf1 include:_spf.lendl.ddo.jp ~all"
+   _spf.lendl.ddo.jp.      IN      TXT     "v=spf1 +ip4:172.17.238.0/24 ~all"
+
    ; DKIM
-   20180426._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+   20200219._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB"
    _adsp._domainkey        IN      TXT     "dkim=unknown"
-
-
-

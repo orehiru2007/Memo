@@ -56,9 +56,9 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
    work                        | dhcpv6-client、ipp-client、ssh                       | 職場用
 
    1. drop をデフォルトゾーンに指定
-   # firewall-cmd --set-default-zone=drop
+   # firewall-cmd --set-default-zone=trusted
    # firewall-cmd --get-default-zone
-   drop
+   trusted
 
    2. 割り当てインターフェイスの確認
    # firewall-cmd --get-active-zone

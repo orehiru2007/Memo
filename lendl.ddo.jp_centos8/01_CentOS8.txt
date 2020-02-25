@@ -27,6 +27,13 @@ lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
       # systemctl enable network
       # systemctl start network
 
+   5. remi
+
+      # dnf install http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
+
+     yum -y install http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
+
+
 3. SElinux 無効化
    
    # cat /etc/selinux/config

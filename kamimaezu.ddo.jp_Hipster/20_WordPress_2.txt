@@ -191,7 +191,7 @@ WordPress
 
    6. ブログ名/初期パスワードの設定
 
-      URL : http://kamimaedu.ddo.jp/wp/wp-admin/install.php
+      URL : http://kamimaezu.ddo.jp/wp/wp-admin/install.php
             http://172.17.238.114/wp/wp-login.php
 
       URL : http://172.17.238.114/wp/wp-admin/install.php

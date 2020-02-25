@@ -1,4 +1,4 @@
-lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
+lendl.ddo.jp CentOS release 8.1 (1911) / Oracle VirtualBox
 
 DMARC (Domain-based Message Authentication, Reporting & Conformance)
 

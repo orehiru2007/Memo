@@ -1,36 +1,3 @@
-健診 上田さん、大場さん、高橋さん
-ネットワーク 桝田です
-
-お疲れさまです
-
-健診 DB Microsoft SQL エラー (起動時に、イベント ID 455, 489, 490 が出力される) について、情報を共有させてください
-
-参考 URL : https://blogs.msdn.microsoft.com/jpsql/2017/05/17/イベント-id-455489490-及び-413486-の対処方法について/
-ログ出力 : Application_20191030.evtx
-
-1. エラー内容
-
-   日時                     | ソース  ID     カテゴリ            詳細
-   -------------------------+-------------------------------------------------------------------------------------------------
-   2019/10/30 9:12:22       | ESENT   455     Logging/Recovery   C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   489     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   455     Logging/Recovery   C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:22       | ESENT   489     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-   2019/10/30 9:12:12       | ESENT   490     全般               C:\Windows\system32\LogFiles\Sum 配下ファイルへのアクセス失敗
-
-   サーバ起動時、上記のログが出力される
-
-2. ネットワーク見解
-
-   Microsoft からの公開情報にもあるとおり、"SQL Server の機能には影響を及ぼさないため、無視してよし" と判断します
-   
-To: 上田さん、大場さん
-お手数ですが、本件について確認と必要であれば対応をお願いいたします
-
-以上、よろしくお願いします
-
-agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
-
 7 年使用した EPSON Endeavor NP31S が壊れてしまいました
 事務所に捨ててあった、EPSON Endeavor ST11E を利用して、再構築します
 
@@ -47,6 +14,10 @@ agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
    2. EPEL (beta 版)
 
       # yum install -y epel-release
+
+   3. remi
+
+      # yum -y install http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
 
    3. nkf
 
