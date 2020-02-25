@@ -61,7 +61,7 @@ SPF, DKIM
 
    4. DNS 登録
 
-      # cat /etc/opendkim/keys/20180426.txt
+      # cat /etc/opendkim/keys/20200219.txt
       20200219._domainkey     IN      TXT     ( "v=DKIM1; k=rsa; "
                 "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB" )  ; ----- DKIM key 20200219 for lendl.ddo.jp
 
