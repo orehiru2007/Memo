@@ -35,7 +35,7 @@ ssh
    # wget http://www.openssl.org/~appro/values.c
    # ksh -f values.c
    # ./Configure --prefix=/usr/local \
-   >  --openssldir=/usr/local/etc/ssl \
+   > --openssldir=/usr/local/etc/ssl \
    > shared solaris-x86-gcc -fPIC
    # make
    # make install
@@ -82,10 +82,10 @@ ssh
    # make install
 
    64bit
-   # wget http://ftp.jaist.ac.jp/pub/OpenBSD/OpenSSH/portable/openssh-8.0p1.tar.gz
-   # tar zxvf openssh-8.0p1.tar.gz
-   # cd openssh-8.0p1
-   # CFLAGS=-m64 \
+   # wget http://ftp.jaist.ac.jp/pub/OpenBSD/OpenSSH/portable/openssh-8.2p1.tar.gz
+   # tar zxvf openssh-8.2p1.tar.gz
+   # cd openssh-8.2p1
+   > CFLAGS=-m64 \
    > LDFLAGS=-m64 \
    > ./configure --prefix=/usr/local/64 --sysconfdir=/usr/local/64/etc/ssh \
    > --with-pam --with-zlib=/usr/local/64 --with-ssl-dir=/usr/local/64 --with-4in6
