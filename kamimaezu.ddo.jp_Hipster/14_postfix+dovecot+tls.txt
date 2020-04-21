@@ -47,10 +47,10 @@ Postfix
       # groupadd -g 68 postfix
       # groupadd -g 69 postdrop
       # useradd -u 68 -g 68 -d /etc/postfix postfix
-      # wget http://linorg.usp.br/postfix/release/official/postfix-3.3.10.tar.gz
-      # tar zxvf postfix-3.3.10.tar.gz
-      # cd postfix-3.3.10
-      # patch -p1 <../postfix-3.3.10-sleep.patch
+      # wget http://linorg.usp.br/postfix/release/official/postfix-3.4.10.tar.gz
+      # tar zxvf postfix-3.4.10.tar.gz
+      # cd postfix-3.4.10
+      # patch -p1 <../postfix-3.4.10-sleep.patch
       # make -f Makefile.init makefiles shared=yes dynamicmaps=yes shlib_directory=/usr/local/64/lib/postfix \
       > CC="gcc -m64" \
       > OPT='-O3 -pipe -s -march=native -mtune=native' \
@@ -74,6 +74,7 @@ Postfix
       > -I/usr/local/64/include/openssl/ -I/usr/local/64/include/sasl -I/usr/local/64/include' \
       > AUXLIBS="-L/usr/local/64/lib -R/usr/local/64/lib -lssl -lcrypto -lz -lm -ldb -lpcre"
       # make
+      # make install
 
       # make install
       install_root      : /
@@ -94,7 +95,7 @@ Postfix
       shlib_directory   : /usr/local/64/lib/postfix
       meta_directory    : /usr/local/64/etc/postfix
 
-      # cat postfix-3.3.10-sleep.patch
+      # cat postfix-3.4.10-sleep.patch
       diff -urN postfix-3.4.10.orig/src/smtpd/smtpd_check.c postfix-3.4.10/src/smtpd/smtpd_check.c
       --- postfix-3.4.10.orig/src/smtpd/smtpd_check.c 2019-03-12 21:28:20.000000000 +0000
       +++ postfix-3.4.10/src/smtpd/smtpd_check.c      2020-04-13 15:10:50.460531561 +0000
@@ -144,6 +145,7 @@ Postfix
               } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
                   status = reject_plaintext_session(state);
               }
+      root@kamimaezu[201]/usr/local/src/
 
    2. 起動スクリプト
 

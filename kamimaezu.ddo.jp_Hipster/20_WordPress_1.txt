@@ -6,10 +6,9 @@ MySQL
 
    CMake 3.14.4
 
-   # export PATH /opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:/usr/jdk/instances/jdk1.7.0/bin:/usr/local/mysql/bin
-   # wget https://distfiles.macports.org/cmake/cmake-3.14.4.tar.gz
-   # tar xvzf cmake-3.14.4.tar.gz
-   # cd cmake-3.14.4
+   # wget https://distfiles.macports.org/cmake/cmake-3.14.5.tar.gz
+   # tar xvzf cmake-3.14.5.tar.gz
+   # cd cmake-3.14.5
    # LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
    > ./configure --prefix=/usr/local
    # make
@@ -46,7 +45,7 @@ MySQL
               GLIBCXX_3.4.23;
               GLIBCXX_3.4.24;
    
-   2. ライブラリ検索パスの調整
+   2. ライブラリ検索パスの確認)
 
       # crle
       
@@ -70,7 +69,6 @@ MySQL
 
    3. インストール
 
-      # export PATH /opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:/usr/jdk/instances/jdk1.7.0/bin:/usr/local/mysql/bin
       # mv /usr/include/sys/epoll.h /usr/include/sys/epoll.h.orig
 
       # groupadd -g 3306 mysql
@@ -266,7 +264,6 @@ MySQL
    | localhost | performance_schema | mysql.session |
    | localhost | sys                | mysql.sys     |
    +-----------+--------------------+---------------+
-
 
 PHP 7
 

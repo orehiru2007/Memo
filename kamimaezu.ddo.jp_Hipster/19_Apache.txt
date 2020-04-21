@@ -22,7 +22,7 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    # make test
    # make install
 
-3. Apache 2.4.23
+3. Apache HTTP Server 2.4.23
 
    # wget http://ftp.riken.jp/net/apache/httpd/httpd-2.4.43.tar.gz
    # tar zxvf httpd-2.4.43.tar.gz
