@@ -55,9 +55,9 @@ ssh
    # strip /usr/local/64/bin/openssl
 
    64bit 1.1.* 系
-   # wget https://www.openssl.org/source/openssl-1.1.1b.tar.gz
-   # tar zxvf openssl-1.1.1b.tar.gz
-   # cd openssl-1.1.1b
+   # wget https://www.openssl.org/source/openssl-1.1.1f.tar.gz
+   # tar zxvf openssl-1.1.1f.tar.gz
+   # cd openssl-1.1.1f
    # wget http://www.openssl.org/~appro/values.c
    # ksh -f values.c
    # ./Configure --prefix=/usr/local/64 \

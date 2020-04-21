@@ -23,7 +23,7 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    # make check
    # make install
 
-   2. 2.2.15
+   2. 2.2.20
 
       1. npath
       # wget ftp://ftp.gnupg.org/gcrypt/npth/npth-1.6.tar.bz2
@@ -46,7 +46,7 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
       # make install
 
       3. libassuan
-      # wget https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.3.tar.bz2
+      # wget https:/cat ./gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.3.tar.bz2
       # tar jxvf libassuan-2.5.3.tar.bz2
       # cd libassuan-2.5.3
       # CFLAGS="-m64" \
@@ -70,9 +70,9 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
 4. bind の再コンパイル
 
-   # wget http://ftp.isc.org/isc/bind9/9.11.0-P1/bind-9.11.0-P1.tar.gz
-   # tar zxvf bind-9.11.0-P1.tar.gz
-   # cd bind-9.11.0-P1
+   # wget https://ftp.isc.org/isc/bind9/9.11.17/bind-9.11.17.tar.gz
+   # tarbind-9.11.17.tar.gz
+   # cd bind-9.11.17
    # CFLAGS="-m64 -DDIG_SIGCHASE" \
    > CPPFLAGS=-I/usr/local/64/include/openssl \
    > PERL=/usr/bin/perl \

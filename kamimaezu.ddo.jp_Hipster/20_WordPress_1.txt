@@ -4,7 +4,7 @@ MySQL
 
 1. CMake
 
-   CMake 3.12.2
+   CMake 3.14.4
 
    # export PATH /opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:/usr/jdk/instances/jdk1.7.0/bin:/usr/local/mysql/bin
    # wget https://distfiles.macports.org/cmake/cmake-3.14.4.tar.gz

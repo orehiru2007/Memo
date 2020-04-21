@@ -14,7 +14,50 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    ここが一番わかり易かったかも
    http://www.nic.ad.jp/ja/newsletter/No43/0800.html
 
-3. GnuPG のインストール
+3. GnuPG 2.2 のインストール
+
+      1. npath
+      # wget https://gnupg.org/ftp/gcrypt/npth/npth-1.6.tar.bz2
+      # tar jxvf npth-1.6.tar.bz2
+      # cd npth-1.6
+      # CFLAGS="-m64 -std=gnu99" \
+      > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+      # make
+      # make check
+      # make install
+
+      2. libgpg-error
+      # wget https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.37.tar.bz2
+      # tar zxvf libgpg-error-1.36.tar.gz
+      # cd libgpg-error-1.36
+      > CFLAGS="-m64" \
+      > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+      # make
+      # make check
+      # make install
+
+      3. libassuan
+      # wget https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.3.tar.bz2
+      # tar jxvf libassuan-2.5.3.tar.bz2
+      # cd libassuan-2.5.3
+      # CFLAGS="-m64" \
+      > ./configure --prefix=/usr/local/64 \
+      > --with-libgpg-error-prefix=/usr/local/64 \
+      > --build=x86_64-pc-solaris2.11
+      # make
+      # make check
+      # make install
+
+      4. gnupg
+      # wget https://gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.20.tar.bz2
+      # tar jxvf gnupg-2.2.15.tar.bz2
+      # cd gnupg-2.2.15
+      # LDFLAGS="-L/usr/local/64/lib -R/usr/local/64/lib" \
+      > CFLAGS=-m64 \
+      > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11 --disable-ldap
+      # make
+      # make check
+      # make install
 
    2.0.26
    # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.0.26.tar.bz2

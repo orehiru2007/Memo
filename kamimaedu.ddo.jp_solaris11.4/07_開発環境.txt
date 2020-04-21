@@ -121,7 +121,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # make check
    # make install
 
-   bison 3.2 32bit
+   bison 3.5.3 32bit
    # wget https://ftp.gnu.org/gnu/bison/bison-3.2.tar.gz
    # gzip -cd bison-3.2.tar.gz | tar xf -
    # cd bison-3.2
@@ -131,20 +131,20 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # make check
    # make install
 
-   bison 3.2 64bit
-   # wget https://ftp.gnu.org/gnu/bison/bison-3.2.tar.gz
-   # gzip -cd bison-3.2.tar.gz | tar xf -
-   # cd bison-3.2
-   # CFLAGS=-m32 \
-   # ./configure --prefix=/usr/local
+   bison 3.5.3 64bit
+   # wget https://ftp.gnu.org/gnu/bison/bison-3.5.3.tar.gz
+   # gzip -cd bison-3.5.3.tar.gz | tar xf -
+   # cd bison-3.5.3
+   # CFLAGS=-m64 \
+   # ./configure --prefix=/usr/local/64
    # make
    # make check
    # make install
 
-   make 4.2 32bit
-   # wget https://ftp.gnu.org/gnu/make/make-4.2.tar.gz
-   # gzip -cd make-4.2.tar.gz | tar xf -
-   # cd make-4.2
+   make 4.3 32bit
+   # wget https://ftp.gnu.org/gnu/make/make-4.3.tar.gz
+   # gzip -cd make-4.3.tar.gz | tar xf -
+   # cd make-4.3
    # CFLAGS=-m32 \
    # ./configure --prefix=/usr/local
    # LANG=C make
@@ -207,13 +207,29 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    # make install
 
    tar 64bit
-   # wget http://ftp.gnu.org/gnu/tar/tar-1.30.tar.xz
-   # xz -cd tar-1.30.tar.xz | tar xf -
-   # cd tar-1.30
-   # CFLAGS=-m32 \
-   # FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/usr/local
+   # wget https://ftp.gnu.org/gnu/tar/tar-1.32.tar.xz
+   # xz -cd tar-1.32.tar.xz | tar xf -
+   # cd tar-1.32
+   # gpatch -p1 < ../tar-1.32-fix-limits.patch
+   # CFLAGS=-m64 \
+   # FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/usr/local/64
    # make
    # make install
+
+   tar-1.32-fix-limits.patch
+   diff -urN tar-1.32.orig/gnu/sys-limits.h tar-1.32/gnu/sys-limits.h
+   --- tar-1.32.orig/gnu/sys-limits.h      2019-01-03 03:16:01.000000000 +0000
+   +++ tar-1.32/gnu/sys-limits.h   2020-04-03 10:54:47.154764168 +0000
+   @@ -15,8 +15,8 @@
+       You should have received a copy of the GNU General Public License
+       along with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   
+   -#ifndef _SYS_LIMITS_H
+   -#define _SYS_LIMITS_H
+   +#ifndef _GL_SYS_LIMITS_H
+   +#define _GL_SYS_LIMITS_H
+   
+    #include <limits.h>
 
    binutils 32bit
    # wget http://ftp.gnu.org/pub/gnu/binutils/binutils-2.25.1.tar.gz
@@ -243,47 +259,50 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
 6. gcc7
 
-   gmp='gmp-6.1.0.tar.bz2'      gmp-6.1.2.tar.xz
-   mpfr='mpfr-3.1.4.tar.bz2'    mpfr-3.1.6.tar.gz
-   mpc='mpc-1.0.3.tar.gz'       mpc-1.1.0.tar.gz
-   isl='isl-0.16.1.tar.bz2'     http://isl.gforge.inria.fr/isl-0.16.1.tar.gz
+   gmp  : gmp-6.1.0.tar.bz2      gmp-6.1.2.tar.xz
+   mpfr : mpfr-3.1.4.tar.bz2     mpfr-3.1.6.tar.gz
+   mpc  : mpc-1.0.3.tar.gz       mpc-1.1.0.tar.gz
+   isl  : isl-0.16.1.tar.bz2     http://isl.gforge.inria.fr/isl-0.16.1.tar.gz
 
    ※/usr/local/binutils/bin を PATH から除外しておくこと
    gmp
-   # wget http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
-   # tar Jxvf gmp-6.1.2.tar.xz
-   # cd gmp-6.1.2
-   # ./configure \
+   # wget https://ftp.gnu.org/gnu/gmp/gmp-6.2.0.tar.xz
+   # tar Jxvf gmp-6.2.0.tar.xz
+   # cd gmp-6.2.0
+   # CFLAGS=-m32 \
+   > ./configure \
    > --prefix=/usr/local/gcc7 \
-   > --build=x86_64-pc-solaris2.11
+   > --build=i386-pc-solaris2.11
    # make
    # make install
 
    mpfr
-   # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.1.tar.gz
-   # tar zxvf mpfr-4.0.1.tar.gz
-   # cd mpfr-4.0.1
-   # ./configure \
-   > --prefix=/usr/local/gcc7 \
-   > --with-gmp=/usr/local/gcc7
-   # make
-   # make install
-   # 
-
-   mpc
-   # wget http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
-   # tar zxvf mpc-1.1.0.tar.gz
-   # cd mpc-1.1.0
+   # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz
+   # tar zxvf mpfr-4.0.2.tar.gz
+   # cd mpfr-4.0.2
+   # CFLAGS=-m32 \
    # ./configure \
    > --prefix=/usr/local/gcc7 \
    > --with-gmp=/usr/local/gcc7 \
-   > --with-mpfr=/usr/local/gcc7
+   > --build=i386-pc-solaris2.11
+   # make
+   # make install
+
+   mpc
+   # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz
+   # tar zxvf mpfr-4.0.2.tar.gz
+   # cd mpfr-4.0.2
+   # CFLAGS=-m32 \
+   > ./configure \
+   > --prefix=/usr/local/gcc7 \
+   > --with-gmp=/usr/local/gcc7 \
+   > --build=i386-pc-solaris2.11
    # make
    # make install
 
    gcc7 7.3.0
 
-   # crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc7/lib
+   # crle -c /var/ld/ld.config -l /usr/local/gcc7/lib:/usr/local/lib:/lib:/usr/lib
 
    # wget http://ftp.tsukuba.wide.ad.jp/software/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.gz
    # tar zxvf gcc-7.3.0.tar.gz

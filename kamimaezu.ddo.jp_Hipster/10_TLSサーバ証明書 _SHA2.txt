@@ -54,7 +54,7 @@ TLS サーバ証明書 SHA-2 署名
    
    string_mask = nombstr
    
-   #req_extensions = v3_req # The extensions to add to a certificate request
+   req_extensions = v3_req # The extensions to add to a certificate request
    
    [ req_distinguished_name ]
    countryName                     = Country Name (2 letter code)
@@ -66,7 +66,7 @@ TLS サーバ証明書 SHA-2 署名
    stateOrProvinceName_default     = Gifu
    
    localityName                    = Locality Name (eg, city)
-   localityName_default            = Kagano-Ogaki
+   localityName_default            = Ogaki
    
    0.organizationName              = Organization Name (eg, company)
    0.organizationName_default      = TAK
@@ -94,19 +94,21 @@ TLS サーバ証明書 SHA-2 署名
    #keyUsage = cRLSign, keyCertSign
    
    # Make Server Cert
-   #basicConstraints=CA:FALSE
-   #nsCertType = server
+   basicConstraints=CA:FALSE
+   nsCertType = server
    
    # Make Client Cert
-   basicConstraints=CA:FALSE
-   nsCertType = client, email, objsign
+   #basicConstraints=CA:FALSE
+   #nsCertType = client, email, objsign
    
    subjectKeyIdentifier=hash
    authorityKeyIdentifier=keyid,issuer
+   subjectAltName = @alt_names
    
    [ v3_req ]
    basicConstraints = CA:FALSE
    keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+   subjectAltName = @alt_names
    
    [ v3_ca ]
    subjectKeyIdentifier=hash
@@ -117,6 +119,10 @@ TLS サーバ証明書 SHA-2 署名
    
    [ crl_ext ]
    authorityKeyIdentifier=keyid:always,issuer:always
+   
+   [alt_names]
+   DNS.1 = kamimaezu.ddo.jp
+   DNS.2 = *.kamimaezu.ddo.jp
 
 2. プライベート CA を構築するためのスクリプトの作成
 
@@ -277,26 +283,8 @@ TLS サーバ証明書 SHA-2 署名
       # mkdir /usr/local/etc/pki/Server/certs
       # cd /usr/local/etc/pki/Server/certs
 
-      # openssl req -new -key /usr/local/etc/pki/Server/private/server.key -out server.csr
-      You are about to be asked to enter information that will be incorporated
-      into your certificate request.
-      What you are about to enter is what is called a Distinguished Name or a DN.
-      There are quite a few fields but you can leave some blank
-      For some fields there will be a default value,
-      If you enter '.', the field will be left blank.
-      -----
-      Country Name (2 letter code) [AU]:JP
-      State or Province Name (full name) [Some-State]:Gifu
-      Locality Name (eg, city) []:Kagano-Ogaki
-      Organization Name (eg, company) [Internet Widgits Pty Ltd]:TAK
-      Organizational Unit Name (eg, section) []:Network
-      Common Name (eg, YOUR name) []:kamimaezu.ddo.jp
-      Email Address []:
-      
-      Please enter the following 'extra' attributes
-      to be sent with your certificate request
-      A challenge password []:
-      An optional company name []:
+      # openssl req -new -subj "/C=JP/ST=Gifu/L=Ogaki/O=TAK/OU=Network/CN=kamimaezu.ddo.jp" -key /usr/local/etc/pki/Server/private/server.key -out server.csr -config /usr/local/etc/pki/myCA/ca.cnf
+
 
 5. 証明書の発行 (プライベート CA での署名)
 
@@ -373,27 +361,9 @@ TLS サーバ証明書 SHA-2 署名
 
       # mkdir /usr/local/etc/pki/Client/certs
       # cd /usr/local/etc/pki/Client/certs
-      # openssl req -new -days 3650 -key /usr/local/etc/pki/Client/private/client.key -out client.csr
-      You are about to be asked to enter information that will be incorporated
-      into your certificate request.
-      What you are about to enter is what is called a Distinguished Name or a DN.
-      There are quite a few fields but you can leave some blank
-      For some fields there will be a default value,
-      If you enter '.', the field will be left blank.
-      -----
-      Country Name (2 letter code) [AU]:JP
-      State or Province Name (full name) [Some-State]:Gifu
-      Locality Name (eg, city) []:Kagano-Ogaki
-      Organization Name (eg, company) [Internet Widgits Pty Ltd]:TAK
-      Organizational Unit Name (eg, section) []:Network
-      Common Name (e.g. server FQDN or YOUR name) []:CL1
-      Email Address []:
-      
-      Please enter the following 'extra' attributes
-      to be sent with your certificate request
-      A challenge password []:
-      An optional company name []:
-      
+
+      # openssl req -new -subj "/C=JP/ST=Gifu/L=Ogaki/O=TAK/OU=Network/CN=CL1" -key  /usr/local/etc/pki/Client/private/client.key -out client.csr
+
    4. 証明書の発行 (プライベート CA での署名)
 
       # cd /usr/local/etc/pki/Client/certs

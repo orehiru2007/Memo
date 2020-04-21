@@ -30,9 +30,9 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
 2. tcsh 64bit
 
-   # wget ftp://ftp.astron.com/pub/tcsh/tcsh-6.20.00.tar.gz
-   # tar zxvf tcsh-6.20.00.tar.gz
-   # cd tcsh-6.20.00
+   # wget ftp://ftp.astron.com/pub/tcsh/tcsh-6.22.02.tar.gz
+   # tar zxvf tcsh-6.22.02.tar.gz
+   # cd tcsh-6.22.02
    # CFLAGS=-m64 \
    # ./configure --prefix=/usr/local/64
    # make
@@ -42,9 +42,9 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 3. perl 
 
    1. 32bit
-   # wget https://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
-   # tar zxvf perl-5.28.1.tar.gz
-   # cd perl-5.28.1
+   # wget https://www.cpan.org/src/5.0/perl-5.30.2.tar.gz
+   # tar zxvf perl-5.30.2.tar.gz
+   # cd perl-5.30.2
    # ./Configure -de -Dcc=gcc -Doptimize=-O3 \
    > -Dldflags="-L/usr/local/lib -R/usr/local/lib -L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
    > -Dusethreads \

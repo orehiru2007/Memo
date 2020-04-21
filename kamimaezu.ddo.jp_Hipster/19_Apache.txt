@@ -24,9 +24,9 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
 3. Apache 2.4.23
 
-   # wget http://ftp.riken.jp/net/apache/httpd/httpd-2.4.39.tar.gz
-   # tar zxvf httpd-2.4.39.tar.gz
-   # cd httpd-2.4.39
+   # wget http://ftp.riken.jp/net/apache/httpd/httpd-2.4.43.tar.gz
+   # tar zxvf httpd-2.4.43.tar.gz
+   # cd httpd-2.4.43
    # CC="gcc -m64" \
    > CPPFLAGS=-I/usr/local/64/include \
    > LDFLAGS="-L/usr/local/64/lib -R/usr/local/64/lib" \
@@ -37,18 +37,18 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    > --with-ssl=/usr/local \
    > --with-apr=/usr/local/64 \
    > --with-apr-util=/usr/local/64 \
-   > --prefix=/usr/local/httpd-2.4.23
+   > --prefix=/usr/local/httpd-2.4.43
    # make
    # make install
-   # ln -s /usr/local/httpd-2.4.39 /usr/local/apache2
-
+   # 
+   # ln -s /usr/local/httpd-2.4.43 /usr/local/apache2
    # mkdir -p /var/www/html
    # mkdir /var/www/cgi-bin
-   # mkdir /var/log/apache
    # mv /usr/local/apache2/logs /usr/local/apache2/logs.orig
    # ln -s /var/log/apache /usr/local/apache2/logs
 
-   :%s/\/usr\/local\/httpd-2.4.25\/htdocs/\/var\/www\/html/g
+
+   :%s/\/usr\/local\/httpd-2.4.43\/htdocs/\/var\/www\/html/g
 
 4. 起動設定
 

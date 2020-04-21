@@ -5,8 +5,7 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 ライブラリは出来るだけシェアードライブラリにする
 
 1. ライブラリ検索パス (確認)
-1. HOSTSに下記追記
-   127.0.0.1      proxy.grp.ibiden.intra   
+
    いやね /usr/local/lib くらいはライブラリ検索パスで指定してもいいと思うんだよね
 
    1. 32bit 用ライブラリ検索パス
@@ -288,16 +287,16 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    # make
    # make install
 
-   gcc7 7.3.0
+   gcc7 7.5.0
 
    # crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc7/lib
 
-   # wget http://ftp.tsukuba.wide.ad.jp/software/gcc/releases/gcc-7.3.0/gcc-7.3.0.tar.gz
-   # tar zxvf gcc-7.3.0.tar.gz
+   # wget http://ftp.tsukuba.wide.ad.jp/software/gcc/releases/gcc-7.5.0/gcc-7.5.0.tar.gz
+   # tar zxvf gcc-7.5.0.tar.gz
    # mkdir obj
    # cd obj
    # LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
-   > `pwd`/../gcc-7.3.0/configure \
+   > `pwd`/../gcc-7.5.0/configure \
    > --prefix=/usr/local/gcc7 \
    > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
    > --with-ld=/usr/ccs/bin/ld \
@@ -306,7 +305,7 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    > --with-mpc=/usr/local/gcc7 \
    > --enable-languages=c,c++,fortran \
    > --enable-shared
-   # LANG=C make bootstrap
+   > LANG=C make bootstrap
    # make install
    # ln -s /usr/local/gcc7/bin/gcc /usr/local/gcc7/bin/cc
 
@@ -353,26 +352,7 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    # make install
 
    gcc4
-
-
-  crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc7/lib/amd64
-
-  crle -c /var/ld/ld.config -l /lib:/usr/lib:/usr/local/lib:/usr/local/gcc4/lib:/usr/local/gcc7/lib
-
-
-
-
-
-
-
-
-
-   crle -c /var/ld/ld.config -l /lib:/usr/lib:/usr/local/lib:/usr/local/gcc7/lib:/usr/local/gcc4/lib
-
-   export PATH=/opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
-   export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
-
-
+   # export PATH=/opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
    # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.9.4/gcc-4.9.4.tar.gz
    # tar zxvf gcc-4.9.4.tar.gz
    # mkdir obj

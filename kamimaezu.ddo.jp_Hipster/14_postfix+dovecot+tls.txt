@@ -47,10 +47,10 @@ Postfix
       # groupadd -g 68 postfix
       # groupadd -g 69 postdrop
       # useradd -u 68 -g 68 -d /etc/postfix postfix
-      # wget http://linorg.usp.br/postfix/release/official/postfix-3.3.4.tar.gz
-      # tar zxvf postfix-3.3.4.tar.gz
-      # cd postfix-3.3.4
-      # patch -p1 <../postfix-3.3.4-sleep.patch
+      # wget http://linorg.usp.br/postfix/release/official/postfix-3.3.10.tar.gz
+      # tar zxvf postfix-3.3.10.tar.gz
+      # cd postfix-3.3.10
+      # patch -p1 <../postfix-3.3.10-sleep.patch
       # make -f Makefile.init makefiles shared=yes dynamicmaps=yes shlib_directory=/usr/local/64/lib/postfix \
       > CC="gcc -m64" \
       > OPT='-O3 -pipe -s -march=native -mtune=native' \
@@ -77,7 +77,7 @@ Postfix
 
       # make install
       install_root      : /
-      tempdir           : /usr/local/src/64/postfix/3.3.4/postfix-3.3.4
+      tempdir           : /usr/local/src/64/postfix/3.4.10/postfix-3.4.10
       config_directory  : /usr/local/64/etc/postfix
       command_directory : /usr/local/64/sbin
       daemon_directory  : /usr/local/64/libexec/postfix
@@ -94,19 +94,11 @@ Postfix
       shlib_directory   : /usr/local/64/lib/postfix
       meta_directory    : /usr/local/64/etc/postfix
 
-      # cat postfix-3.2.0-sleep.patch
-      diff -urN postfix-3.3.4.orig/src/smtpd/smtpd_check.c postfix-3.3.4/src/smtpd/smtpd_check.c
-      --- postfix-3.3.4.orig/src/smtpd/smtpd_check.c  2019-03-30 21:01:12.000000000 +0000
-      +++ postfix-3.3.4/src/smtpd/smtpd_check.c       2019-05-09 16:37:53.904792603 +0000
-      @@ -216,6 +216,7 @@
-       #include <valid_utf8_hostname.h>
-       #include <midna_domain.h>
-       #include <mynetworks.h>
-      +#include <iostuff.h>
-      
-       /* DNS library. */
-      
-      @@ -4070,6 +4071,7 @@
+      # cat postfix-3.3.10-sleep.patch
+      diff -urN postfix-3.4.10.orig/src/smtpd/smtpd_check.c postfix-3.4.10/src/smtpd/smtpd_check.c
+      --- postfix-3.4.10.orig/src/smtpd/smtpd_check.c 2019-03-12 21:28:20.000000000 +0000
+      +++ postfix-3.4.10/src/smtpd/smtpd_check.c      2020-04-13 15:10:50.460531561 +0000
+      @@ -4073,6 +4073,7 @@
            ARGV   *list;
            int     found;
            int     saved_recursion = state->recursion++;
@@ -114,45 +106,45 @@ Postfix
       
            if (msg_verbose)
               msg_info(">>> START %s RESTRICTIONS <<<", reply_class);
-      @@ -4158,8 +4160,35 @@
+      @@ -4161,8 +4162,35 @@
                   if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
                       msg_warn("restriction %s must be followed by number", SLEEP);
                       reject_server_error(state);
       -           } else
       -               sleep(atoi(*++cpp));
       +            } else {
-      +                      /* sleep(atoi(*++cpp)); */
-      +                      int sleep_time = atoi(*++cpp);
-      +                      int i;
-      +                      for ( i = 0; i < sleep_time; i++ ) {
-      +                             /* sleep( 1 ); */
-      +                            if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
-      +                              int ch = VSTREAM_GETC(state->client);
-      +                               if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost connection */
-      +                                    vstream_ungetc(state->client, ch);
-      +                                    buf = vstring_alloc(100);
-      +                                    vstring_sprintf(buf, "lost connection after %d sec", i);
-      +                                    log_whatsup(state, "sleep", STR(buf));
-      +                                    vstring_free(buf);
-      +                                    status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
-      +                                    break;
-      +                              }
-      +                              else { /* pipelining */
-      +                                    vstream_ungetc(state->client, ch);
-      +                                    buf = vstring_alloc(100);
-      +                                    vstring_sprintf(buf, "pipelining after %d sec", i);
-      +                                    log_whatsup(state, "sleep", STR(buf));
-      +                                    vstring_free(buf);
-      +                                    sleep( sleep_time - i );
-      +                                    break;
-      +                              }
-      +                            }
-      +                      }
-      +                    }
+      +                     /* sleep(atoi(*++cpp)); */
+      +                     int sleep_time = atoi(*++cpp);
+      +                     int i;
+      +                     for ( i = 0; i < sleep_time; i++ ) {
+      +                            /* sleep( 1 ); */
+      +                           if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
+      +                             int ch = VSTREAM_GETC(state->client);
+      +                              if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost con
+      +                                   vstream_ungetc(state->client, ch);
+      +                                   buf = vstring_alloc(100);
+      +                                   vstring_sprintf(buf, "lost connection after %d sec", i);
+      +                                   log_whatsup(state, "sleep", STR(buf));
+      +                                   vstring_free(buf);
+      +                                   status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
+      +                                   break;
+      +                             }
+      +                             else { /* pipelining */
+      +                                   vstream_ungetc(state->client, ch);
+      +                                   buf = vstring_alloc(100);
+      +                                   vstring_sprintf(buf, "pipelining after %d sec", i);
+      +                                   log_whatsup(state, "sleep", STR(buf));
+      +                                   vstring_free(buf);
+      +                                   sleep( sleep_time - i );
+      +                                   break;
+      +                             }
+      +                           }
+      +                     }
+      +                   }
               } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
                   status = reject_plaintext_session(state);
               }
-      
+
    2. 起動スクリプト
 
       # cat /etc/init.d/postfix

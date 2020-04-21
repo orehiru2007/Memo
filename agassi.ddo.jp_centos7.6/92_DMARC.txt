@@ -7,6 +7,7 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
    https://www.nic.ad.jp/ja/basics/terms/dmarc.html
    https://www.nic.ad.jp/ja/basics/terms/spf.html
    https://www.nic.ad.jp/ja/basics/terms/dkim.html
+   https://eng-blog.iij.ad.jp/archives/3273
 
    http://blog.smtps.jp/entry/2017/12/22/095814
 
@@ -100,11 +101,11 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
    
    pct=100    : オプション (デフォルト値は 100)、DMARC のポリシーを適用する割合をパーセンテージで指定する 
    
-   adkim=r    : オプション (デフォルト値は r)、DKIM 認証パラメータ
+   adkim=r    : アライメント オプション (デフォルト値は r)、DKIM 認証パラメータ
                 r (relaxed) : DKIM の送信ドメイン (d タグ）のサブドメインを Header-From に使用することができる
                 s (strict)  : DKIM の送信ドメイン (d タグ）と Header-From は同じドメインでなければならない
    
-   aspf=r     : オプション (デフォルト値は r)、SPF 認証パラメータ
+   aspf=r     : アライメント オプション (デフォルト値は r)、SPF 認証パラメータ
                 r (relaxed) : Header-From のサブドメインを Envelope-From に使用することができる
                 s (strict)  : Envelope-From と Header-From は同じドメインでなければならない
    
@@ -171,7 +172,6 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
    1. インストール
 
       (pyenv:Py2)[root@agassi ~]# yum install opendmarc.x86_64
-
       (pyenv:Py2)[root@agassi ~]# systemctl restart opendmarc
       (pyenv:Py2)[root@agassi ~]# systemctl enable opendmarc
 
@@ -224,10 +224,8 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
          # systemctl restart postfix
          # systemctl restart opendmarc
 
-10. レポート
+10. 受信一覧レポート (受信したメールに対する DMARC 処理結果)
 
-    ここまでで半分
-  
     1. MySQL 
 
        1. MySQL インストール
@@ -377,7 +375,6 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
        期限切れレポートの削除
        /usr/sbin/opendmarc-expire -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose
 
-
        stevejenkins/opendmarc-send-reports.sh (https://gist.github.com/stevejenkins/1b61d15cc5aaf3e6819f) を取得する
 
        # cat /usr/local/sbin/opendmarc-send-reports.sh
@@ -457,5 +454,16 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
        
        ?>
 
-       http://agassi.ddo.jp:880/dmarc/opendmarc-dashboard.php
+       https://agassi.ddo.jp/dmarc/opendmarc-dashboard.php
+
+11. 送信レポート (送信したメールに対する DMARC 処理結果)
+
+    統計レポート : 日次で送られてくる認証に失敗したメールの集計結果のレポート
+    失敗レポート : 認証に失敗したメールがあった際にリアルタイムで送られてくるレポート
+
+    XML to Human Converter - dmarcian
+
+    https://mxtoolbox.com/DmarcReportAnalyzer.aspx?id=F-084218b3-dc81-4866-866b-474ead429ade
+
+    ※有償サービスを利用するのが良さそうな気がする
 
