@@ -30,9 +30,7 @@ lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
    5. remi
 
       # dnf install http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
-
-     yum -y install http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
-
+      # yum -y install http://rpms.famillecollet.com/enterprise/remi-release-8.rpm
 
 3. SElinux 無効化
    
@@ -126,7 +124,7 @@ lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
 
        4. /etc/hostname
 
-          agassi.ddo.jp
+          lendl.ddo.jp
 
        5. /etc/sysconfig/network-scripts/ifcfg-*
 
@@ -576,7 +574,7 @@ lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
     & stop
     uucp,news.crit                                          /var/log/spooler
     & stop
-    :msg,contains,"firewalld DROP"                           -/var/log/iptables.log
+    :msg,contains,"firewalld DROP"                          -/var/log/nftables.log
     & stop
     :fromhost-ip, isequal, "127.0.0.1"                      /var/log/messages
     & stop
@@ -611,4 +609,55 @@ lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
     # yum install ibus-kkc -y
 
     アクティビティ > 設定 > Region & Language > 入力ソース から、"日本語 (かな漢字)" を選択する
+
+20. Cockpit (CentOS 8 をブラウザで管理するためソフト) 停止 ※2020/4/30 追記
+
+    # systemctl disable cockpit.socket
+
+23. sar
+
+    1. パッケージ確認
+    (pyenv:Py2)[root@lendl ~]# rpm -qa | egrep sysstat
+    sysstat-11.7.3-2.el8.x86_64
+
+    2. 設定ファイル
+    (pyenv:Py2)[root@lendl ~]# cat /usr/lib/systemd/system/sysstat-collect.service
+    # /usr/lib/systemd/system/sysstat-collect.service
+    # (C) 2014 Tomasz Torcz <tomek@pipebreaker.pl>
+    #
+    # sysstat-11.7.3 systemd unit file:
+    #        Collects system activity data
+    #        Activated by sysstat-collect.timer unit
+    
+    [Unit]
+    Description=system activity accounting tool
+    Documentation=man:sa1(8)
+    After=sysstat.service
+    
+    [Service]
+    Type=oneshot
+    User=root
+    ExecStart=/usr/lib64/sa/sa1 1 1
+
+    (pyenv:Py2)[root@lendl ~]# cat /usr/lib/systemd/system/sysstat-collect.timer
+    # /usr/lib/systemd/system/sysstat-collect.timer
+    # (C) 2014 Tomasz Torcz <tomek@pipebreaker.pl>
+    #
+    # sysstat-11.7.3 systemd unit file:
+    #        Activates activity collector every 10 minutes
+    
+    [Unit]
+    Description=Run system activity accounting tool every 10 minutes
+    
+    [Timer]
+    OnCalendar=*:00/10
+    
+    [Install]
+    WantedBy=sysstat.service
+
+    3. 設定ファイル読み直し
+    (pyenv:Py2)[root@lendl ~]# systemctl daemon-reload
+
+    4. グラフ表示
+    # sadf -g <"sa" ファイル> -- -A > sa_graph.svg
 

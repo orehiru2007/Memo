@@ -197,7 +197,8 @@ WordPress
       URL : http://172.17.238.114/wp/wp-admin/install.php
             http://kamimaedu.ddo.jp/wp/wp-login.php
             http://kamimaezu.ddo.jp/wp/wp-admin/
-   
+            https://kamimaezu.ddo.jp/wp/wp-admin/
+
    7. 初期化
 
       # mysql -u root -pTaknet77
@@ -209,7 +210,4 @@ WordPress
 [Tue Oct 08 09:11:36.981759 2019] [core:notice] [pid 3664:tid 1] AH00051: child pid 5270 exit signal Segmentation fault (11), possible coredump in /usr/local/httpd-2.4.41
 
 
-http://www.multiburst.net/sometime-php/2010/06/eaccelerator.html
-https://bucci.bp7.org/archives/414/
-
-https://aonasuzutsuki.hatenablog.jp/entry/2017/10/01/122047
+http://sarface2012.hatenablog.com/entry/20101027

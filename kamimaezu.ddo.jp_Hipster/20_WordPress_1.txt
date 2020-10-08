@@ -288,6 +288,10 @@ PHP 7
 
    # cp php.ini-development /usr/local/lib/php.ini
 
+   make: *** [Makefile:215: test] Error 1
+
+
+
 2. /usr/local/lib/php.ini
 
    # diff -U0 /usr/local/lib/php.ini{.orig,}

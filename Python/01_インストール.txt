@@ -64,7 +64,7 @@ Linux (CentOS 7) pyenv + pyenv-virtualenv
 
 4. 環境変数設定
 
-   # cat /.bashrc
+   # cat /root/.bashrc
    export PYENV_ROOT="/usr/local/pyenv"
    export PATH="/usr/local/pyenv/bin:$PATH"
    eval "$(pyenv init -)"
@@ -84,7 +84,7 @@ Linux (CentOS 7) pyenv + pyenv-virtualenv
 
 6. TIPS pyenv-virtualenv の使い方
 
-   1. インストール可能なPythonの一覧表示
+   1. インストール可能な Python の一覧表示
    # pyenv install -l
 
    2. python インストール
