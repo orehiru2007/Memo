@@ -1,0 +1,231 @@
+kafelnikov.taknet.co.jp CentOS Linux release 7.6.1810 (Core) / Intel NUC
+
+下呂温泉病院からのメールを中継していた LIFEBOOK S8350 がいよいよ壊れそうなので
+YOSHIKI さんが持っていた、Intel NUC を利用して、再構築します
+
+CentOS 7 UEFI 環境 バックアップ、リストア手順
+
+1. バックアップ
+
+   0. grub2-efi-modules の導入
+
+      grub2-mkconfig コマンド、efibootmgr コマンドが使用可能とするため、grub2-efi-modules をインストールしておくこと
+
+      # yum install grub2-efi-modules
+
+   1. ネットワーク環境
+
+   
+      ---------------------------+------------------------------------------------------------+-----------------------------
+                                 |                                                            |
+      +--------------------------+----------------------------+    +--------------------------+----------------------------+
+      | kafelnikov.taknet.co.jp (172.17.238.150)              |    | kamimaedu.ddo.jp (172.17.238.93:/export/home/nfs2)    |
+      |  /dev/sda2               /boot      xfs               |    |   sda2_boot.dump.gz                                   |
+      |  /dev/sda1               /boot/efi  vfat              |    |   boot_efi2.tar                                       |
+      |  /dev/mapper/VG-var      /var       xfs               |    |   VG_var.dump.gz                                      |
+      |  /dev/mapper/VG-root     /          xfs               |    |   VG_root.dump.gz                                     |
+      +-------------------------------------------------------+    +-------------------------------------------------------+
+
+      # df -khT
+      ファイルシス                     タイプ   サイズ  使用  残り 使用% マウント位置
+      /dev/mapper/VG-root              xfs        100G  4.9G   96G    5% /
+      devtmpfs                         devtmpfs   1.8G     0  1.8G    0% /dev
+      tmpfs                            tmpfs      1.8G   74M  1.8G    4% /dev/shm
+      tmpfs                            tmpfs      1.8G  9.9M  1.8G    1% /run
+      tmpfs                            tmpfs      1.8G     0  1.8G    0% /sys/fs/cgroup
+      /dev/sda2                        xfs       1014M  275M  740M   28% /boot
+      /dev/sda1                        vfat       200M   12M  189M    6% /boot/efi
+      /dev/mapper/VG-var               xfs        100G  412M  100G    1% /var
+      tmpfs                            tmpfs      368M   44K  368M    1% /run/user/0
+      172.17.238.93:/export/home/nfs2  nfs4       2.9G     0  2.9G    0% /var2
+
+   2. 情報取得
+
+      # gdisk -l /dev/sda > /var2/gdisk_-l.txt
+      # fdisk -l /dev/sda > /var2/fdisk_-l.txt
+      # df -kT > /var2/df_-kT.txt
+      # cp /etc/fstab /var2/fstab
+      # pvdisplay > /var2/pvdisplay.txt
+      # vgdisplay > /var2/vgdisplay.txt
+      # lvdisplay > /var2/lvdisplay.txt
+      # mount > /var2/mount.txt
+
+   3. バックアップ
+
+      1. バックアップ前処理
+      # mkdir -p /mnt/snap/snap0
+      # chattr +d /mnt/snap
+
+      2. /boot/efi (vfat) バックアップ
+      # cd /boot/efi ; tar cvf /var2/boot_efi2.tar ./*
+
+      3. boot (xfs) バックアップ
+      # xfsdump -J -l0 - /dev/sda2 | gzip > /var2/sda2_boot.dump.gz
+
+      4. var (xfs) バックアップ
+      # lvcreate --snapshot --size=1GB --name snap0 /dev/VG/var
+      # mount -o nouuid /dev/VG/snap0 /mnt/snap/snap0
+      # xfsdump -J -l0 - /mnt/snap/snap0 | gzip > /var2/VG_var.gz
+      # umount /mnt/snap/snap0
+      # lvremove /dev/VG/snap0 -f
+
+      5. root (xfs) バックアップ
+      # lvcreate --snapshot --size=1GB --name snap0 /dev/VG/root
+      # mount -o nouuid /dev/VG/snap0 /mnt/snap/snap0
+      # xfsdump -J -l0 - /mnt/snap/snap0 | gzip > /var2/VG_root.gz
+      # umount /mnt/snap/snap0
+      # lvremove /dev/VG/snap0 -f
+
+      6. 確認
+      # gzip -cd sda2_boot.dump.gz | xfsrestore -i - /tmp
+
+2. リストア
+
+   1. CentOS7 インストール DVD (CentOS-7-x86_64-DVD-1810.iso) から、起動する
+
+   2. レスキューモードを起動する [ Troubleshooting ] > [ Rescue a CentOS system ] > [ 3) Skip to shell ] 
+
+      1. キーボードを日本語配列に変更する
+      # localectl set-keymap jp106
+
+      2. ネットワーク設定
+      # ifconfig enp0s25 172.17.238.150 netmask 255.255.0.0
+      # route add default gw 172.17.254.1
+
+      3. 既存 LVM の認識
+      # lvm vgchage -ay
+
+   3. ファイルシステムの作成
+
+      ------------------
+      Number  Start (sector)    End (sector)  Size       Code  Name
+         1            2048          411647   200.0 MiB   EF00  EFI System Partition
+         2          411648         2508799   1024.0 MiB  0700
+         3         2508800       488396799   231.7 GiB   8E00
+      ------------------
+
+      # gdisk /dev/sda
+      m (help)
+      p (表示)
+      d (全領域を削除)
+      n 1 [Enter] +200M EF00
+      n 2 [Enter] +1024M 0700
+      n 3 [Enter] [Enter] 8E00
+      p (表示)
+      w y (書き込み＆終了)
+
+   4. LVM 設定
+ 
+      1. LVM 管理データベースの作成
+      # lvm vgscan
+
+      2. 物理ボリュームの登録
+      # lvm pvcreate /dev/sda3
+
+      3. ボリュームグループの作成
+      # lvm vgcreate -s4m VG /dev/sda3
+
+      4. 論理ボリュームの作成
+      # lvm lvcreate --size 100GB --name root VG
+      # lvm lvcreate --size 100GB --name var VG
+
+   5. ファイルシステムの作成
+
+      1. /boot/efi (vfat)
+      # mkfs.vfat -v -n /boot/efi -c -F32 -s2 /dev/sda1
+
+      2. /boot, /root, /var (xfs) 
+      # mkfs.xfs -L /boot /dev/sda2
+      # mkfs.xfs -L / /dev/VG/var
+      # mkfs.xfs -L /var /dev/VG/var
+
+      3. swap
+      # mkswap /dev/VG/swap
+
+   6. リストア
+
+      # mkdir /tmp/mnt
+      # mkdir /tmp/backup
+      # mount -t nfs 172.17.238.93:/export/home/nfs2 /tmp/backup
+
+      1. /boot/efi (vfat) のリストア
+      # mount /dev/sda1 /tmp/mnt ; cd /tmp/mnt
+      # tar xvf /tmp/backup/boot_efi2.tar
+
+      2. boot (xfs) のリストア
+      # mount /dev/sda2 /tmp/mnt ; cd /tmp/mnt
+      # gzip -cd /tmp/backup/sda2_boot.dump.gz | xfsrestore -J - /tmp/mnt
+      # cd / ; umount /tmp/mnt
+
+      3. root (xfs) のリストア
+      # mount /dev/VG/root /tmp/mnt ; cd /tmp/mnt
+      # gzip -cd /tmp/backup/VG_root.dump.gz | xfsrestore -J - /tmp/mnt
+
+      4. var (xfs) のリストア
+      # mount /dev/VG/var /tmp/mnt ; cd /tmp/mnt
+      # gzip -cd /tmp/backup/VG_var.dump.gz | xfsrestore -J - /tmp/mnt
+      # cd / ; umount /tmp/mnt
+
+   7. chroot 環境の準備
+
+      # mount /dev/VG/root /tmp/mnt
+      # mount /dev/VG/var /tmp/mnt/var
+      # mount /dev/sda2 /tmp/mnt/boot
+      # mount /dev/sda1 /tmp/mnt/boot/efi
+      
+      # mount -t proc proc /tmp/mnt/proc
+      # mount --bind /dev  /tmp/mnt/dev
+      # mount -t sysfs sysfs /tmp/mnt/sys
+
+      # chroot /tmp/mnt
+
+   8. UEFI ブート
+
+      > # efibootmgr -v
+      > BootCurrent: 0001
+      > Timeout: 1 seconds
+      > BootOrder: 0001,0003,0002,0000
+      > Boot0000* Windows Boot Manager  VenHw(99e275e7-75a0-4b37-a2e6-c5385e6c00cb)WINDOWS.........x...B.C.D.O.B.J.E.C.T.=.{.9.d.e.a.8.6.2.c.-.5.c.d.d.-.4.e.7.0.-.a.c.c.1.-.f.3.2.b.3.4.4.d.4.7.9.5.}...r...............
+      > Boot0001* CentOS        HD(1,GPT,7490b481-c3bc-4c8c-8e3b-77a69dd288f9,0x800,0x64000)/File(\EFI\centos\shimx64.efi)
+      > Boot0002* LAN : IBA GE Slot 00C8 v1553  BBS(Network,,0x0)..BO
+      > Boot0003* M.2 SATA :Samsung SSD 850 EVO M.2 250GB : PART 0 : Boot Drive BBS(HD,,0x0)..BO
+
+      # efibootmgr -v
+      BootCurrent: 0000
+      BootOrder: 0000,0001,0002
+      Boot0000* EFI DVD/CDROM ACPI(a0341d0,0)PCI(1,1)ATAPI(1,0,0)
+      Boot0001* EFI Hard Drive        ACPI(a0341d0,0)PCI(d,0)SATA(0,0,0)
+      Boot0002* EFI Internal Shell    MM(b,3fc4f000,3ffbefff)FvFile(7c04a583-9e3e-4f1c-ad65-e05268d0b4d1)
+
+      # efibootmgr -c -d /dev/sda -p 1 -l '\EFI\CENTOS\SHIMX64.EFI' -L 'CentOS Linux'
+      # efibootmgr -o 0003,0000,0001,0002
+      # efibootmgr -t 1   #タイムアウトの設定
+
+      # efibootmgr -v
+      BootCurrent: 0000
+      Timeout: 1 seconds
+      BootOrder: 0003,0000,0001,0002
+      Boot0000* EFI DVD/CDROM ACPI(a0341d0,0)PCI(1,1)ATAPI(1,0,0)
+      Boot0001* EFI Hard Drive        ACPI(a0341d0,0)PCI(d,0)SATA(0,0,0)
+      Boot0002* EFI Internal Shell    MM(b,3fc4f000,3ffbefff)FvFile(7c04a583-9e3e-4f1c-ad65-e05268d0b4d1)
+      Boot0003* CentOS Linux  HD(1,GPT,3757da5d-5b20-40b0-bc27-067ed5bf1abb,0x800,0x64000)/File(\EFI\CENTOS\SHIMX64.EFI)
+
+   9. GRUB 2 の再設定と再インストール ※インターネット接続環境 or 該当の rpm パッケージをダウンロードしておく必要あり
+
+      # yum reinstall grub2-efi-x64-2.02-0.76.el7.centos.1.x86_64 grub2-tools-2.02-0.76.el7.centos.1.x86_64 shim-x64-15-2.el7.centos.x86_64
+      # grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+
+   10. 初期 RAM ディスク作成 ※インターネット接続環境 or 該当の rpm パッケージをダウンロードしておく必要あり
+
+       # yum reinstall kernel-3.10.0-957.27.2.el7.x86_64
+
+   11. 再起動
+
+       # sync; sync; sync
+       # exit
+       # exit
+
+
+
+
+

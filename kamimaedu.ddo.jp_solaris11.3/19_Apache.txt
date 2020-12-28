@@ -11,7 +11,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # make test
    # make install
 
-   â€»/usr/local/binutils/bin ã‚’ PATH ã«å«ã‚ã‚‹ã“ã¨
+   ¦/usr/local/binutils/bin ‚ğ PATH ‚ÉŠÜ‚ß‚é‚±‚Æ
    
 2. APR-Utils
 
@@ -51,7 +51,7 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
    :%s/\/usr\/local\/httpd-2.4.25\/htdocs/\/var\/www\/html/g
 
-4. èµ·å‹•è¨­å®š
+4. ‹N“®İ’è
 
    # svcadm -v disable /network/http:apache22
    svc:/network/http:apache22 disabled.
@@ -62,12 +62,12 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    # ln /etc/init.d/apache /etc/rcS.d/K16apache
    # ln /etc/init.d/apache /etc/rc2.d/S50apache
 
-5. ãƒ­ã‚°
+5. ƒƒO
 
-   1. ãƒ­ãƒ¼ãƒ†ãƒ¼ãƒˆ
+   1. ƒ[ƒe[ƒg
    # logadm -w apache2 -p 1d -C 180 -a '/usr/local/apache2/bin/apachectl graceful' '/var/log/apache/*{access,error,ssl_request}_log'
 
-   2. ãƒ­ã‚°ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ (/usr/local/apache2/conf/httpd.conf é‡è¦ç®‡æ‰€ã®ã¿æŠœç²‹)
+   2. ƒƒOƒtƒH[ƒ}ƒbƒg (/usr/local/apache2/conf/httpd.conf d—v‰ÓŠ‚Ì‚İ”²ˆ)
    LogFormat "%h %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"" combined
    LogFormat "%h %l %u %t \"%r\" %>s %b" common
    LogFormat "%{Referer}i -> %U" referer
@@ -76,13 +76,13 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
    
    CustomLog "logs/access_log" combined
 
-6. TIPS ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆ
+6. TIPS ƒŠƒ_ƒCƒŒƒNƒg
 
-   1. ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æœ‰åŠ¹åŒ–
+   1. ƒ‚ƒWƒ…[ƒ‹‚Ì—LŒø‰»
    LoadModule proxy_http_module modules/mod_proxy_http.so
    LoadModule rewrite_module modules/mod_rewrite.so
 
-   2. ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆ (URL æ›¸ãæ›ãˆ)
+   2. ƒŠƒ_ƒCƒŒƒNƒg (URL ‘‚«Š·‚¦)
    <VirtualHost 172.17.238.93:80>
        ServerName kamimaedu.ddo.jp
        DocumentRoot "/var/www/html"
@@ -91,10 +91,10 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
        RewriteRule ^/?ir/stock/info/164soukai/(.*)$ http://srdb.jp/4062/$1 [R=301,L]
    </VirtualHost>
 
-   â€»ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆå…ˆãŒ å¤–éƒ¨ãƒ‰ãƒ¡ã‚¤ãƒ³ã®å ´åˆã€http:// ã‹ã‚‰ã®ãƒ•ãƒ«ãƒ‘ã‚¹ã§è¨˜è¿°ã—ãŸå ´åˆã€è‡ªå‹•ã§ Redirect å‡¦ç†ã¨ãªã‚‹ãŸã‚æ³¨æ„ãŒå¿…è¦
-   â€»å‚è€ƒ URL : https://qwerty.work/blog/2012/02/htaccessurl-rewrite.php
+   ¦ƒŠƒ_ƒCƒŒƒNƒgæ‚ª ŠO•”ƒhƒƒCƒ“‚Ìê‡Ahttp:// ‚©‚ç‚Ìƒtƒ‹ƒpƒX‚Å‹Lq‚µ‚½ê‡A©“®‚Å Redirect ˆ—‚Æ‚È‚é‚½‚ß’ˆÓ‚ª•K—v
+   ¦Ql URL : https://qwerty.work/blog/2012/02/htaccessurl-rewrite.php
 
-   3. ãƒªãƒ€ã‚¤ãƒ¬ã‚¯ãƒˆ (ãƒªãƒãƒ¼ã‚¹ãƒ—ãƒ­ã‚­ã‚·)
+   3. ƒŠƒ_ƒCƒŒƒNƒg (ƒŠƒo[ƒXƒvƒƒLƒV)
    <VirtualHost 172.17.238.93:80>
        ServerName kamimaedu.ddo.jp
        DocumentRoot "/var/www/html"

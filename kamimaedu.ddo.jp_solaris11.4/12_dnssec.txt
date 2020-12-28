@@ -1,0 +1,210 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+1. はじめに
+
+   DNSSEC には以下の二種類の側面があります
+   キャッシュサーバとして "." の KSK (Key Signing Key) を登録するもの
+   ゾーン管理サーバとして自身の ZSK (Zone Signing Key) を上位サーバの KSK で署名し公開する
+
+   今回は導入編として
+   キャッシュサーバとして "." の KSK (Key Signing Key) を登録する から試します
+
+2. DNSSEC について
+
+   ここが一番わかり易かったかも
+   http://www.nic.ad.jp/ja/newsletter/No43/0800.html
+
+3. GnuPG のインストール
+
+   # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-1.4.13.tar.bz2
+   # tar jxvf gnupg-1.4.13.tar.bz2
+   # cd gnupg-1.4.13
+   # LDFLAGS="-L/usr/sfw/lib/i64/ -R/usr/sfw/lib/64/" \
+   > CFLAGS=-m64 ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+   # make
+   # make check
+   # make install
+
+   2.0.26
+   # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.0.26.tar.bz2
+   # tar jxvf gnupg-2.0.26.tar.bz2
+   # cd gnupg-2.0.26
+   # LDFLAGS="-L/usr/sfw/lib/i64/ -R/usr/sfw/lib/64/" \
+   > CFLAGS=-m64 ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+   # make
+   # make check
+   # make install
+
+   2.1.9
+
+   1. npath
+   # wget ftp://ftp.gnupg.org/gcrypt/npth/npth-1.2.tar.bz2
+   # tar jxvf npth-1.2.tar.bz2
+   # cd npth-1.2
+   # CFLAGS="-m64 -std=gnu99" \
+   > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+   # make
+   # make check
+   # make install
+
+   2.libgpg-error
+   # wget ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.19.tar.gz
+   # tar zxvf libgpg-error-1.19.tar.gz
+   # cd libgpg-error-1.19
+   # CFLAGS="-m64"
+   > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+   # make
+   # make check
+   # make install
+
+   3. gnupg
+   # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.1.9.tar.bz2
+   # tar jxvf gnupg-2.1.9.tar.bz2
+   # cd gnupg-2.1.9
+   # LDFLAGS="-L/usr/sfw/lib/i64/ -R/usr/sfw/lib/64/" \
+   > CFLAGS=-m64 \
+   > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+   # make
+   # make check
+   # make install
+
+4. bind の再コンパイル
+
+   # export PATH=/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc4/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin
+
+   # wget http://ftp.isc.org/isc/bind9/9.11.0-P1/bind-9.11.0-P1.tar.gz
+   # tar zxvf bind-9.11.0-P1.tar.gz
+   # cd bind-9.11.0-P1
+   # CFLAGS="-m64 -DDIG_SIGCHASE" \
+   > CPPFLAGS=-I/usr/local/64/include/openssl \
+   > PERL=/usr/bin/perl \
+   > ./configure \
+   > --prefix=/usr/local/64 \
+   > --disable-threads \
+   > --with-openssl=/usr/local/64 \
+   > --with-libjson=no
+   > --enable-ipv6=no
+   # make
+   # make install
+
+   ※PATH に /usr/local/binutils/bin /usr/gnu/bin がある場合は外しておくこと
+
+   ※追加 CFLAGS=-DDIG_SIGCHASE
+     dig コマンドの +sigchase オプションを利用するため (署名チェーンの追跡が可能)
+
+5. トラストアンカー (ルートサーバのゾーン署名者の公開鍵) の登録
+
+   1. OpenPGP 公開鍵の入手
+
+      1. 方法1
+      # wget http://data.iana.org/root-anchors/icann.pgp
+      # gpg2 --import icann.pgp
+
+      2. 方法2
+      # gpg2 --search-keys --keyserver pgp.mit.edu dnssec@iana.org
+      gpg: searching for "dnssec@iana.org" from hkp server pgp.mit.edu
+      (1)     DNSSEC Manager <dnssec@iana.org>
+                1024 bit DSA key 0F6C91D2, created: 2007-12-01
+      Keys 1-1 of 1 for "dnssec@iana.org".  Enter number(s), N)ext, or Q)uit > 1
+      gpg: requesting key 0F6C91D2 from hkp server pgp.mit.edu
+      gpg: key 0F6C91D2: public key "DNSSEC Manager <dnssec@iana.org>" imported
+      gpg: no ultimately trusted keys found
+      gpg: Total number processed: 1
+      gpg:               imported: 1
+
+   2. IANA からハッシュ値と署名データの入手
+
+      1. トラストアンカーの公開鍵 (ハッシュ値) の取得
+      # wget http://data.iana.org/root-anchors/root-anchors.xml
+
+      2. 署名データ
+      # wget http://data.iana.org/root-anchors/root-anchors.asc
+
+   3. 署名の検証
+
+      # gpg2 --verify root-anchors.asc root-anchors.xml
+      gpg: Signature made 2010年07月07日 07時49分10秒 JST using DSA key ID 0F6C91D2
+      gpg: Good signature from "DNSSEC Manager <dnssec@iana.org>"
+      gpg: WARNING: This key is not certified with a trusted signature!
+      gpg:          There is no indication that the signature belongs to the owner.
+      Primary key fingerprint: 2FBB 91BC AAEE 0ABE 1F80  31C7 D1AF BCE0 0F6C 91D2
+
+   4. ルートサーバの DNSKEY (公開鍵) の入手
+
+      # dig . dnskey | grep 257 > rootzone-dnskey
+
+   5. ルートサーバの DNSKEY (公開鍵) のハッシュ値を出力し、先のトラストアンカーの公開鍵 (ハッシュ値) と比較する
+
+      1. ルートサーバの DNSKEY (公開鍵) のハッシュ値を出力
+      # dnssec-dsfromkey -2 -f rootzone-dnskey .
+      . IN DS 19036 8 2 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32 F24E8FB5
+
+      2. 先のトラストアンカーの公開鍵 (ハッシュ値) の確認
+      #  cat root-anchors.xml
+      <?xml version="1.0" encoding="UTF-8"?>
+      <TrustAnchor id="AD42165F-3B1A-4778-8F42-D34A1D41FD93" source="http://data.iana.org/root-anchors/root-anchors.xml">
+      <Zone>.</Zone>
+      <KeyDigest id="Kjqmt7v" validFrom="2010-07-15T00:00:00+00:00">
+      <KeyTag>19036</KeyTag>
+      <Algorithm>8</Algorithm>
+      <DigestType>2</DigestType>
+      <Digest>49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5</Digest>
+      </KeyDigest>cat r	q
+      </TrustAnchor>
+
+   6. named.conf への設定追加
+
+      rootzone-dnskey からキー部分を抜粋し、named.conf に追加する
+
+      以下、/var/named/etc/named.conf 抜粋
+      ---------------------------------
+      managed-keys {
+              . initial-key 257 3 8 "
+              AwEAAagAIKlVZrpC6Ia7gEzahOR+9W29euxhJhVVLOyQ
+              bSEW0O8gcCjFFVQUTf6v58fLjwBd0YI0EzrAcQqBGCzh
+              /RStIoO8g0NfnfL2MTJRkxoXbfDaUeVPQuYEhg37NZWA
+              JQ9VnMVDxP/VHL496M/QZxkjf5/Efucp2gaDX6RS6CXp
+              oY68LsvPVjR0ZSwzz1apAzvN9dlzEheX7ICJBBtuA6G3
+              LQpzW5hOA2hzCTMjJPJ8LbqF6dsV6DoBQzgul0sGIcGO
+              Yl7OyQdXfZ57relSQageu+ipAdTTJ25AsRTAoub8ONGc
+              LmqrAmRLKBP1dfwhYB4N7knNnulqQxA+Uk1ihz0=";
+      };
+      ---------------------------------
+
+6. 動作確認
+
+   # dig +dnssec .
+   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 6517
+   ;; flags: qr rd ra ad; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+   ※HEADER status が NOERROR であり、
+     falgs に ad が指定されてることから良とする
+
+   # dig +dnssec www.isc.org
+   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37049
+   ;; flags: qr rd ra ad; QUERY: 1, ANSWER: 2, AUTHORITY: 5, ADDITIONAL: 13
+
+   ※HEADER status が NOERROR であり、
+     falgs に ad が指定されてることから良とする
+
+7. フラグについて
+
+   flags :  description 
+   qr    :  サーバからの応答であることを示す
+   aa    :  権威サーバからの応答であることを示す (Authoritative Answer)
+   tc    :  切り捨て (trancate) されたことを示す (UDP 通信の上限 512byte を超えた場合は TCP になるため、ネットワーク環境次第)
+   rd    :  再帰問合せが行われたことを示す (+norecurse を指定すれば、表示されない)
+   ra    :  再帰的問い合わせを許可していることを示す
+   ad    :  回答に含まれている署名に対する検証結果が正当であることを示す
+   cd    :  クライアントからの DNS 問い合わせ時に CD Bit (Checking Disabled Bit) の有無を示す
+            ※ CD Bit は DNSSEC に沿った暗号化をしていない回答でもそれを受け取る旨を DNS サーバに通知する 
+   do    :  DNSSEC の照会が行われたことを示す
+
+8. エラーメッセージ
+
+   dlv.isc.org SOA: no valid signature found
+   dlv.isc.org SOA: got insecure response; parent indicates it should be secure
+
+   forwarders で指定した のDNS サーバーが dnssec に対応していないため
+
+以上

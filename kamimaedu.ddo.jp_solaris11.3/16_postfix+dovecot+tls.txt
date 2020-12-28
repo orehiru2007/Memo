@@ -42,7 +42,6 @@ Postfix
 
 3. postfix 3 のインストール
 
-
    1. インストール
 
       # groupadd -g 68 postfix

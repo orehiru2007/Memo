@@ -1,0 +1,166 @@
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+
+すべて /usr/local 以下にインストールすること
+データやログは /var 以下に置くこと
+ライブラリは出来るだけシェアードライブラリにする
+
+※せっかくなんで、可能な限り 64bit 環境とします
+
+1. nkf 2.1.4 64bit
+
+   # tar zxvf nkf-2.1.4.tar.gz
+   # cd nkf-2.1.4
+   
+   ※ Makefile を以下の通り編集
+   # diff -U1 Makefile{.orig,}
+   --- Makefile.orig       2016-01-20 17:37:16.129862472 +0900
+   +++ Makefile    2016-01-20 17:37:36.961492101 +0900
+   @@ -1,3 +1,3 @@
+   -CC = cc
+   -CFLAGS = -g -O2 -Wall -pedantic
+   +CC = gcc
+   +CFLAGS = -m64 -g -O2 -Wall -pedantic
+    # CFLAGS = -O3
+
+   # make
+   # mkdir -p /usr/local/64/bin
+   # cp nkf /usr/local/64/bin
+   # mkdir -p /usr/local/man/man1
+   # cp nkf.1 /usr/local/man/man1
+
+2. tcsh 64bit
+
+   # wget ftp://ftp.astron.com/pub/tcsh/tcsh-6.22.02.tar.gz
+   # tar zxvf tcsh-6.22.02.tar.gz
+   # cd tcsh-6.22.02
+   # CFLAGS=-m64 \
+   # ./configure --prefix=/usr/local/64
+   # make
+   # make install
+   # make install.man
+
+3. perl 
+
+   1. 32bit
+   # wget https://www.cpan.org/src/5.0/perl-5.30.2.tar.gz
+   # tar zxvf perl-5.30.2.tar.gz
+   # cd perl-5.30.2
+   # ./Configure -de -Dcc=gcc -Doptimize=-O3 \
+   > -Dldflags="-L/usr/local/lib -R/usr/local/lib -L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
+   > -Dusethreads \
+   > -Dprefix=/usr/local \
+   > -Dusedevel
+   # LD_RUN_PATH=/usr/local/lib make
+   # LC_ALL=C make test
+   # make install
+
+   2. 64bit
+   # wget http://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
+   # tar zxvf perl-5.28.1.tar.gz
+   # cd perl-5.28.1
+   # ./Configure -de -Dcc="gcc -m64" -Doptimize=-O3 \
+   > -Dldflags="-L/usr/local/64/lib -R/usr/local/64/lib -L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
+   > -Dusethreads \
+   > -Dprefix=/usr/local/64 \
+   > -Duse64bitint
+   # LD_RUN_PATH=/usr/local/64/lib make
+   # LC_ALL=C make test
+   # make install
+
+3. DB 6.1.19 ※未インストール
+ 
+   2. 64bit
+   ※binutils を PATH から除外しておくこと
+   # tar zxvf db-6.1.19.tar.gz
+   # cd db-6.1.19/build_unix
+   # CFLAGS=-m64 \
+   > CC=gcc \
+   > LDFLAGS="-L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
+   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
+   # make
+   # make install
+
+4. DB 5.3.28
+
+   1. 32bit
+   ※binutils を PATH から除外しておくこと
+   # tar zxvf db-5.3.28.tar.gz
+   # cd db-5.3.28/build_unix
+   # CC=gcc \
+   > LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
+   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
+   # make
+   # make install
+
+   2. 64bit
+   ※binutils を PATH から除外しておくこと
+   # tar zxvf db-5.3.28.tar.gz
+   # cd db-5.3.28/build_unix
+   # CFLAGS=-m64 \
+   > CC=gcc \
+   > LDFLAGS="-L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
+   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
+   # make
+   # make install
+
+5. vim (純正利用) ※インストール済み
+
+   # pkg install /editor/vim
+
+6. libpcap (純正利用) ※インストール済み
+
+   # pkg install /system/library/libpcap
+
+7. tcpdump (純正利用) ※インストール済み
+
+   # pkg install /diagnostic/tcpdump
+
+10. jwhois
+
+    デフォルトシェルの変更の変更 (ksh →  Bourne Shell) を行うこと
+
+    # wget http://core.ring.gr.jp/pub/GNU/jwhois/jwhois-4.0.tar.gz
+    # wget http://www.fukatani.org/~hi-lo/blog/archives/upload_data/jwhois-4.0-fix-ipv6socket.patch
+    # tar zxvf jwhois-4.0.tar.gz
+    # cd jwhois-4.0
+    # gpatch -p1 < ../jwhois-4.0-fix-ipv6socket.patch
+    # CFLAGS=-m64 \
+    # ./configure --prefix=/usr/local/64/ \
+    > --without-libiconv-prefix --without-cache --enable-nls LIBS=-lnsl
+    # make
+    # make install
+
+    http://cvs.savannah.gnu.org/viewvc/jwhois/jwhois/example/jwhois.conf から、最新の jwhois.conf をダウンロードし
+    /usr/local/64/etc/jwhois.conf に配置すること
+
+12. Python 64bit
+
+    1. Readline
+    # wget ftp://ftp.cwru.edu/pub/bash/readline-6.3.tar.gz
+    # tar xvzfls readline-6.3.tar.gz
+    # cd readline-6.3
+    # CC="gcc -m64" \
+    # ./configure --prefix=/usr/local/64
+    # make
+    # make install
+
+    2. Python 2.7.9
+    # wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz
+    # tar zxvf Python-2.7.9.tgz
+    # cd Python-2.7.9
+    # CC="gcc -m64" \
+    > ./configure --prefix=/usr/local/64 --enable-universalsdk --with-universal-archs=64-bit
+    # make
+    # make test
+    # make install
+
+13. Nmap
+
+    純正を利用
+
+14. wget
+
+    # wget -q -O $HOME/.cacert.pem http://curl.haxx.se/ca/cacert.pem --no-check-certificate
+    # echo ca-certificate = $HOME/.cacert.pem >> $HOME/.wgetrc
+
+

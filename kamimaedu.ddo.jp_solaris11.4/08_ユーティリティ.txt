@@ -1,4 +1,4 @@
-kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
 すべて /usr/local 以下にインストールすること
 データやログは /var 以下に置くこと
@@ -41,8 +41,6 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 3. perl 
 
-   デフォルトシェルの変更の変更 (ksh →  Bourne Shell) を行うこと
-
    1. 32bit
    # wget https://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
    # tar zxvf perl-5.28.1.tar.gz
@@ -71,19 +69,8 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 3. DB
 
-   1. 32bit ※インストールせず
-   ※/usr/local/binutils/bin を PATH から除外しておくこと
-   # tar zxvf db-5.3.28.tar.gz
-   # cd db-5.3.28/build_unix
-   # CC=gcc \
-   # CPPFLAGS=/usr/jdk/instances/jdk1.8.0/include \
-   # LDFLAGS=-R/usr/local/lib \
-   > ../dist/configure --prefix=/usr/local --enable-compat185 --enable-cxx --enable-java
-   # make
-   # make install
-
    2. 64bit
-   ※/usr/local/binutils/bin を PATH から除外しておくこと
+   ※binutils を PATH から除外しておくこと
    # tar zxvf db-6.1.19.tar.gz
    # cd db-6.1.19/build_unix
    # CFLAGS=-m64 \
@@ -122,32 +109,14 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
     # tar zxvf jwhois-4.0.tar.gz
     # cd jwhois-4.0
     # gpatch -p1 < ../jwhois-4.0-fix-ipv6socket.patch
-    # ./configure --prefix=/usr/local \
+    # CFLAGS=-m64 \
+    # ./configure --prefix=/usr/local/64/ \
     > --without-libiconv-prefix --without-cache --enable-nls LIBS=-lnsl
     # make
     # make install
 
     http://cvs.savannah.gnu.org/viewvc/jwhois/jwhois/example/jwhois.conf から、最新の jwhois.conf をダウンロードし
-    /usr/local/etc/jwhois.conf に配置すること
-
-11. Python 32bit
-
-    1. Readline
-    # wget ftp://ftp.cwru.edu/pub/bash/readline-6.3.tar.gz
-    # tar xvzfp readline-6.3.tar.gz
-    # cd readline-6.3
-    > ./configure --prefix=/usr/local
-    # make
-    # gmake install
-
-    2. Python 2.7.9
-    # wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz
-    # tar zxvf Python-2.7.9.tgz
-    # cd Python-2.7.9
-    # ./configure --prefix=/usr/local --enable-universalsdk
-    # make
-    # make test
-    # make install
+    /usr/local/64/etc/jwhois.conf に配置すること
 
 12. Python 64bit
 
@@ -175,55 +144,6 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 13. Nmap
 
     純正を利用
-
-14. bash
-
-    ※2014/9,10 に発生した、脆弱性 (ShellShock CVE-2014-6271) への対応
-
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3.30.tar.gz
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-031
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-032
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-033
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-034
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-035
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-036
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-037
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-038
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-039
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-040
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-041
-    # wget ftp://ftp.gnu.org/pub/gnu/bash/bash-4.3-patches/bash43-042
-    # tar zxvf bash-4.3.30.tar.gz
-    # cd bash-4.3.30
-    # patch -p0 < ../bash43-031
-    # patch -p0 < ../bash43-032
-    # patch -p0 < ../bash43-033
-    # patch -p0 < ../bash43-034
-    # patch -p0 < ../bash43-035
-    # patch -p0 < ../bash43-036
-    # patch -p0 < ../bash43-037
-    # patch -p0 < ../bash43-038
-    # patch -p0 < ../bash43-039
-    # patch -p0 < ../bash43-040
-    # patch -p0 < ../bash43-041
-    # patch -p0 < ../bash43-042
-    # ./configure --prefix=/usr/local/
-    # make
-    # make install
-
-    確認
-    # env x='() { :;}; echo vulnerable' /usr/bin/bash -c "echo this is a test"
-    vulnerable
-    this is a test
-
-    # env x='() { :;}; echo vulnerable' /usr/local/bin/bash -c "echo this is a test"
-    this is a test
-
-    入れ替え
-    # cd /usr/bin
-    # mv bash bash.old
-    # chmod 444 bash.old
-    # ln -s /usr/local/bin/bash ./
 
 
 

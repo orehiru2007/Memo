@@ -1,0 +1,374 @@
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+
+すべて /usr/local 以下にインストールすること
+データやログは /var 以下に置くこと
+ライブラリは出来るだけシェアードライブラリにする
+
+1. ライブラリ検索パス (確認)
+
+   いやね /usr/local/lib くらいはライブラリ検索パスで指定してもいいと思うんだよね
+
+   1. 32bit 用ライブラリ検索パス
+
+      root@kamimaedu[123]/usr/local/src/gcc7/gcc/7.3.0# crle
+      
+      Configuration file [version 5]: /var/ld/ld.config
+          Platform:   32-bit LSB 80386
+          Default Library Path:       /lib:/usr/lib:/usr/local/lib
+          Trusted Directories:        /lib/secure:/usr/lib/secure  (system default)
+      
+      Command line:
+          crle -c /var/ld/ld.config -l /lib:/usr/lib:/usr/local/lib
+      
+   2. 64bit 用ライブラリ検索パス
+
+      # crle -64
+      
+      Configuration file [version 5]: /var/ld/64/ld.config
+          Platform:   64-bit LSB AMD64
+          Default Library Path:       /usr/local/64/lib:/lib/64:/usr/lib/64
+          Trusted Directories:        /lib/secure/64:/usr/lib/secure/64  (system default)
+      
+      Command line:
+          crle -64 -c /var/ld/64/ld.config -l /usr/local/64/lib:/lib/64:/usr/lib/64
+
+   以下、gcc7 導入後
+   ------------------------
+   # crle
+   Configuration file [version 4]: /var/ld/ld.config
+     Platform:     32-bit LSB 80386
+     Default Library Path (ELF):   /lib:/usr/lib:/usr/local/lib:/usr/local/gcc7/lib
+     Trusted Directories (ELF):    /lib/secure:/usr/lib/secure  (system default)
+   
+   Command line:
+     crle -c /var/ld/ld.config -l /lib:/usr/lib:/usr/local/lib:/usr/local/gcc7/lib
+   
+   # crle -64
+   
+   Configuration file [version 4]: /var/ld/64/ld.config
+     Platform:     64-bit LSB AMD64
+     Default Library Path (ELF):   /usr/local/gcc7/lib/amd64:/usr/local/64/lib:/lib/64:/usr/lib/64
+     Trusted Directories (ELF):    /lib/secure/64:/usr/lib/secure/64  (system default)
+   
+   Command line:
+     crle -64 -c /var/ld/64/ld.config -l /usr/local/gcc7/lib/amd64:/usr/local/64/lib:/lib/64:/usr/lib/64
+
+2. 必要最低限の開発環境の準備
+
+   # pkg install ucb
+   # pkg install gcc-7
+   # pkg install --accept /developer/java/jdk
+   # pkg install /group/feature/developer-gnu
+
+   # ls -al /usr/bin/gcc
+   lrwxrwxrwx   1 root     root          16 6月 17 09:53 /usr/bin/gcc -> ../gcc/6/bin/gcc*
+
+3. 開発環境
+
+   m4 32bit
+   # wget https://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.gz
+   # gzip -cd m4-1.4.18.tar.gz | tar xf -
+   # cd m4-1.4.18
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   m4 64bit
+   # wget https://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.gz
+   # gzip -cd m4-1.4.18.tar.gz | tar xf -
+   # cd m4-1.4.18
+   # CFLAGS=-m64 \
+   # ./configure --prefix=/usr/local/64
+   # make
+   # make check
+   # make install
+
+   libiconv 32bit
+   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.16.tar.gz
+   # gzip -cd libiconv-1.16.tar.gz | tar xf -
+   # cd libiconv-1.16
+   # ./configure --prefix=/usr/local --enable-static
+   # make
+   # make check
+   # make install
+
+   libiconv 64bit
+   # wget http://core.ring.gr.jp/archives/GNU/libiconv/libiconv-1.16.tar.gz
+   # gzip -cd libiconv-1.16.tar.gz | tar xf -
+   # cd libiconv-1.16
+   # CFLAGS=-m64 \
+   > ./configure --prefix=/usr/local/64 --enable-static
+   # make
+   # make check
+   # make install
+
+   libtool 32bit
+   # wget http://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz
+   # tar zxvf libtool-2.4.6.tar.gz
+   # cd libtool-2.4.6
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   libtool 64bit
+   # wget http://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz
+   # tar zxvf libtool-2.4.6.tar.gz
+   # cd libtool-2.4.6
+   # CFLAGS=-m64 \
+   # ./configure --prefix=/usr/local/64
+   # make
+   # make check
+   # make install
+
+   bison 32bit
+   # wget https://ftp.gnu.org/gnu/bison/bison-3.5.3.tar.gz
+   # gzip -cd bison-3.5.3.tar.gz | tar xf -
+   # cd bison-3.5.3
+   # CFLAGS=-m32 \
+   > ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   bison 64bit
+   # wget https://ftp.gnu.org/gnu/bison/bison-3.5.3.tar.gz
+   # gzip -cd bison-3.5.3.tar.gz | tar xf -
+   # cd bison-3.5.3
+   # CFLAGS=-m64 \
+   > ./configure --prefix=/usr/local/64
+   # make
+   # make check
+   # make install
+
+   make 4.3 32bit
+   # wget https://ftp.gnu.org/gnu/make/make-4.3.tar.gz
+   # gzip -cd make-4.3.tar.gz | tar xf -
+   # cd make-4.3
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # LANG=C make
+   # make check
+   # make install
+
+   flex 2.6.0
+   # gzip -cd flex-2.6.0.tar.gz | tar xf -
+   # cd flex-2.6.0
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   flex 2.6.0 64bit
+   # gzip -cd flex-2.6.0.tar.gz | tar xf -
+   # cd flex-2.6.0
+   # CFLAGS=-m64 \
+   # ./configure --prefix=/usr/local/64
+   # make
+   # make check
+   # make install
+
+   autoconf 2.69
+   # wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+   # gzip -cd autoconf-2.69.tar.gz | tar xf -
+   # cd autoconf-2.69
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # make
+   # make check
+   # make install
+
+   automake 1.16.1
+   # wget http://ftp.gnu.org/gnu/automake/automake-1.16.1.tar.gz
+   # gzip -cd automake-1.16.1.tar.gz | tar xf -
+   # cd automake-1.16.1
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   diffutils 3.6
+   # wget http://ftp.gnu.org/gnu/diffutils/diffutils-3.6.tar.xz
+   # xz -cd diffutils-3.6.tar.xz | tar xf -
+   # cd diffutils-3.6
+   # CFLAGS=-m32 \
+   # ./configure --prefix=/usr/local
+   # make
+   # make install
+ 
+   tar 32bit
+   # wget http://ftp.gnu.org/gnu/tar/tar-1.30.tar.xz
+   # xz -cd tar-1.30.tar.xz | tar xf -
+   # cd tar-1.30
+   # CFLAGS=-m32 \
+   # FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/usr/local
+   # make
+   # make install
+
+   tar 64bit
+   # wget https://ftp.gnu.org/gnu/tar/tar-1.32.tar.xz
+   # xz -cd tar-1.32.tar.xz | tar xf -
+   # cd tar-1.32
+   # gpatch -p1 < ../tar-1.32-fix-limits.patch
+   # CFLAGS=-m64 \
+   # FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/usr/local/64
+   # make
+   # make install
+
+   binutils 32bit
+   # wget https://ftp.gnu.org/pub/gnu/binutils/binutils-2.34.tar.gz
+   # tar zxvf binutils-2.34.tar.gz
+   # mkdir obj
+   # cd obj
+   # CFLAGS=-m32 \
+   > `pwd`/../binutils-2.34/configure --prefix=/usr/local/binutils \
+   > --build=i386-pc-solaris2.11 \
+   > --disable-nls \
+   > --disable-werror
+   # make
+   # make install
+
+   binutils 64bit
+   # wget https://ftp.gnu.org/pub/gnu/binutils/binutils-2.34.tar.gz
+   # tar zxvf binutils-2.34.tar.gz
+   # mkdir obj
+   # cd obj
+   # CFLAGS=-m64 \
+   > `pwd`/../binutils-2.34/configure --prefix=/usr/local/64/binutils \
+   > --build=x86_64-pc-solaris2.11 \
+   > --disable-nls \
+   > --disable-werror
+   # make
+   # make install
+
+6. gcc7
+
+   gmp='gmp-6.1.0.tar.bz2'      gmp-6.1.2.tar.xz
+   mpfr='mpfr-3.1.4.tar.bz2'    mpfr-3.1.6.tar.gz
+   mpc='mpc-1.0.3.tar.gz'       mpc-1.1.0.tar.gz
+   isl='isl-0.16.1.tar.bz2'     http://isl.gforge.inria.fr/isl-0.16.1.tar.gz
+
+   ※/usr/local/binutils/bin を PATH から除外しておくこと
+
+   gmp
+   # get https://ftp.gnu.org/gnu/gmp/gmp-6.2.0.tar.xz
+   # tar Jxvf gmp-6.2.0.tar.xz
+   # cd gmp-6.2.0
+   # CFLAGS=-m32 \
+   > ./configure \
+   > --prefix=/usr/local/gcc7 \
+   > --build=i386-pc-solaris2.11
+    make
+   # make install
+
+   mpfr
+   # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz
+   # tar zxvf mpfr-4.0.2.tar.gz
+   # cd mpfr-4.0.2
+   # CFLAGS=-m32 \
+   > ./configure \
+   > --prefix=/usr/local/gcc7 \
+   > --with-gmp=/usr/local/gcc7 \
+   > --build=i386-pc-solaris2.11
+   # make
+   # make install
+
+   mpc
+   # wget http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
+   # tar zxvf mpc-1.1.0.tar.gz
+   # cd mpc-1.1.0
+   # CFLAGS=-m32 \
+   > ./configure \
+   > --prefix=/usr/local/gcc7 \
+   > --with-gmp=/usr/local/gcc7 \
+   > --with-mpfr=/usr/local/gcc7 \
+   > --build=i386-pc-solaris2.11
+   # make
+   # make install
+
+   gcc7 7.5.0
+
+   # crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64:/usr/local/64/lib:/usr/local/gcc7/lib
+
+   # wget http://ftp.tsukuba.wide.ad.jp/software/gcc/releases/gcc-7.5.0/gcc-7.5.0.tar.gz
+   # tar zxvf gcc-7.5.0.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
+   > `pwd`/../gcc-7.5.0/configure \
+   > --prefix=/usr/local/gcc7 \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc7 \
+   > --with-mpfr=/usr/local/gcc7 \
+   > --with-mpc=/usr/local/gcc7 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   > LANG=C make bootstrap
+   # make install
+   # ln -s /usr/local/gcc7/bin/gcc /usr/local/gcc7/bin/cc
+
+7. gcc4
+
+   gmp='gmp-6.1.0.tar.bz2'      gmp-6.1.2.tar.xz
+   mpfr='mpfr-3.1.4.tar.bz2'    mpfr-3.1.6.tar.gz
+   mpc='mpc-1.0.3.tar.gz'       mpc-1.1.0.tar.gz
+
+   ※/usr/local/binutils/bin を PATH から除外しておくこと
+
+   gmp
+   # wget http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
+   # tar Jxvf gmp-6.1.2.tar.xz
+   # cd gmp-6.1.2
+   # ./configure \
+   > --prefix=/usr/local/gcc4 \
+   > --build=i386-pc-solaris2.11
+   # make
+   # make install
+
+   mpfr
+   # wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.0.1.tar.gz
+   # tar zxvf mpfr-4.0.1.tar.gz
+   # cd mpfr-4.0.1
+   # ./configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gmp=/usr/local/gcc4 \
+   > --build=i386-pc-solaris2.11
+   # make
+   # make install
+   # 
+
+   mpc
+   # wget http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
+   # tar zxvf mpc-1.1.0.tar.gz
+   # cd mpc-1.1.0
+   # ./configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4
+   > --build=i386-pc-solaris2.11
+   # make
+   # make install
+
+   gcc4
+   # export PATH=/opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
+   # wget http://core.ring.gr.jp/archives/GNU/gcc/gcc-4.9.4/gcc-4.9.4.tar.gz
+   # tar zxvf gcc-4.9.4.tar.gz
+   # mkdir obj
+   # cd obj
+   # LDFLAGS="-L/usr/local/gcc4/lib -R/usr/local/gcc4/lib" \
+   > `pwd`/../gcc-4.9.4/configure \
+   > --prefix=/usr/local/gcc4 \
+   > --with-gnu-as --with-as=/usr/local/binutils/bin/as \
+   > --with-ld=/usr/ccs/bin/ld \
+   > --with-gmp=/usr/local/gcc4 \
+   > --with-mpfr=/usr/local/gcc4 \
+   > --with-mpc=/usr/local/gcc4 \
+   > --enable-languages=c,c++,fortran \
+   > --enable-shared
+   # LANG=C make bootstrap
+   # make install

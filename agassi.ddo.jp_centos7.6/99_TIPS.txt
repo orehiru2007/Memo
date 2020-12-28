@@ -1,0 +1,58 @@
+agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
+
+
+1. CentOS 7 でカーネルを指定して起動する
+
+   https://wiki.centos.org/HowTos/Grub2
+
+   1. 現在の kernel を確認
+
+      (pyenv:Py2)[root@agassi ~]# uname -r
+      3.10.0-1062.9.1.el7.x86_64
+
+   2. 現在、起動時に使用されている kernel を確認
+
+      (pyenv:Py2)[root@agassi ~]# grub2-editenv list
+      saved_entry=CentOS Linux (3.10.0-1062.12.1.el7.x86_64) 7 (Core)
+
+   3. インストール済みの kernel 一覧の確認
+
+      (pyenv:Py2)[root@agassi ~]# awk -F\' '$1=="menuentry " {print $2}' /boot/efi/EFI/centos/grub.cfg
+      CentOS Linux (3.10.0-1062.12.1.el7.x86_64) 7 (Core)
+      CentOS Linux (3.10.0-1062.9.1.el7.x86_64) 7 (Core)
+      CentOS Linux (3.10.0-1062.4.3.el7.x86_64) 7 (Core)
+      CentOS Linux (3.10.0-1062.1.2.el7.x86_64) 7 (Core)
+      CentOS Linux (3.10.0-1062.1.1.el7.x86_64) 7 (Core)
+      CentOS Linux (0-rescue-71a2f13de94b493cbe2a68afa27f5d07) 7 (Core)
+
+   4. カーネルの指定 (3.10.0-1062.12.1.el7.x86_64 に起動時の不具合あり、3.10.0-1062.9.1.el7.x86_64 を使用したい)
+
+      (pyenv:Py2)[root@agassi ~]# grub2-set-default 1
+      (pyenv:Py2)[root@agassi ~]# grub2-editenv list
+      saved_entry=1
+
+
+   5. 設定反映、保存
+
+      (pyenv:Py2)[root@agassi ~]# grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
+      Generating grub configuration file ...
+      Found linux image: /boot/vmlinuz-3.10.0-1062.12.1.el7.x86_64
+      Found initrd image: /boot/initramfs-3.10.0-1062.12.1.el7.x86_64.img
+      Found linux image: /boot/vmlinuz-3.10.0-1062.9.1.el7.x86_64
+      Found initrd image: /boot/initramfs-3.10.0-1062.9.1.el7.x86_64.img
+      Found linux image: /boot/vmlinuz-3.10.0-1062.4.3.el7.x86_64
+      Found initrd image: /boot/initramfs-3.10.0-1062.4.3.el7.x86_64.img
+      Found linux image: /boot/vmlinuz-3.10.0-1062.1.2.el7.x86_64
+      Found initrd image: /boot/initramfs-3.10.0-1062.1.2.el7.x86_64.img
+      Found linux image: /boot/vmlinuz-3.10.0-1062.1.1.el7.x86_64
+      Found initrd image: /boot/initramfs-3.10.0-1062.1.1.el7.x86_64.img
+      Found linux image: /boot/vmlinuz-0-rescue-71a2f13de94b493cbe2a68afa27f5d07
+      Found initrd image: /boot/initramfs-0-rescue-71a2f13de94b493cbe2a68afa27f5d07.img
+      done
+
+   6. 再起動後、確認
+
+      (pyenv:Py2)[root@agassi ~]# shutdown -r now
+      
+      (pyenv:Py2)[root@agassi ~]# uname -r
+      3.10.0-1062.9.1.el7.x86_64

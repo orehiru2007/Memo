@@ -1,0 +1,345 @@
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
+
+1. はじめに
+
+   DNSSEC には以下の二種類の側面があります
+   キャッシュサーバとして "." の KSK (Key Signing Key) を登録するもの
+   ゾーン管理サーバとして自身の ZSK (Zone Signing Key) を上位サーバの KSK で署名し公開する
+
+2. DNSSEC について
+
+   ここが一番わかり易かったかも
+   http://www.nic.ad.jp/ja/newsletter/No43/0800.html
+
+3. GnuPG
+
+   1. 2.0.31
+   # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.0.31.tar.bz2
+   # tar jxvf gnupg-2.0.31.tar.bz2
+   # cd gnupg-2.0.31
+   # CFLAGS=-m64 \
+   > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+   # make
+   # make check
+   # make install
+
+   2. 2.2.15
+
+      1. npath
+      # wget ftp://ftp.gnupg.org/gcrypt/npth/npth-1.6.tar.bz2
+      # tar jxvf npth-1.6.tar.bz2
+      # cd npth-1.6
+      # CFLAGS="-m64 -std=gnu99" \
+      > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+      # make
+      # make check
+      # make install
+
+      2. libgpg-error
+      # wget ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-1.36.tar.gz
+      # tar zxvf libgpg-error-1.36.tar.gz
+      # cd libgpg-error-1.36
+      > CFLAGS="-m64" \
+      > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11
+      # make
+      # make check
+      # make install
+
+      3. libassuan
+      # wget https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.3.tar.bz2
+      # tar jxvf libassuan-2.5.3.tar.bz2
+      # cd libassuan-2.5.3
+      # CFLAGS="-m64" \
+      > ./configure --prefix=/usr/local/64 \
+      > --with-libgpg-error-prefix=/usr/local/64 \
+      > --build=x86_64-pc-solaris2.11
+      # make
+      # make check
+      # make install
+
+      4. gnupg
+      # wget ftp://ftp.gnupg.org/gcrypt/gnupg/gnupg-2.2.15.tar.bz2
+      # tar jxvf gnupg-2.2.15.tar.bz2
+      # cd gnupg-2.2.15
+      # LDFLAGS="-L/usr/local/64/lib -R/usr/local/64/lib" \
+      > CFLAGS=-m64 \
+      > ./configure --prefix=/usr/local/64 --build=x86_64-pc-solaris2.11 --disable-ldap
+      # make
+      # make check
+      # make install
+
+4. bind の再コンパイル
+
+   # wget http://ftp.isc.org/isc/bind9/9.11.0-P1/bind-9.11.0-P1.tar.gz
+   # tar zxvf bind-9.11.0-P1.tar.gz
+   # cd bind-9.11.0-P1
+   # CFLAGS="-m64 -DDIG_SIGCHASE" \
+   > CPPFLAGS=-I/usr/local/64/include/openssl \
+   > PERL=/usr/bin/perl \
+   > ./configure \
+   > --prefix=/usr/local/64 \
+   > --disable-threads \
+   > --with-openssl=/usr/local/64 \
+   > --with-libjson=no
+   > --enable-ipv6=no
+   # make
+   # make install
+
+   ※PATH に /usr/local/binutils/bin /usr/gnu/bin がある場合は外しておくこと
+
+   ※追加 CFLAGS=-DDIG_SIGCHASE
+     dig コマンドの +sigchase オプションを利用するため (署名チェーンの追跡が可能)
+
+5. キャッシュサーバの設定
+
+   1. 準備
+   # mkdir /var/named/dynamic
+   # chown root:named /var/named/dynamic
+
+   # wget https://ftp.isc.org/isc/bind9/keys/9.11/bind.keys.v9_11 -O /var/named/etc/named.iscdlv.key
+   # chown root:named /var/named/etc/named.iscdlv.key
+
+   # cp /usr/local/64/etc/bind.keys /var/named/etc/named.root.key
+   # chown root:named /var/named/etc/named.root.key
+
+   2. /var/named/etc/named.conf 編集
+   options {
+           (snip)
+            /* DNS SEC */
+            dnssec-enable           yes;
+            dnssec-validation       auto;
+            dnssec-lookaside        auto;
+            managed-keys-directory  "/dynamic";
+            session-keyfile         "/session.key";
+
+            /* Path to ISC DLV key */
+            bindkeys-file           "/etc/named.iscdlv.key";
+
+   3. 動作確認
+   # dig @127.0.0.1 +dnssec jp.
+   
+   ; <<>> DiG 9.12.4-P1 <<>> @127.0.0.1 +dnssec jp.
+   ; (1 server found)
+   ;; global options: +cmd
+   ;; Got answer:
+   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 6427
+   ;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+   
+   ;; OPT PSEUDOSECTION:
+   ; EDNS: version: 0, flags: do; udp: 4096
+   ; COOKIE: 6e16ffcfa1d092f74e6d336d5cd246fb110ddcdedb084298 (good)
+   ;; QUESTION SECTION:
+   ;jp.                            IN      A
+   
+   ;; AUTHORITY SECTION:
+   jp.                     900     IN      SOA     z.dns.jp. root.dns.jp. 1557284402 3600 900 1814400 900
+   jp.                     900     IN      RRSIG   SOA 8 1 86400 20190603174501 20190504174501 59244 jp. p09RNFmsKJJfLwtXdZ1l8tNavvxSHNLqk3g4lPSw6pr6kIcQnRTfnLWc B/3T/0utPL8K4jkLjYf8AiBY6m2UuiH08He4a5n2aPeTZfvG00LZVzWu QiQxn3IJ4jUk3ab9PIVzqGzu1ch0ZCQAkCXr+OHxhbvZWHURiDLBwUd4 xCg=
+   PDJT7RUKQC9V990GUTKQNHU3AHQV0K0L.jp. 900 IN RRSIG NSEC3 8 2 900 20190603174501 20190504174501 59244 jp. vLeeksphZAyeoi1u5RgzkckiNcay6n8xlX2lcffRM29DOh3SHkgNpRJT BpO+km2Urt/Ge1Bvb+qxGeBAFoU0yTRXa+okLu9vrrnjB+8srfDGwMUb B79uMj8hnEUnc2g/qDJUYEJBaOZJfluZ4SPK/y/WnjheA4awFu5+gheG xd0=
+   PDJT7RUKQC9V990GUTKQNHU3AHQV0K0L.jp. 900 IN NSEC3 1 1 5 39E888EC13 PDODT953J8B4D0U5FQPVM68P6FVRQPSQ NS SOA RRSIG DNSKEY NSEC3PARAM
+   
+   ;; Query time: 377 msec
+   ;; SERVER: 127.0.0.1#53(127.0.0.1)
+   ;; WHEN: 水 5月 08 12:03:23 JST 2019
+   ;; MSG SIZE  rcvd: 517
+
+   → HEADER status が NOERROR であり、falgs に ad が指定されてることから良とする
+
+   4. フラグについて
+   flags :  description 
+   qr    :  サーバからの応答であることを示す
+   aa    :  権威サーバからの応答であることを示す (Authoritative Answer)
+   tc    :  切り捨て (trancate) されたことを示す (UDP 通信の上限 512byte を超えた場合は TCP になるため、ネットワーク環境次第)
+   rd    :  再帰問合せが行われたことを示す (+norecurse を指定すれば、表示されない)
+   ra    :  再帰的問い合わせを許可していることを示す
+   ad    :  回答に含まれている署名に対する検証結果が正当であることを示す
+   cd    :  クライアントからの DNS 問い合わせ時に CD Bit (Checking Disabled Bit) の有無を示す
+            ※ CD Bit は DNSSEC に沿った暗号化をしていない回答でもそれを受け取る旨を DNS サーバに通知する 
+   do    :  DNSSEC の照会が行われたことを示す
+
+5. ゾーン管理サーバの設定
+
+   パラメータ                             | 内容
+   ---------------------------------------+----------------------------------
+   ドメイン名                             | ivanisevic.ddo.jp
+   naemd のベースディレクトリ             | /var/named/
+   KSK、ZSK を保管するディレクトリ        | /var/named/keys
+   ゾーンファイルを保管するディレクトリ   | /var/named/
+   既存のゾーンファイル                   | /var/named/ext.ivanisevic.ddo.jp
+   named の設定ファイル                   | /var/named/etc/named.conf
+   不在証明の方式                         | NSEC3
+   SOA シリアル番号表記                   | unixtime
+   鍵のアルゴリズム (KSK)                 | RSASHA256
+   鍵長 (KSK)                             | 4096 bit
+   鍵のアルゴリズム (ZSK)                 | RSASHA256
+   鍵長 (ZSK)                             | 1024 bit
+   署名有効期間 (KSK)                     | おおむね 2 カ月
+   署名有効期間 (ZSK)                     | おおむね 1 カ月
+   再署名の間隔 (KSK)                     | 1 カ月ごと
+   再署名の間隔 (ZSK)                     | 1 週間ごと
+   キーロールオーバー (ZSK)               | 1 カ月ごと / 事前公開法
+   キーロールオーバー (KSK)               | 1 年ごと / 二重署名法
+
+   1. 署名鍵の作成
+   
+      KSK (Key SigningKey)   : ゾーン署名鍵ZSKに署名する鍵
+      ZSK (Zone Signing Key) : ゾーンに署名するゾーン署名鍵
+
+      オプション        | 意味
+      ------------------+--------------------------------------------------------
+      -K                | 鍵の作成場所を指定
+      -a                | アルゴリズム名を指定
+      -b                | 鍵長を指定
+      -r                | 乱数生成元を指定
+      -f                | 鍵のフラグを指定 (KSK の場合のみ)
+      -P                | 鍵を公開する日時を指定 (YYYYMMDDhhmmss)
+      -A                | その鍵で署名を開始する日時を指定 (YYYYMMDDhhmmss)
+      -I                | その鍵で署名することをやめる日時を指定（YYYYMMDDhhmmss）
+
+      # mkdir /var/named/keys
+      # chown named:root /var/named/keys
+
+      KSK (Key SigningKey) の作成
+      # dnssec-keygen -K /var/named/keys -a RSASHA256 -b 4096 -r /dev/urandom -f KSK -P 20190508000000 -A 20190508000000 -I 20200509000000 ivanisevic.ddo.jp
+
+      ZSK (Zone Signing Key) の作成
+      # dnssec-keygen -K /var/named/keys -a RSASHA256 -b 4096 -r /dev/urandom        -P 20190508000000 -A 20190508000000 -I 20200509000000 ivanisevic.ddo.jp
+
+      # ls -l /var/named/keys/
+      total 22
+      -rw-r--r--   1 root     root        1017 5月  8 16:00 Kivanisevic.ddo.jp.+008+02001.key            ← ZSK 公開鍵
+      -rw-------   1 root     root        3341 5月  8 16:00 Kivanisevic.ddo.jp.+008+02001.private        ← ZSK 秘密鍵
+      -rw-r--r--   1 root     root        1017 5月  8 16:00 Kivanisevic.ddo.jp.+008+49291.key            ← KSK 公開鍵
+      -rw-------   1 root     root        3341 5月  8 16:00 Kivanisevic.ddo.jp.+008+49291.private        ← KSK 秘密鍵
+
+   2. ゾーンへの署名
+
+      オプション        | 意味
+      ------------------+--------------------------------------------------------
+      -a                | 生成した署名の整合性をチェックする
+      -S                | Smart signing の機能を使用する
+      -x                | DNSKEY レコードに対しては KSK のみで署名を行う
+      -K                | 鍵が保管されている場所を指定
+      -d                | DS レコードのセットを生成する場所を指定
+      -3                | NSEC3 の SALT を指定
+      -e                | 署名の有効期限の日時を指定
+      -r                | 乱数生成元を指定
+      -N                | SOA のフォーマットを unixtime でゾーンファイルを生成
+      -f                | 生成されるゾーンファイル名を指定
+      -o                | ゾーン名を指定
+ 
+      # dnssec-signzone -a -S -x -K /var/named/keys -d /var/named -3 1234 -e +30d -r /dev/urandom -N unixtime -f /var/named/ext.ivanisevic.ddo.jp.signed -o ivanisevic.ddo.jp /var/named/ext.ivanisevic.ddo.jp
+      Fetching KSK 49291/RSASHA256 from key repository.
+      Fetching ZSK 2001/RSASHA256 from key repository.
+      Verifying the zone using the following algorithms: RSASHA256.
+      Zone fully signed:
+      Algorithm: RSASHA256: KSKs: 1 active, 0 stand-by, 0 revoked
+                            ZSKs: 1 active, 0 present, 0 revoked
+      /var/named/ext.ivanisevic.ddo.jp.signed
+
+   3. /var/named/ext.ivanisevic.ddo.jp.signed 確認
+
+      root@ivanisevic[159]/var/named# cat ext.ivanisevic.ddo.jp.signed
+      ; File written on Wed May  8 17:16:45 2019
+      ; dnssec_signzone version 9.12.4-P1
+      ivanisevic.ddo.jp.      900     IN SOA  ivanisevic.ddo.jp. root.ivanisevic.ddo.jp. (
+                                              2019050802 ; serial
+                                              28800      ; refresh (8 hours)
+                                              7200       ; retry (2 hours)
+                                              604800     ; expire (1 week)
+                                              900        ; minimum (15 minutes)
+                                              )
+      (snip)
+                              900     A       192.168.56.111
+                              900     RRSIG   A 8 3 900 (
+                                              20190607071645 20190508071645 2001 ivanisevic.ddo.jp.
+                                              j5rV4IrmjgM0DVRtFg6s3hLF9aL6fjtUXUth
+                                              WLI+fWQQ2VyBMlRJQAvsEiJiERwKT7k2oWa2
+                                              U3GzDV6Y/yFQUD6Fq2U7IoLREwys6dLRFJRR
+                                              5SyoEkEBymOHGYVgRGlbxRYeCZnYvUrcVrwB
+                                              4NNn25Ge3px6UF5MgBOzqN4pqASE7WTSpNj3
+                                              FOKo8oFA+vXpkiQms7cSiSd7PQm3EUkMwE0M
+                                              4JgLbUBAO77AXbSSVIuNgign1VAvUeH9wYnA
+                                              fyBB3dvJZ/0TtVFjODPOp8lQ363VR8yuOkJ5
+                                              0PYlNpVcliBe/+ZRcqoACJDwG9gjRvooDSzo
+                                              0/QyVIygxbCyRJp8VuQA+Mz+qJe5y/KzyoWn
+                                              ZZGHNt71lKlIGkrF7th/sh05u3ugnEDLhuvq
+                                              2wBvBqSa7CXUD9GhBEgMNm3iRxvyB1L3PTXM
+                                              tyicYjtJET/ywbVeMpj7ERTrMDFRPeICRbDT
+                                              oXLcjIPBXzjxy3WtBTt2OJFCZXbL59s3okrN
+                                              XHQbL2JPJrRf7COSci30MKnurbi2tEMpkop6
+                                              cE35cnVU4zGxEyvyalFQZ5NVfXJWjl1+WkDQ
+                                              nzfsliMKPInDNa/xXfNJ0oi7oRyo4n6wsYPd
+                                              1fgGnB4VdsOu/lDjZIWey877TZuDyqMwzClt
+                                              9Izel2fbp/jcOTIqsdps4i3483kj78dOKR8= )
+    
+   4. /var/named/etc/named.conf 編集
+
+      view "external" {
+              match-clients {any;};
+              recursion no;
+              zone "ivanisevic.ddo.jp" IN {
+                      type master;
+                      file "ext.ivanisevic.ddo.jp.signed";           ← ext.ivanisevic.ddo.jp.signed に変更
+                      allow-update { none; };
+              };
+      };
+
+   5. 確認
+
+      root@kamimaedu[106]~# dig @172.17.238.111 ivanisevic.ddo.jp +dnssec a
+      
+      ; <<>> DiG 9.11.0-P2 <<>> @172.17.238.111 ivanisevic.ddo.jp +dnssec a
+      ; (1 server found)
+      ;; global options: +cmd
+      ;; Got answer:
+      ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 15927
+      ;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+      ;; WARNING: recursion requested but not available
+      
+      ;; OPT PSEUDOSECTION:
+      ; EDNS: version: 0, flags: do; udp: 4096
+      ; COOKIE: be08756bdb2c9b361a76f3275cd2ae3d892ef55460cebc49 (good)
+      ;; QUESTION SECTION:
+      ;ivanisevic.ddo.jp.             IN      A
+      
+      ;; ANSWER SECTION:
+      ivanisevic.ddo.jp.      900     IN      A       192.168.56.111
+      ivanisevic.ddo.jp.      900     IN      RRSIG   A 8 3 900 20190607071645 20190508071645 2001 ivanisevic.ddo.jp. 
+                                                      j5rV4IrmjgM0DVRtFg6s3hLF9aL6fjtUXUthWLI+fWQQ2VyBMlRJQAvs
+                                                      EiJiERwKT7k2oWa2U3GzDV6Y/yFQUD6Fq2U7IoLREwys6dLRFJRR5Syo EkEBymOHGYVgRGlbxRYeCZnYvUrcVrwB4NNn25Ge3px6UF5MgBOzqN4p qASE7WTSpNj3FOKo8oFA+vXpkiQms7cSiSd7PQm3EUkMwE0M4JgLbUBA O77AXbSSVIuNgign1VAvUeH9wYnAfyBB3dvJZ/0TtVFjODPOp8lQ363V R8yuOkJ50PYlNpVcliBe/+ZRcqoACJDwG9gjRvooDSzo0/QyVIygxbCy RJp8VuQA+Mz+qJe5y/KzyoWnZZGHNt71lKlIGkrF7th/sh05u3ugnEDL huvq2wBvBqSa7CXUD9GhBEgMNm3iRxvyB1L3PTXMtyicYjtJET/ywbVe Mpj7ERTrMDFRPeICRbDToXLcjIPBXzjxy3WtBTt2OJFCZXbL59s3okrN XHQbL2JPJrRf7COSci30MKnurbi2tEMpkop6cE35cnVU4zGxEyvyalFQ Z5NVfXJWjl1+WkDQnzfsliMKPInDNa/xXfNJ0oi7oRyo4n6wsYPd1fgG nB4VdsOu/lDjZIWey877TZuDyqMwzClt9Izel2fbp/jcOTIqsdps4i34 83kj78dOKR8=
+      
+      ;; Query time: 1 msec
+      ;; SERVER: 172.17.238.111#53(172.17.238.111)
+      ;; WHEN: Wed May 08 19:23:57 JST 2019
+      ;; MSG SIZE  rcvd: 651
+
+   6. DS レコードの登録依頼
+
+      1. DS レコードの確認
+      # cat /var/named/dsset-ivanisevic.ddo.jp.
+      ivanisevic.ddo.jp.      IN DS 49291 8 1 5BD6A1456A12283BED3BCF8F5C28812DF6E766D9
+      ivanisevic.ddo.jp.      IN DS 49291 8 2 D8AB2D03CFF76B8AACF46135B3FA473B9FFA9E3E594AB2047CB5AB77 8FF71D65
+
+      2. DS レコードの再生成方法
+      # dnssec-dsfromkey /var/named/keys/Kivanisevic.ddo.jp.+008+49291.key
+      ivanisevic.ddo.jp. IN DS 49291 8 1 5BD6A1456A12283BED3BCF8F5C28812DF6E766D9                              ← ダイジェストアルゴリズムとして SHA-1 を使って生成された DS レコード
+      ivanisevic.ddo.jp. IN DS 49291 8 2 D8AB2D03CFF76B8AACF46135B3FA473B9FFA9E3E594AB2047CB5AB778FF71D65      ← SHA-256 を使って生成された DS レコード
+
+      レジストラ経由で、上記のレコードを登録する
+
+   7. 運用
+
+      1. 再署名
+      # dnssec-signzone -a -S -x -K /var/named/keys -d /var/named -3 1234 -e +30d -r /dev/urandom -N unixtime -f /var/named/ext.ivanisevic.ddo.jp.signed -o ivanisevic.ddo.jp /var/named/ext.ivanisevic.ddo.jp
+
+      2. ZSK の作成、更新
+      # dnssec-keygen -K /var/named/keys -a RSASHA256 -b 4096 -r /dev/urandom        -P 20190508000000 -A 20190508000000 -I 20190609000000 ivanisevic.ddo.jp
+
+      3. KSK の作成、更新
+      # dnssec-keygen -K /var/named/keys -a RSASHA256 -b 4096 -r /dev/urandom -f KSK -P 20190508000000 -A 20190508000000 -I 20200509000000 ivanisevic.ddo.jp
+
+
+
+
+
+

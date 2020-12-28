@@ -1,0 +1,158 @@
+ivanisevic.ddo.jp (Oracle Virtualbox + OpenIndiana Hipster 2018.10)
+
+環境設定
+
+0. デフォルトシェルの変更
+
+   /bin/bash への変更
+   # rm /bin/sh
+   # ln -s /usr/bin/bash /bin/sh
+
+   切り戻し
+   # rm /bin/sh
+   # ln -s /usr/bin/ksh93 /bin/sh
+
+1. /etc/auto_home の設定
+
+   Solarisでは、通常/homeはオートマウンタの管理下にあります。
+   /export/home の下にあるディレクトリをすべて /home の下に
+   オートマウントする設定を /etc/auto_home に追記します。
+   
+   # diff -U1 /etc/auto_home{.orig,}
+   --- /etc/auto_home.orig 2014年  9月  9日 (火)
+   +++ /etc/auto_home      2014年  9月  9日 (火)
+   @@ -9,1 +9,2 @@
+    +auto_home
+   +*      localhost:/export/home/&
+
+2. bashrc の設定
+
+   1. /root/.bash_profile
+
+      if [ -e /etc/bash.bashrc ] ; then
+        source /etc/bash.bashrc
+      fi
+      
+      # source the users bashrc if it exists
+      if [ -e "${HOME}/.bashrc" ] ; then
+        source "${HOME}/.bashrc"
+      fi
+
+   2. /root/.bashrc
+
+      export JAVA_HOME=/usr/jdk/instances/jdk1.7.0
+      export PATH=/opt/csw/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
+      #export PATH=/opt/csw/bin:/usr/local/binutils/bin:/usr/local/64/bin:/usr/local/64/sbin:/usr/local/gcc7/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/sfw/bin:/usr/sfw/sbin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/dt/bin:$JAVA_HOME/bin:/usr/local/mysql/bin
+      export MANPATH=/usr/X11/share/man:/usr/local/man:/usr/man:/usr/ssl/man:/usr/local/share/man:/usr/local/64/share/man
+      export INFOPATH=/usr/local/info:/usr/sfw/info
+      #export LANG=ja
+      #export LANG=ja_JP.eucJP
+      export LANG=ja_JP.UTF-8
+      #lv Readme.UTF-8
+      export BLOCKSIZE=K
+      export EDITOR=vi
+      export PAGER=less
+      export EXINIT='set ignorecase showmatch showmode'
+      export JLESSCHARSET=japanese-euc
+      export LESS=-iqmm
+      unset LESSOPEN
+      export GZIP=-9
+      export PS1='\u@\h[\!]\w\$ '
+      export FIGNORE=.o:~
+      export HISTSIZE=1000
+      export HISTFILESIZE=100
+      
+      set -o ignoreeof
+      set -o noclobber
+      set -o histexpand
+      
+      shopt -s cdspell
+      
+      alias ll='ls -al'
+      alias la='ls -aF'
+      alias ls='ls -F'
+      alias ping='ping -sn'
+      alias vi=/usr/bin/vim
+      alias whois=jwhois
+      alias h=history
+      alias j=jobs
+      alias source=.
+      alias which=type
+      alias rehash='hash -r'
+      alias db_dump='/usr/local/bin/db_dump'
+      alias newaliases='postmulti -i postfix-deux -x newaliases'
+      
+      stty -istrip
+      umask 022
+      
+      if [ X"$TERM" = X"kterm" ]; then
+              TERM=xterm; export TERM
+              stty erase
+      elif [ X"$TERM" = X"cygwin" ]; then
+              TERM=vt100; export TERM
+              stty erase
+      fi
+   
+3. 時刻あわせ
+
+   1. /etc/inet/ntp.conf
+
+      server ntp.nict.jp
+      server ntp.jst.mfeed.ad.jp
+      server 127.127.1.1
+      fudge 127.127.1.1 stratum 10
+      disable monitor
+
+   2. xntpd の起動
+
+      # svcadm -v enable ntp
+
+4. ライブラリ検索パス
+
+   # crle
+   
+   Configuration file [version 5]: /var/ld/ld.config
+       Platform:   32-bit LSB 80386
+       Default Library Path:       /lib:/usr/lib
+       Trusted Directories:        /lib/secure:/usr/lib/secure  (system default)
+   
+   Command line:
+       crle -c /var/ld/ld.config -l /lib:/usr/lib
+   
+   # crle -64
+   
+   Configuration file [version 5]: /var/ld/64/ld.config
+       Platform:   64-bit LSB AMD64
+       Default Library Path:       /lib/64:/usr/lib/64
+       Trusted Directories:        /lib/secure/64:/usr/lib/secure/64  (system default)
+   
+   Command line:
+       crle -64 -c /var/ld/64/ld.config -l /lib/64:/usr/lib/64
+
+5. core ダンプ設定確認
+   
+   # coreadm -g /var/core/core.%f.%p.%t -e global -e process -e global-setid -e proc-setid -e log
+   # mkdir -p /var/core
+   # coreadm -u
+
+   # coreadm
+        global core file pattern: /var/core/core.%f.%p.%t
+        global core file content: default
+          init core file pattern: core
+          init core file content: default
+               global core dumps: enabled
+          per-process core dumps: enabled
+         global setid core dumps: enabled
+    per-process setid core dumps: enabled
+        global core dump logging: enabled
+
+
+8. アカウントの作成
+
+   # groupadd -g 1000 tawatari
+   # useradd -g 1000 -u 1000 -d /export/home/tawatari -m -k /etc/skel -s /usr/bin/bash tawatari
+
+   # groupadd -g 1001 masuda
+   # useradd -g 1001 -u 1001 -d /export/home/masuda -m -k /etc/skel -s /usr/bin/bash masuda
+
+

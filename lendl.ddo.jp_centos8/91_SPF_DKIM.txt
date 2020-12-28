@@ -1,0 +1,160 @@
+lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
+
+SPF, DKIM
+
+1. SPF (Sender Policy Framework) 設定
+
+   1. SPF レコード
+
+      root@kamimaedu[121]~# nslookup -type=TXT lendl.ddo.jp 172.17.238.117
+      Server:         172.17.238.117
+      Address:        172.17.238.117#53
+      
+      lendl.ddo.jp    text = "v=spf1 include:_spf.lendl.ddo.jp ~all"
+
+      root@kamimaedu[107]~# nslookup -type=TXT _spf.lendl.ddo.jp 172.17.238.117
+      Server:         172.17.238.117
+      Address:        172.17.238.117#53
+      
+      _spf.lendl.ddo.jp       text = "v=spf1 +ip4:172.17.238.0/24 ~all"
+
+
+   2. 確認結果 (kamimaedu.ddo.jp にて、SPF レコードの検証結果を確認する)
+
+      Oct  2 11:48:01 kamimaedu postfix/smtpd[8168]: [ID 197553 mail.info] connect from unknown[172.17.238.117]
+      Oct  2 11:48:24 kamimaedu policyd-spf[8181]: [ID 702911 mail.info] Pass; identity=helo; client-ip=172.17.238.117; helo=lendl.ddo.jp; envelope-from=root@lendl.ddo.jp; receiver=root@kamimaedu.ddo.jp
+      Oct  2 11:48:24 kamimaedu policyd-spf[8181]: [ID 702911 mail.info] Pass; identity=mailfrom; client-ip=172.17.238.117; helo=lendl.ddo.jp; envelope-from=root@lendl.ddo.jp; receiver=root@kamimaedu.ddo.jp
+
+   SPF レコードを利用した、SPAM 対策については、割愛
+
+2. DKIM 
+
+   1. google.com の例
+
+      (pyenv:Py2)[root@lendl named]# nslookup -type=TXT 20161025._domainkey.google.com
+      ;; Truncated, retrying in TCP mode.
+      Server:         127.0.0.1
+      Address:        127.0.0.1#53
+      
+      Non-authoritative answer:
+      20161025._domainkey.google.com  text = "k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXNZF1j8sJPDleRjf9SPBNem0ik58kF1ilC1nUgKAttl9v7FX9hXJXPmLNhVtSKVZ8yruaeOZLeIxtgtk1s81zzIE5Mj0AiGn2wlFt4kYfqlDfYe95YLQHjynu4i7vj1Tj" "ksf62btcCbL+3XhbK+oD5PlqYhXHWuzoKoEp5L4lCihgkONvU/oy7NNeE6quqfF/y0YSLwF2WVA2Kd8L6R0Ar2dYT/3wZCFknI7xhvPqh9HNcIWBELGPwtXcsHbX1wvBlCgNQAUcdJrf2YWzAwqmZ564/1ipL1IMk1nafPJk75ktumVNz6ORuIn3jbZWp9rRpnaeI9cu/8KfSKH2EY9QIDAQAB"
+
+   2. OpenDKIM のインストール
+
+      # yum install -y epel-release
+      # yum install -y opendkim
+
+      # systemctl enable opendkim
+
+   3. 鍵ペアの作成 
+
+      Google に習って、セレクタは、鍵の作成日時とする
+      鍵長は 1024 bit とする (2048 bit の鍵長では、ddo.jp に登録可能な TXT レコードの文字数制限を超えてしまうため)
+
+      # opendkim-genkey -D /etc/opendkim/keys -b 1024 -d lendl.ddo.jp -s 20200219
+ 
+      # chown -R opendkim:opendkim /etc/opendkim/keys/*
+      # ls -l /etc/opendkim/keys/
+      合計 8
+      -rw------- 1 opendkim opendkim 887 Feb 20 17:14 20200219.private
+      -rw------- 1 opendkim opendkim 318 Feb 20 17:14 20200219.txt
+
+   4. DNS 登録
+
+      # cat /etc/opendkim/keys/20200219.txt
+      20200219._domainkey     IN      TXT     ( "v=DKIM1; k=rsa; "
+                "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB" )  ; ----- DKIM key 20200219 for lendl.ddo.jp
+
+      # cat /var/named/ext.agassi.ddo.jp
+      ; DKIM
+      20200219._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB"
+      _adsp._domainkey        IN      TXT     "dkim=unknown"
+
+   5. 確認
+
+      root@kamimaedu[103]~# nslookup -type=TXT 20200219._domainkey.lendl.ddo.jp
+      Server:         172.17.238.93
+      Address:        172.17.238.93#53
+      
+      Non-authoritative answer:
+      20200219._domainkey.lendl.ddo.jp        text = "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB"
+
+      root@kamimaedu[105]~# nslookup -type=TXT _adsp._domainkey.lendl.ddo.jp
+      Server:         172.17.238.93
+      Address:        172.17.238.93#53
+      
+      Non-authoritative answer:
+      _adsp._domainkey.lendl.ddo.jp   text = "dkim=unknown"
+
+   6. OpenDKIM の設定
+
+      1. /etc/opendkim.conf{.orig,}
+
+         # diff -U0  /etc/opendkim.conf{.orig,}
+         --- /etc/opendkim.conf.orig     2020-02-20 17:28:10.361168932 +0900
+         +++ /etc/opendkim.conf  2020-02-20 19:15:01.299642022 +0900
+         @@ -39 +39 @@
+         -Mode   v
+         +Mode   sv
+         @@ -98 +98 @@
+         -KeyFile        /etc/opendkim/keys/default.private
+         +#KeyFile       /etc/opendkim/keys/default.private
+         @@ -103 +103 @@
+         -# KeyTable     /etc/opendkim/KeyTable
+         +KeyTable       /etc/opendkim/KeyTable
+         @@ -108 +108 @@
+         -# SigningTable refile:/etc/opendkim/SigningTable
+         +SigningTable   refile:/etc/opendkim/SigningTable
+         @@ -112 +112 @@
+         -# ExternalIgnoreList   refile:/etc/opendkim/TrustedHosts
+         +ExternalIgnoreList     refile:/etc/opendkim/TrustedHosts
+         @@ -115 +115 @@
+         -# InternalHosts        refile:/etc/opendkim/TrustedHosts
+         +InternalHosts  refile:/etc/opendkim/TrustedHosts
+
+      2. /etc/opendkim/KeyTable
+
+         20200219._domainkey.lendl.ddo.jp lendl.ddo.jp:20200219:/etc/opendkim/keys/20200219.private
+
+      3. /etc/opendkim/SigningTable
+
+         *@agassi.ddo.jp         20180426._domainkey.agassi.ddo.jp
+
+      4. /etc/opendkim/TrustedHosts
+
+         127.0.0.1
+         192.168.56.0/24
+
+   7. Postfix と OpenDKIM の連携
+
+      1. /etc/postfix/main.cf
+
+         ## DKIM
+         smtpd_milters = inet:127.0.0.1:8891
+         non_smtpd_milters = $smtpd_milters
+         milter_default_action = accept
+
+      2. Postfix 再起動
+
+         # systemctl restart postfix
+         # systemctl restart opendkim
+
+   8. 動作確認
+
+      1. lendl.ddo.jp  → agassi.ddo.jp
+
+         Feb 20 19:17:41 agassi opendkim[1403]: D81AE60781C5: l220009.ppp.asahi-net.or.jp [218.219.220.9] not internal
+         Feb 20 19:17:41 agassi opendkim[1403]: D81AE60781C5: not authenticated
+         Feb 20 19:17:41 agassi opendkim[1403]: D81AE60781C5: DKIM verification successful
+
+      2. agassi.ddo.jp → lendl.ddo.jp
+
+3. DNS レコードまとめ
+
+   ; SPF
+                           IN      TXT     "v=spf1 include:_spf.lendl.ddo.jp ~all"
+   _spf.lendl.ddo.jp.      IN      TXT     "v=spf1 +ip4:172.17.238.0/24 ~all"
+
+   ; DKIM
+   20200219._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnke7s/ZAaciONKM4PP1N7H1h4QZphkWGaFz0WQYgcReR0Mv00Dzh8Qqgsn8aygpyzVkoJy+9h4YzlRYo0TFTxjoaItyQazBy0vvw1sq5pyzmq7owjDBx+ZlmrIK/0mQcm9wSl7pBRfU0G9iYN39yFHTC96VjOHu64Nr5e8dBQVwIDAQAB"
+   _adsp._domainkey        IN      TXT     "dkim=unknown"

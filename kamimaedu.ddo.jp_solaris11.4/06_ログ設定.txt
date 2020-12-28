@@ -5,17 +5,8 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    1. ログインの監査 /etc/default/login
 
       # diff -u /etc/default/login{.orig,}
-      --- /etc/default/login.orig     2018-11-28 17:55:37.652555165 +0900
-      +++ /etc/default/login  2018-11-28 17:55:39.531585109 +0900
-      @@ -11,7 +11,7 @@
-       # any of the currently enabled /dev/vt/# virtual terminal devices.
-       # Comment this line out to allow remote login by root.
-       #
-      -CONSOLE=/dev/console
-      +#CONSOLE=/dev/console
-      
-       # PASSREQ determines if login requires a password.
-       #
+      --- /etc/default/login.orig     2019-04-09 18:30:55.406520739 +0900
+      +++ /etc/default/login  2019-04-09 18:31:18.449115463 +0900
       @@ -63,7 +63,7 @@
        # for a local user's account (passwd(5)/shadow(5)), that account
        # will be locked if failed logins equals or exceeds RETRIES.
@@ -115,22 +106,28 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
       # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
       $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
       $ModLoad imsolaris      # for Solaris kernel logging
-      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-      mail.*                                                  -/var/log/mail.log
-      &~
-      local5.*                                                -/var/log/mail_deux.log
-      &~
-      local6.*                                                -/var/log/sftp.log
-      &~
-      auth.*                                                  -/var/log/auth.log
-      &~
-      daemon.*                                                -/var/log/daemon.log
-      &~
-      local0.warning                                          /var/log/ipf/ipf.log
-      &~
-      *.*                                                     /var/adm/messages
-      &~
       $IncludeConfig /etc/rsyslog.d/
+      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+      $template InfoLogFileName,"/var/log/syslog/%fromhost%.log"
+      $template HostIP,"%fromhost%"
+      $template logmsg,"%timereported% %syslogseverity-text% %fromhost-ip% %programname% : %msg%"
+      $template ZBXSendMail,"%fromhost%%msg%"
+      mail.*                                          -/var/log/mail.log
+      & stop
+      local5.*                                        -/var/log/mail_deux.log
+      & stop
+      local6.*                                        -/var/log/sftp.log
+      & stop
+      auth.*                                          -/var/log/auth.log
+      & stop
+      daemon.*                                        -/var/log/daemon.log
+      & stop
+      local0.warning                                  /var/log/ipf/ipf.log
+      & stop
+      :fromhost-ip, isequal, "127.0.0.1"              /var/adm/messages
+      & stop
+      local4.*                                        ?InfoLogFileName
+      & stop
       $ModLoad imtcp.so       # load module
       $InputTCPServerRun 514  # start up TCP listener at port 514
       $ModLoad imudp.so       # provides UDP syslog reception

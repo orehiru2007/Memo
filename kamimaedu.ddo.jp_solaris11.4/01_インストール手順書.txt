@@ -69,4 +69,4 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
 5. 日本語入力
 
-    pkg install atok
+   # pkg install atok

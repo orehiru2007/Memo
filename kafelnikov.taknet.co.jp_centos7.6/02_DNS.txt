@@ -1,0 +1,114 @@
+arazi.taknet.co.jp CentOS Linux release 7.6.1810 (Core) / Intel NUC
+
+下呂温泉病院からのメールを中継していた LIFEBOOK S8350 がいよいよ壊れそうなので
+YOSHIKI さんが持っていた、Intel NUC を利用して、再構築します
+
+BIND
+
+1. インストール
+
+   # rpm -qa | egrep ^bind
+   bind-9.9.4-74.el7_6.2.x86_64vi /et	
+   bind-license-9.9.4-74.el7_6.2.noarch
+   bind-libs-lite-9.9.4-74.el7_6.2.x86_64
+   bind-libs-9.9.4-74.el7_6.2.x86_64
+   bind-chroot-9.9.4-74.el7_6.2.x86_64
+   bind-utils-9.9.4-74.el7_6.2.x86_64
+
+2. /etc/named.conf
+
+   options {
+           //listen-on port 53 { 127.0.0.1; };
+           //listen-on-v6 port 53 { ::1; };
+           version                 "unknown";
+           directory               "/var/named";
+           dump-file               "/var/named/data/cache_dump.db";
+           statistics-file         "/var/named/data/named_stats.txt";
+           memstatistics-file      "/var/named/data/named_mem_stats.txt";
+           pid-file                "/run/named/named.pid";
+           allow-query             { any; };
+           allow-transfer          { 192.168.72.0/24; };
+           notify                  yes;
+           auth-nxdomain           no;
+           empty-zones-enable      no;
+   
+   
+           /* Forward */
+           //forward only;
+           //forwarders { 10.51.20.11; 10.51.20.14; };
+   
+           /* DNS SEC */
+           dnssec-enable           yes;
+           dnssec-validation       auto;
+           dnssec-lookaside        auto;
+           managed-keys-directory  "/var/named/dynamic";
+           session-keyfile         "/run/named/session.key";
+   
+           /* Path to ISC DLV key */
+           bindkeys-file "/etc/named.iscdlv.key";
+   };
+   
+   logging {
+           channel "default-log" {
+                   file "log/default.log" versions 10 size 10m;
+                   print-time yes;
+                   print-category yes;
+                   print-severity yes;
+                   severity info;
+           };
+           channel "queries-log" {
+                   file "log/queries.log" versions 10 size 10m;
+                   severity info;
+                   print-time yes;
+                   print-severity yes;
+                   print-category yes;
+           };
+           category default {
+                   "default-log";
+                   "default_syslog";
+                   "default_debug";
+                   "default_stderr";
+           };
+           channel default_debug {
+                   file "data/named.run";
+                   severity dynamic;
+           };
+           category queries { "queries-log"; };
+           category lame-servers { null; };
+           category security { null; };
+           category update-security { null; };
+   };
+   
+   
+   zone "." IN {
+           type hint;
+           file "named.ca";
+   };
+   
+   zone "0.0.127.in-addr.arpa" IN {
+           type master;
+           file "0.0.127.in-addr.arpa";
+           allow-update { none; };
+   };
+   
+   zone "17.172.in-addr.arpa" IN {
+           type master;
+           file "17.172.in-addr.arpa";
+           allow-update { none; };
+   };
+   
+   zone "5.31.172.in-addr.arpa" IN {
+           type master;
+           file "5.31.172.in-addr.arpa";
+           allow-update { none; };
+   };
+   
+   zone "kafelnikov.taknet.co.jp" IN {
+           type master;
+           file "kafelnikov.taknet.co.jp";
+           allow-update { none; };
+   };
+   
+   //include "/etc/named.rfc1912.zones";
+   include "/etc/named.root.key";
+

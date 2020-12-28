@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
 
 DMARC (Domain-based Message Authentication, Reporting & Conformance)
@@ -168,3 +169,474 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
 
 
 
+=======
+agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
+
+DMARC (Domain-based Message Authentication, Reporting & Conformance)
+
+1. 参考 URL
+
+   https://www.nic.ad.jp/ja/basics/terms/dmarc.html
+   https://www.nic.ad.jp/ja/basics/terms/spf.html
+   https://www.nic.ad.jp/ja/basics/terms/dkim.html
+   https://eng-blog.iij.ad.jp/archives/3273
+
+   http://blog.smtps.jp/entry/2017/12/22/095814
+
+2. DMARC の説明 (参考 URL より抜粋)
+
+   1. はじめに
+
+      DMARC (Domain-based Message Authentication, Reporting, and Conformance) とは、 電子メールにおける送信ドメイン認証技術の一つであり、RFC 7489 で標準化されている
+   
+      送信ドメイン認証で用いられる技術には、 SPF (Sender Policy Framework) や DKIM (DomainKeys Identified Mail) があります
+      SPF は、送信元メールサーバの IP アドレス等が正当なものかどうかを判別する手段
+      DKIM は、メールに電子署名を付加することで、メールの送信者および内容の検証 (改ざんの有無) を可能とするもの、DMARC は、両者を利用したメールのドメイン認証を補強する技術である
+
+   2. SPF、DKIM の課題
+
+      SPF および DKIM を用いて送信元ドメインを認証する際、 認証に失敗したメールをどのように取り扱うかは、送信先 (受信者) の判断に任せられており
+      送信元 (送信者) は、認証に失敗したことや、そのメールがどのように処理されたかを把握することはできない
+
+   3. DMARC の仕組み
+
+      SPF、DKIM の挙動を補強するため、DMARC は提案されたものである
+      DMARC では、認証失敗時にどのようにメールを処理すればよいかを、送信元 (送信者) が 送信先 (受信者) に対して、ポリシー (DNS レコード) 公開する仕組みとなっている
+      送信先 (受信者) は、認証に失敗した場合、送信元 (送信者) のポリシーを参照し、それに基づいてメールをどう扱うかを決定する
+
+      ※
+      DMARC では、送信先 (受信者) から、送信元 (送信者) に対して、認証に失敗した旨を通知するレポートを送ることができます
+      送信元 (送信者) は、送信元 (受信者) から送られてきたレポート内容を確認し、運用状況の確認、迷惑メール対策の検討を行うことが可能である
+
+3. DMARC の留意点
+
+   1. SPF の仕様
+
+      Envelope-From に対する検査、送信元は、SPF レコード (送信元 IP アドレスと、それ以外から送信された際、期待する処理) を、Envelope-From のドメインを管理する DNS に公開する
+
+      SPF        : Header-From は一般的に意識しない ※携帯キャリアでは、Header-From に対して検査している様子
+      DMARC SPF  : Envelope-From は Header-From と同じドメイン、 もしくは、Header-From のサブドメインであることを要求する
+
+   2. DKIM の仕様
+
+      Header-From に対する検査、送信元は、秘密鍵で作成した電子署名を DKIM-Signature ヘッダに付与し、DKIM レコード (公開鍵) を Header-From のドメインを管理する DNS に公開する
+      DKIM-Signature ヘッダの d タグに送信ドメインが、Header-From と異なるドメインで作成された署名を、"第三者署名"、同じドメインで作成された署名を、"作成者署名" という
+
+      DKIM       : "第三者署名"、"作成者署名" の評価に違いはない ※2018/4 時点
+　    DMARC DKIM : "作成者署名" を要求する
+
+      ------------
+      DKIM-Filter: OpenDKIM Filter v2.11.0 agassi.ddo.jp 02C9F6177655
+      DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=agassi.ddo.jp; s=20180426; t=1553147631; bh=Jw7WgOiCjBjtYTi+Wtp6ZLPaymTbX8S5DAmzmb9Cow0=; h=Subject:To:References:From:Date:In-Reply-To:From; b=IoWkcVUcYoJg0dRxcbXTKkRfq27NVm9eAPhJOuEbV6PG/bJQC8sU8nISN09Jl5hjI
+      	 CAJ9rpTTTyc6SNtdsqA/0kbalH1EehsG5MhtORzow1O13oN22WrkwfSS/YNe9eJOPu
+      	 xcpd25Zy+AtnN0++6ezuFPVHSQwzEBh6JjMUFlvQ=
+      To: "オレヒル" <orehiru2007@gmail.com>
+      From: Yasutake MASUDA <masuda@agassi.ddo.jp>
+      ------------
+
+      DKIM-Signature の d タグ     : agassi.ddo.jp
+      Header-From の送信元ドメイン : agassi.ddo.jp
+      上記が一致しているため、"作成者署名" であることが確認される
+
+   3. バウンスメールの扱い (メール一斉配信時、Envelope-From の指定)
+
+      > DMARC SPF  : Envelope-From は Header-From と同じドメイン、 もしくは、Header-From のサブドメインであることを要求する
+      上記の仕様から、Header-From のサブドメインとすることが推奨される
+
+4. 送信ドメイン認証の結果確認
+
+   以下、Gmail に送信した際の結果
+
+   ------------
+   ARC-Authentication-Results: i=1; mx.google.com;
+          dkim=pass header.i=@agassi.ddo.jp header.s=20180426 header.b=tBknIX98;
+          spf=pass (google.com: domain of masuda@agassi.ddo.jp designates 203.133.245.13 as permitted sender) smtp.mailfrom=masuda@agassi.ddo.jp;
+   ------------
+
+   dkim=pass                          : DKIM の認証結果、pass 以外の場合、DKIM の設定に問題がある
+   header.i=@agassi.ddo.jp            : DKIM の署名を付与した送信元ドメイン (DKIM-Signature ヘッダの d タグと同じ) ※DMARC を運用する場合、Header-From と同じドメイン or Header-From のサブドメイン の必要がある
+   spf=pass                           : SPF の認証結果、pass 以外の場合、SPF の設定に問題がある
+   smtp.mailfrom=masuda@agassi.ddo.jp : SPF の認証に使用した Envelope-From                                         ※DMARC を運用する場合、Header-From のサブドメインが推奨される
+
+5. DMARC レコードを公開する
+
+   ------------
+   _dmarc.agassi.ddo.jp.        60      IN      TXT     "v=DMARC1\; p=none\; pct=100\; adkim=r\; aspf=r\; rua=mailto:dmarc@agassi.ddo.jp"
+   ------------
+
+   v=DMARC1   : 必須、最初に記述しなければならない、DMARC のバージョンを表す
+   
+   p=none     : 必須、なりすまし と判断したメールに対する、ポリシーを宣言する ※SPF, DKIM の両方の認証に失敗した場合、"なりすまし" と判断する
+                none       : 何もしない
+                quarantine : 隔離する
+                reject     : 拒否する
+   
+   pct=100    : オプション (デフォルト値は 100)、DMARC のポリシーを適用する割合をパーセンテージで指定する 
+   
+   adkim=r    : アライメント オプション (デフォルト値は r)、DKIM 認証パラメータ
+                r (relaxed) : DKIM の送信ドメイン (d タグ）のサブドメインを Header-From に使用することができる
+                s (strict)  : DKIM の送信ドメイン (d タグ）と Header-From は同じドメインでなければならない
+   
+   aspf=r     : アライメント オプション (デフォルト値は r)、SPF 認証パラメータ
+                r (relaxed) : Header-From のサブドメインを Envelope-From に使用することができる
+                s (strict)  : Envelope-From と Header-From は同じドメインでなければならない
+   
+   rua=mailto : オプション、集計レポート (送信元 IP アドレス、Header-From、Envelope-From、送信ドメイン認証の結果など、主になりすましの判定に使用した情報) の送付先
+
+   ruf=       : オプション、失敗レポート (なりすましと判定した場合、そのメールの詳細な情報がリアルタイムにレポートされる ※まずは集計レポートの解析から)
+
+6. DMARC レコードを受信する
+
+   ------------
+   agassi.ddo.jp._report._dmarc.agassi.ddo.jp.     IN      TXT     "v=DMARC1"
+   ------------
+
+   レコード名 : "送信ドメイン." + ”_report._dmarc.” + "レポートを受信するドメイン"
+   レコード値 : "v=DMARC1"
+
+7. DNS レコードまとめ
+
+   ; SPF
+                           IN      TXT     "v=spf1 +ip4:203.133.240.0/21 ~all"
+   ; DKIM
+   20180426._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+   _adsp._domainkey        IN      TXT     "dkim=unknown"
+   
+   ; DMARC
+   _dmarc.agassi.ddo.jp.                           IN      TXT     "v=DMARC1\; p=none\; pct=100\; adkim=r\; aspf=r\; rua=mailto:dmarc@agassi.ddo.jp"
+   agassi.ddo.jp._report._dmarc.agassi.ddo.jp.     IN      TXT     "v=DMARC1"
+
+8. DNS レコードまとめ (gmail.com)
+
+   1. SPF
+
+      ------------
+      gmail.com       text = "v=spf1 redirect=_spf.google.com"
+      ------------
+
+   2. DKIM
+
+      ------------
+      20161025._domainkey.gmail.com   text = "k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAviPGBk4ZB64UfSqWyAicdR7lodhytae+EYRQVtKDhM+1mXjEqRtP/pDT3sBhazkmA48n2k5NJUyMEoO8nc2r6sUA+/Dom5jRBZp6qDKJOwjJ5R/OpHamlRG+YRJQqR" "tqEgSiJWG7h7efGYWmh4URhFM9k9+rmG/CwCgwx7Et+c8OMlngaLl04/bPmfpjdEyLWyNimk761CX6KymzYiRDNz1MOJOJ7OzFaS4PFbVLn0m5mf0HVNtBpPwWuCNvaFVflUYxEyblbB6h/oWOPGbzoSgtRA47SHV53SwZjIsVpbq4LxUW9IxAEwYzGcSgZ4n5Q8X8TndowsDUzoccPFGhdwIDAQAB"
+      ------------
+
+   3. DMARC
+
+      ------------
+      _dmarc.gmail.com        text = "v=DMARC1; p=none; sp=quarantine; rua=mailto:mailauth-reports@google.com"
+      gmail.com._report._dmarc.google.com     text = "v=DMARC1"
+      ------------
+
+      v=DMARC1      : 必須、最初に記述しなければならない、DMARC のバージョンを表す
+
+      p=none        : 必須、なりすまし と判断したメールに対する、ポリシーを宣言する ※SPF, DKIM の両方の認証に失敗した場合、"なりすまし" と判断する
+                      none       : 何もしない
+                      quarantine : 隔離する
+                      reject     : 拒否する
+
+      sp=quarantine : オプション、サブドメインに対する、ポリシーを宣言する
+
+      ruf=          : オプション、失敗レポート (なりすましと判定した場合、そのメールの詳細な情報がリアルタイムにレポートされる ※まずは集計レポートの解析から)
+
+
+9. DMARC 処理の実装
+
+   1. インストール
+
+      (pyenv:Py2)[root@agassi ~]# yum install opendmarc.x86_64
+      (pyenv:Py2)[root@agassi ~]# systemctl restart opendmarc
+      (pyenv:Py2)[root@agassi ~]# systemctl enable opendmarc
+
+   2. /etc/opendmarc.conf
+
+      (pyenv:Py2)[root@agassi ~]# diff -U0 /etc/opendmarc.conf{.orig,}
+      --- /etc/opendmarc.conf.orig    2019-10-25 19:37:55.445544046 +0900
+      +++ /etc/opendmarc.conf 2019-10-25 19:43:18.920092393 +0900
+      @@ -44 +44 @@
+      -# AutoRestart false
+      +AutoRestart true
+      @@ -87 +87 @@
+      -# BaseDirectory /var/run/opendmarc
+      +BaseDirectory /var/run/opendmarc
+      @@ -196 +196 @@
+      -# IgnoreHosts /etc/opendmarc/ignore.hosts
+      +IgnoreHosts /etc/opendmarc/ignore.hosts
+      @@ -206 +206 @@
+      -# IgnoreMailFrom example.com
+      +IgnoreMailFrom agassi.ddo.jp
+      @@ -274 +273,0 @@
+      -##  Socket socketspec
+      @@ -357 +356 @@
+      -UMask 007
+      +UMask 002
+
+   3. /etc/opendmarc/ignore.hosts
+
+      127.0.0.1
+      192.168.72.0/24
+
+   4. /etc/postfix/master.cf (SPF 判定を dmarc で実施するため、無効化する)
+
+      #policy-spf  unix  -       n       n       -       0       spawn
+      #   user=nobody argv=/usr/local/pyenv/shims/policyd-spf /etc/python-policyd-spf/policyd-spf.conf
+
+   5. Postfix と OpenDMARC の連携
+
+      1. /etc/postfix/main.cf
+
+         ## DKIM, DMARC
+         smtpd_milters =
+                 inet:127.0.0.1:8891
+                 inet:127.0.0.1:8893
+         non_smtpd_milters = $smtpd_milters
+         milter_default_action = accept
+
+      2. Postfix 再起動
+
+         # systemctl restart postfix
+         # systemctl restart opendmarc
+
+10. 受信一覧レポート (受信したメールに対する DMARC 処理結果)
+
+    1. MySQL 
+
+       1. MySQL インストール
+
+          (pyenv:Py2)[root@agassi ~]# rpm -qa | egrep mysql
+          mysql80-community-release-el7-3.noarch
+
+          (pyenv:Py2)[root@agassi ~]# yum install mysql mysql-devel mysql-server mysql-utilities
+
+          (pyenv:Py2)[root@agassi ~]# systemctl enable mysqld
+          (pyenv:Py2)[root@agassi ~]# systemctl start mysqld
+
+       2. セキュア設定
+
+          (pyenv:Py2)[root@agassi mysql]# egrep -i pass /var/log/mysqld.log
+          2019-10-28T02:38:10.362218Z 5 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: sSupdt,8+lKt
+
+          (pyenv:Py2)[root@agassi ~]# mysql_secure_installation
+
+           root ユーザーのパスワードの変更 → Taknet77#
+           anonymous ユーザーの削除
+           リモートホストから root ユーザーでログインするのを禁止する
+           test データベースの削除 (存在する場合)
+
+       3. パスワードポリシーの修正
+
+          (pyenv:Py2)[root@agassi ~]# mysql -u root -pTaknet77#
+
+          mysql> show global variables like '%validate%';
+          +--------------------------------------+--------+
+          | Variable_name                        | Value  |
+          +--------------------------------------+--------+
+          | validate_password.check_user_name    | ON     |
+          | validate_password.dictionary_file    |        |
+          | validate_password.length             | 8      |
+          | validate_password.mixed_case_count   | 1      |
+          | validate_password.number_count       | 1      |
+          | validate_password.policy             | MEDIUM |
+          | validate_password.special_char_count | 1      |
+          +--------------------------------------+--------+
+          7 rows in set (0.02 sec)
+          
+          Policy               | Test Preformed
+          ---------------------+-------------------------------------------------------------------------------------------
+          0 or LOW             | パスワード長 8 文字以上
+          1 or MEDIUM          | パスワード長 8 文字以上; 数字 1文字以上; 大文字小文字 1 文字以上; 記号 1 文字以上
+          2 or STRONG          | パスワード長 8 文字以上; 数字 1文字以上; 大文字小文字 1 文字以上; 記号 1 文字以上; 辞書ファイル
+
+          mysql> set global validate_password.policy = "LOW";
+          mysql> quit
+
+          (pyenv:Py2)[root@agassi mysql]# mysqladmin password Taknet77 -u root -pTaknet77#
+
+       4. /etc/my.cnf
+
+          [mysqld]
+          
+          # 旧 MySQL (5.7) との互換性確保
+          default_authentication_plugin=mysql_native_password
+          
+          explicit_defaults_for_timestamp = true
+          
+          sql_mode = 'IGNORE_SPACE,PIPES_AS_CONCAT'
+          server-id = 101010101
+          
+          log-bin-trust-function-creators=1
+          
+          # character-set-server = utf8mb4
+          # collation-server = utf8mb4_ja_0900_as_cs
+          
+          # MySQL 5.7 の設定の互換性確保
+          character-set-server = utf8
+          collation-server = utf8_general_ci
+          init-connect = SET NAMES utf8
+          
+          lower_case_table_names = 1
+          
+          # expire_logs_days = 1   <--- 次回から廃止の可能性あり
+          binlog_expire_logs_seconds=18000
+          
+          slow_query_log=1
+          long_query_time = 1.0
+          
+          max_connections = 10000
+          max_connect_errors = 10
+          
+          # transaction_isolation = READ-COMMITTED
+          
+          innodb_dedicated_server=ON
+          innodb_lock_wait_timeout = 120
+          # innodb_flush_log_at_trx_commit=0
+          
+          datadir=/var/lib/mysql
+          socket=/var/lib/mysql/mysql.sock
+          
+          slave-skip-errors=1062,1032
+          
+          log-error=/var/log/mysqld.log
+          pid-file=/var/run/mysqld/mysqld.pid
+
+    2. dmarc 用データベースの準備
+
+       # mysql -u root -p
+       mysql> create database opendmarc;
+       mysql> create user 'dmarc'@'localhost' identified by 'Taknet77';
+       mysql> grant all privileges on opendmarc.* to 'dmarc'@'localhost';
+       mysql> flush privileges;
+       mysql> quit
+       
+       # mysql -u dmarc -pTaknet77 opendmarc < /usr/share/opendmarc/db/schema.mysql
+
+    3. /etc/opendmarc.conf
+
+       (pyenv:Py2)[root@agassi opendmarc]# diff -U0 /etc/opendmarc.conf{.orig,}
+       --- /etc/opendmarc.conf.orig    2019-10-25 19:37:55.445544046 +0900
+       +++ /etc/opendmarc.conf 2019-11-02 14:50:44.783087407 +0900
+       @@ -44 +44 @@
+       -# AutoRestart false
+       +AutoRestart true
+       @@ -87 +87 @@
+       -# BaseDirectory /var/run/opendmarc
+       +BaseDirectory /var/run/opendmarc
+       @@ -178 +178 @@
+       -# HistoryFile /var/spool/opendmarc/opendmarc.dat
+       +HistoryFile /var/spool/opendmarc/opendmarc.dat
+       @@ -196 +196 @@
+       -# IgnoreHosts /etc/opendmarc/ignore.hosts
+       +IgnoreHosts /etc/opendmarc/ignore.hosts
+       @@ -206 +206 @@
+       -# IgnoreMailFrom example.com
+       +IgnoreMailFrom agassi.ddo.jp
+       @@ -261 +261 @@
+       -# ReportCommand /usr/sbin/sendmail -t
+       +ReportCommand /usr/sbin/sendmail -t
+       @@ -357 +357 @@
+       -UMask 007
+       +UMask 002
+
+    4. レポート作成用スクリプト
+
+       OpenDMARC のレポートデータをデータベース化
+       /usr/sbin/opendmarc-import -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose <  /var/spool/opendmarc/opendmarc.dat
+
+       レポート生成とレポート送信
+       /usr/sbin/opendmarc-reports -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose -interval=86400 -report-email 'postmaster@agassi.ddo.jp' -report-org 'agassi.ddo.jp'
+
+       期限切れレポートの削除
+       /usr/sbin/opendmarc-expire -dbhost=localhost -dbuser=dmarc -dbpasswd=Taknet77 -dbname=opendmarc -verbose
+
+       stevejenkins/opendmarc-send-reports.sh (https://gist.github.com/stevejenkins/1b61d15cc5aaf3e6819f) を取得する
+
+       # cat /usr/local/sbin/opendmarc-send-reports.sh
+       #!/bin/bash
+       # Imports data from OpenDMARC's opendmarc.dat file into a local MySQL DB
+       # and sends DMARC failure reports to domain owners.
+       # Based on a script from Hamzah Khan (http://blog.hamzahkhan.com/)
+       
+       set -e
+       
+       # Database and History File Info
+       DBHOST='localhost'
+       DBUSER=dmarc'
+       DBPASS='Taknet77'
+       DBNAME='opendmarc'
+       HISTDIR='/var/spool/opendmarc'
+       HISTFILE='opendmarc'
+       
+       # Make sure history file exists
+       touch ${HISTDIR}/${HISTFILE}.dat
+       
+       # Move history file temp dir for processing
+       mv ${HISTDIR}/${HISTFILE}.dat /tmp/${HISTFILE}.$$
+       
+       # Import temp history file data and send reports
+       /usr/sbin/opendmarc-import -dbhost=${DBHOST} -dbuser=${DBUSER} -dbpasswd=${DBPASS} -dbname=${DBNAME} -verbose < /tmp/${HISTFILE}.$$
+       /usr/sbin/opendmarc-reports -dbhost=${DBHOST} -dbuser=${DBUSER} -dbpasswd=${DBPASS} -dbname=${DBNAME} -verbose -interval=86400 -report-email 'postmaster@agassi.ddo.jp' -report-org 'agassi.ddo.jp'
+       /usr/sbin/opendmarc-expire -dbhost=${DBHOST} -dbuser=${DBUSER} -dbpasswd=${DBPASS} -dbname=${DBNAME} -verbose
+       
+       # Delete temp history file
+       rm -rf *.$$
+
+       # chmod 755 /usr/local/sbin/opendmarc-send-reports.sh
+       # touch /var/spool/opendmarc/opendmarc.data
+       # chown opendmarc:root /var/spool/opendmarc/opendmarc.data 
+
+    5. OpenDMARC 再起動
+
+       # systemctl restart opendmarc
+
+    6. 動作確認
+
+       # /usr/local/sbin/opendmarc-send-reports.sh
+       opendmarc-import: started at Sat Nov  2 15:23:24 2019
+       opendmarc-import: connected to database
+       opendmarc-import: terminating at Sat Nov  2 15:23:24 2019
+       opendmarc-reports: started at Sat Nov  2 15:23:25 2019
+       opendmarc-reports: selected 0 domain(s)
+       opendmarc-reports: terminating at Sat Nov  2 15:23:26 2019
+       opendmarc-expire: started at Sat Nov  2 15:23:26 2019
+       opendmarc-expire: connected to database
+       opendmarc-expire: expiring messages older than 180 day(s)
+       opendmarc-expire: no rows deleted
+       
+    7. 定期実行
+
+       (pyenv:Py2)[root@auhp-mail1 ~]# crontab -l
+       16 0 * * * /usr/local/sbin/opendmarc-send-reports.sh > /dev/null 2>&1
+
+    8. 受信一覧レポートをウェブで確認
+
+       techsneeze/opendmarc-dashboard (https://github.com/techsneeze/opendmarc-dashboard) を取得する
+
+       # git clone https://github.com/techsneeze/opendmarc-dashboard.git
+       # cp opendmarc-dashboard-config.php.sample opendmarc-dashboard-config.php
+       # cat opendmarc-dashboard-config.php
+       <?php
+       
+       // ####################################################################
+       // ### configuration ##################################################
+       // ####################################################################
+       
+       $dbhost="localhost";
+       $dbname="opendmarc";
+       $dbuser="dmarc";
+       $dbpass="Taknet77";
+       
+       ?>
+
+       https://agassi.ddo.jp/dmarc/opendmarc-dashboard.php
+
+11. 送信レポート (送信したメールに対する DMARC 処理結果)
+
+    統計レポート : 日次で送られてくる認証に失敗したメールの集計結果のレポート
+    失敗レポート : 認証に失敗したメールがあった際にリアルタイムで送られてくるレポート
+
+    XML to Human Converter - dmarcian
+
+    https://mxtoolbox.com/DmarcReportAnalyzer.aspx?id=F-084218b3-dc81-4866-866b-474ead429ade
+
+    ※有償サービスを利用するのが良さそうな気がする
+
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536

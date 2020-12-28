@@ -1,0 +1,144 @@
+kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+
+ssh
+
+1. zlib
+
+   32bit
+   # wget https://www.zlib.net/fossils/zlib-1.2.11.tar.gz
+   # tar zxvf zlib-1.2.11.tar.gz
+   # cd zlib-1.2.11
+   # ./configure --prefix=/usr/local
+   # LD_RUN_PATH=/usr/local/lib make
+   # make install
+   # ./configure --shared --prefix=/usr/local
+   # LD_RUN_PATH=/usr/local/lib make
+   # make install
+
+   64bit
+   # wget https://www.zlib.net/fossils/zlib-1.2.11.tar.gz
+   # tar zxvf zlib-1.2.11.tar.gz
+   # cd zlib-1.2.11
+   # CFLAGS=-m64 ./configure --prefix=/usr/local/64
+   # LD_RUN_PATH=/usr/local/64/lib make
+   # make install
+   # CFLAGS=-m64 ./configure --shared --prefix=/usr/local/64
+   # LD_RUN_PATH=/usr/local/64/lib make
+   # make install
+
+2. openssl
+
+   32bit
+   # wget https://www.openssl.org/source/openssl-1.0.2r.tar.gz
+   # tar zxvf openssl-1.0.2r.tar.gz
+   # cd openssl-1.0.2r
+   # wget http://www.openssl.org/~appro/values.c
+   # ksh -f values.c
+   # ./Configure --prefix=/usr/local \
+   > --openssldir=/usr/local/etc/ssl \
+   > shared solaris-x86-gcc -fPIC
+   # make
+   # make install
+   # strip /usr/local/bin/openssl 
+
+   64bit
+   # wget https://www.openssl.org/source/openssl-1.0.2r.tar.gz
+   # tar zxvf openssl-1.0.2r.tar.gz
+   # cd openssl-1.0.2r
+   # wget http://www.openssl.org/~appro/values.c
+   # ksh -f values.c
+   # ./Configure --prefix=/usr/local/64 \
+   > --openssldir=/usr/local/64/etc/ssl \
+   > shared solaris64-x86_64-gcc -fPIC
+   # make
+   # make install
+   # strip /usr/local/64/bin/openssl
+
+   64bit 1.1.* 系
+   # wget https://www.openssl.org/source/openssl-1.1.1f.tar.gz
+   # tar zxvf openssl-1.1.1f.tar.gz
+   # cd openssl-1.1.1f
+   # wget http://www.openssl.org/~appro/values.c
+   # ksh -f values.c
+   # ./Configure --prefix=/usr/local/64 \
+   > --openssldir=/usr/local/64/etc/ssl \
+   > shared solaris64-x86_64-gcc -fPIC
+   # make
+   # make install
+   # strip /usr/local/64/bin/openssl
+
+3. openssh 32it
+
+   # groupadd -g 22 sshd
+   # useradd -u 22 -g 22 -d /usr/local/etc/ssh -s /bin/false sshd
+
+   32bit
+   # wget http://ftp.jaist.ac.jp/pub/OpenBSD/OpenSSH/portable/openssh-8.0p1.tar.gz
+   # tar zxvf openssh-8.0p1.tar.gz
+   # cd openssh-8.0p1
+   # ./configure --prefix=/usr/local --sysconfdir=/usr/local/etc/ssh \
+   > --with-pam --with-zlib=/usr/local --with-ssl-dir=/usr/local --with-4in6
+   # make
+   # make install
+
+   64bit
+   # wget http://ftp.jaist.ac.jp/pub/OpenBSD/OpenSSH/portable/openssh-8.2p1.tar.gz
+   # tar zxvf openssh-8.2p1.tar.gz
+   # cd openssh-8.2p1
+   > CFLAGS=-m64 \
+   > LDFLAGS=-m64 \
+   > ./configure --prefix=/usr/local/64 --sysconfdir=/usr/local/64/etc/ssh \
+   > --with-pam --with-zlib=/usr/local/64 --with-ssl-dir=/usr/local/64 --with-4in6
+   # make
+   # make install
+
+4. 起動スクリプト
+
+   1. Solaris 純正の sshd の停止
+   # svcadm disable /network/ssh
+   # svcs -a | grep ssh
+   disabled       18:36:02 svc:/network/ssh:default
+
+   2. 起動スクリプト (/etc/init.d/sshd) の内容
+   #!/sbin/sh
+   
+   sshd=/usr/local/64/sbin/sshd
+   pid=`cat /var/run/sshd.pid`
+   #pid=`/usr/bin/ps -ef | /usr/bin/egrep $sshd | /usr/bin/egrep -v "\-R" | /bin/awk '{print $2}'`
+   
+   case "$1" in
+   'start')
+           if [ -x $sshd ] ; then
+                   $sshd &
+                   echo "$0 $1: SSHD Server Daemon Started"
+           fi
+           ;;
+   'stop')
+           if [ "${pid}" != "" ] ; then
+                   kill -KILL $pid
+                   echo "$0 $1: SSHD Server Daemon Stoped"
+   
+           fi
+           ;;
+   'restart')
+           if [ "${pid}" != "" ] ; then
+                   kill -HUP $pid
+                   echo "$0 $1: SSHD Server Daemon Restarted"
+           fi
+           ;;
+   *)
+           echo "Usage: $0 { start | stop | restart }"
+           exit 1
+           ;;
+   esac
+   exit 0
+
+   3. 起動スクリプトのリンクの作成
+   # chmod 755 /etc/init.d/sshd
+   # ln -s /etc/init.d/sshd /etc/rc2.d/S99sshd
+   # ln -s /etc/init.d/sshd /etc/rc2.d/K03sshd
+   # ln -s /etc/init.d/sshd /etc/rc1.d/K03sshd
+   # ln -s /etc/init.d/sshd /etc/rc0.d/K03sshd
+   # ln -s /etc/init.d/sshd /etc/rcS.d/K03sshd
+
+
