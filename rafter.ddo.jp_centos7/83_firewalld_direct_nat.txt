@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 rafter.ddo.jp CentOS release 7.3 (1611) / Oracle VirtualBox
 
 firewalld ダイレクトルール NAT
@@ -165,3 +166,172 @@ firewalld ダイレクトルール NAT
    
    Chain PRE_drop_log (1 references)
     pkts bytes target     prot opt in     out     source               destination
+=======
+rafter.ddo.jp CentOS release 7.3 (1611) / Oracle VirtualBox
+
+firewalld ダイレクトルール NAT
+
+参考 URL
+
+1. ネットワーク構成図
+
+                 |
+                 | enp0s3s3:   10.23.203.111/16
+                 | enp0s3s3:1: 10.23.200.5/16
+   +-------------+-------------+
+   |                           | 
+   |       rafter.ddo.jp       | 
+   |                           | 
+   +-------------+-------------+
+                 | enp0s3s8: 192.168.56.108/24
+                 |
+
+2. エイリアス IP 設定
+
+   # ip addr add 10.23.200.5/16 dev enp0s3 label enp0s3:1
+
+   # ifconfig -a
+   enp0s3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+           inet 10.23.203.111  netmask 255.255.0.0  broadcast 10.23.255.255
+           ether 08:00:27:46:04:81  txqueuelen 1000  (Ethernet)
+           RX packets 38908  bytes 3885464 (3.7 MiB)
+           RX errors 0  dropped 3034  overruns 0  frame 0
+           TX packets 919  bytes 76626 (74.8 KiB)
+           TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+   
+   enp0s3:1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+           inet 10.23.200.5  netmask 255.255.0.0  broadcast 0.0.0.0
+           ether 08:00:27:46:04:81  txqueuelen 1000  (Ethernet)
+   
+   enp0s8: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+           inet 192.168.56.108  netmask 255.255.255.0  broadcast 192.168.56.255
+           ether 08:00:27:d8:fb:16  txqueuelen 1000  (Ethernet)
+           RX packets 4073  bytes 373388 (364.6 KiB)
+           RX errors 0  dropped 0  overruns 0  frame 0
+           TX packets 3355  bytes 800885 (782.1 KiB)
+           TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+   
+   lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+           inet 127.0.0.1  netmask 255.0.0.0
+           loop  txqueuelen 1  (Local Loopback)
+           RX packets 376  bytes 41827 (40.8 KiB)
+           RX errors 0  dropped 0  overruns 0  frame 0
+           TX packets 376  bytes 41827 (40.8 KiB)
+           TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+3. フォワーディング設定
+
+   # egrep "net.ipv4.ip_forward" /etc/sysctl.conf
+   net.ipv4.ip_forward=1
+
+   # echo 1 > /proc/sys/net/ipv4/ip_forward
+
+4. 初期設定 (実施済みの内容)
+
+   1. drop をデフォルトゾーンに指定
+   # firewall-cmd --set-default-zone=drop
+   # firewall-cmd --get-default-zone
+   drop
+
+   2. 割り当てインターフェイスの確認
+   # firewall-cmd --get-active-zone
+   (あえて指定しない)
+
+   3. FTP モジュールの組み込み
+   # modprobe ip_nat_ftp
+   # modprobe ip_conntrack_ftp
+   # echo ip_nat_ftp > /etc/modules-load.d/iptables.conf
+   # echo ip_conntrack_ftp >> /etc/modules-load.d/iptables.conf
+
+5. /etc/firewalld/direct.xml
+
+   # cat direct.xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <direct>
+     <chain table="filter" ipv="ipv4" chain="LOGGING"/>
+     <rule priority="199" table="filter" ipv="ipv4" chain="INPUT">-j ACCEPT</rule>
+     <rule priority="299" table="filter" ipv="ipv4" chain="OUTPUT">-j ACCEPT</rule>
+     <rule priority="399" table="filter" ipv="ipv4" chain="FORWARD">-j ACCEPT</rule>
+     <rule priority="801" table="nat" ipv="ipv4" chain="PREROUTING">-d 10.23.200.5 -i enp0s3 -j DNAT --to-destination 192.168.56.131</rule>
+     <rule priority="802" table="nat" ipv="ipv4" chain="POSTROUTING">-s 192.168.56.131/32 -o enp0s3 -j SNAT --to-source 10.23.200.5</rule>
+     <rule priority="899" table="nat" ipv="ipv4" chain="POSTROUTING">-s 192.168.56.0/24 -o enp0s3 -j MASQUERADE</rule>
+   </direct>
+
+6. iptables コマンド 確認
+
+   # iptables -L -n -v -t nat
+   Chain PREROUTING (policy ACCEPT 1489 packets, 259K bytes)
+    pkts bytes target     prot opt in     out     source               destination
+    1489  259K PREROUTING_direct  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+    1489  259K PREROUTING_ZONES_SOURCE  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+    1489  259K PREROUTING_ZONES  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+   
+   Chain INPUT (policy ACCEPT 591 packets, 84579 bytes)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain OUTPUT (policy ACCEPT 41 packets, 2982 bytes)
+    pkts bytes target     prot opt in     out     source               destination
+      41  2982 OUTPUT_direct  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+   
+   Chain POSTROUTING (policy ACCEPT 41 packets, 2982 bytes)
+    pkts bytes target     prot opt in     out     source               destination
+      88  5458 POSTROUTING_direct  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+      41  2982 POSTROUTING_ZONES_SOURCE  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+      41  2982 POSTROUTING_ZONES  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+   
+   Chain OUTPUT_direct (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain POSTROUTING_ZONES (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+      41  2982 POST_drop  all  --  *      +       0.0.0.0/0            0.0.0.0/0
+   
+   Chain POSTROUTING_ZONES_SOURCE (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain POSTROUTING_direct (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+      45  2332 SNAT       all  --  *      enp0s3  192.168.56.131       0.0.0.0/0            to:10.23.200.5
+       2   144 MASQUERADE  all  --  *      enp0s3  192.168.56.0/24      0.0.0.0/0
+   
+   Chain POST_drop (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+      41  2982 POST_drop_log  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+      41  2982 POST_drop_deny  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+      41  2982 POST_drop_allow  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+   
+   Chain POST_drop_allow (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain POST_drop_deny (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain POST_drop_log (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain PREROUTING_ZONES (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+    1489  259K PRE_drop   all  --  +      *       0.0.0.0/0            0.0.0.0/0
+   
+   Chain PREROUTING_ZONES_SOURCE (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain PREROUTING_direct (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+       0     0 DNAT       all  --  enp0s3 *       0.0.0.0/0            10.23.200.5          to:192.168.56.131
+   
+   Chain PRE_drop (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+    1489  259K PRE_drop_log  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+    1489  259K PRE_drop_deny  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+    1489  259K PRE_drop_allow  all  --  *      *       0.0.0.0/0            0.0.0.0/0
+   
+   Chain PRE_drop_allow (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain PRE_drop_deny (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+   
+   Chain PRE_drop_log (1 references)
+    pkts bytes target     prot opt in     out     source               destination
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536

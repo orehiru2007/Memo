@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 rafter.ddo.jp CentOS release 7.3 (1611) / Oracle VirtualBox
 
 firewalld
@@ -216,3 +217,223 @@ http://qiita.com/KurokoSin/items/51e79657f1f2104cf607
         rich rules:
 
 
+=======
+rafter.ddo.jp CentOS release 7.3 (1611) / Oracle VirtualBox
+
+firewalld
+
+参考 URL
+https://everyday-growth.com/?p=1952
+http://www.kakiro-web.com/linux/firewalld.html
+http://kernhack.hatenablog.com/entry/2015/05/31/173835
+http://dan-project.blog.so-net.ne.jp/2015-09-13-1
+https://www.imd-net.com/column/13339/
+http://qiita.com/KurokoSin/items/51e79657f1f2104cf607
+
+1. 予備知識
+
+   1. 状況
+   > 8. firewalld 設定 ※CentOS 7 からは iptables から firewalld に移行した模様、詳細な検証結果は別途
+   > 
+   >    1. 例: VNC サービス (tcp/5900 - 5903) を許可
+   > 
+   >       # firewall-cmd --zone=public --add-service=vnc-server
+   >       # firewall-cmd --zone=public --add-service=vnc-server --permanent
+   > 
+   >    2. とりあえず無効化
+   > 
+   >       # systemctl stop firewalld.service
+   >       # systemctl disable firewalld.service
+
+   2. 切り戻し
+
+      1. iptables 停止
+      # systemctl stop iptables
+      # systemctl disable iptables
+
+      2. firewalld 起動
+      # systemctl start firewalld
+      # systemctl enable firewalld
+      # systemctl status firewalld
+
+   3. ゾーンの説明
+
+      ゾーン                      | 許可サービス                                         | 説明
+      ----------------------------+------------------------------------------------------+------------------------------------------------
+      block ( 変更不可 )          | 無し                                                 | 全てのパケットを破棄 (with icmp-host-prohibited) ※戻りパケットは許可される
+      dmz                         | ssh                                                  | DMZ 用に定義されたゾーン
+      drop ( 変更不可 )           | 無し                                                 | 全てのパケットを破棄 ※戻りパケットも許可されない
+      external                    | ssh                                                  | マスカレードが有効となっている
+      home                        | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 自宅用
+      internal                    | dhcpv6-client、ipp-client、mdns、samba-client、ssh   | 内部ネットワーク用
+      public                      | ssh、dhcpv6-client                                   | デフォルトゾーン
+      trusted ( 変更不可 )        | すべて許可                                           | 
+      work                        | dhcpv6-client、ipp-client、ssh                       | 職場用
+   
+   4. デフォルトゾーンの確認
+
+      # firewall-cmd --get-default-zone
+      public
+
+      # firewall-cmd --zone=public --list-all
+      public
+        target: default
+        icmp-block-inversion: no
+        interfaces:
+        sources:
+        services: dhcpv6-client ssh
+        ports:
+        protocols:
+        masquerade: no
+        forward-ports:
+        sourceports:
+        icmp-blocks:
+        rich rules:
+
+   5. 設定 (基本的な操作)
+
+      1. custom zone の作成
+      # firewall-cmd --permanent --new-zone=custom
+      # firewall-cmd --reload
+      # firewall-cmd --zone=custom --list-all
+
+      2. custom をデフォルトゾーンに指定
+      # firewall-cmd --set-default-zone=custom
+
+      3. Source の指定
+      # firewall-cmd --permanent --add-source=10.23.203.111/32 --zone=custom
+      # firewall-cmd --permanent --add-source=10.23.0.0/16 --zone=custom
+      # firewall-cmd --reload
+
+      4. ssh を許可
+      # firewall-cmd --permanent --add-service=ssh --zone=custom
+      # firewall-cmd --permanent --zone=custom --add-port=22/tcp
+
+      5. custom ゾーンを、インターフェイス enp0s3 への割り当て
+      # firewall-cmd --zone=custom --change-interface=enp0s3
+
+      6. 割り当てインターフェイスの確認
+      # firewall-cmd --get-active-zone
+      trusted
+        interfaces: enp0s8
+      custom
+        interfaces: enp0s3
+        sources: 10.23.0.0/16 10.23.203.111/32
+
+     7. 定義済みサービス一覧の確認
+
+        # ls /usr/lib/firewalld/services/
+        amanda-client.xml      ipp-client.xml   mysql.xml       rpc-bind.xml
+        bacula-client.xml      ipp.xml          nfs.xml         samba-client.xml
+        bacula.xml             ipsec.xml        ntp.xml         samba.xml
+        dhcp.xml               kerberos.xml     openvpn.xml     smtp.xml
+        dhcpv6-client.xml      kpasswd.xml      pmcd.xml        ssh.xml
+        dhcpv6.xml             ldap.xml         pmproxy.xml     telnet.xml
+        dns.xml                ldaps.xml        pmwebapi.xml    tftp-client.xml
+        ftp.xml                libvirt-tls.xml  pmwebapis.xml   tftp.xml
+        high-availability.xml  libvirt.xml      pop3s.xml       transmission-client.xml
+        http.xml               mdns.xml         postgresql.xml  vnc-server.xml
+        https.xml              mountd.xml       proxy-dhcp.xml  wbem-https.xml
+        imaps.xml              ms-wbt.xml       radius.xml
+
+        # ls /usr/lib/firewalld/icmptypes/
+        destination-unreachable.xml  parameter-problem.xml     router-solicitation.xml
+        echo-reply.xml               redirect.xml              source-quench.xml
+        echo-request.xml             router-advertisement.xml  time-exceeded.xml
+
+2. FireWalld 基本編
+
+   1. ネットワーク構成図
+
+                 |
+                 | enp0s3: 10.23.203.111/16
+   +-------------+-------------+
+   |                           | 稼動サービス: 
+   |       rafter.ddo.jp       | ftp (21/tcp,20/tcp)
+   |                           | ssh (21/tcp)
+   |                           | dns (53/udp, 53/tcp)
+   |                           | ms-wbt (3389/tcp)
+   |                           | vnc-server (5900/tcp)
+   |                           | smtp (25/tcp, 465/tcp, 587/tcp)
+   |                           | http (80/tcp)
+   |                           | https (443/tcp)
+   |                           | pop3 (110/tcp, 995/tcp)
+   |                           | imap (143/tcp, 993/tcp)
+   |                           | squid (8080/tcp)
+   +-------------+-------------+
+                 | enp0s8: 192.168.56.108/24
+                 |
+
+   2. カーネル設定
+
+      1. /etc/sysctl.conf
+      # DoS / DDoS Defense                                SYN Cookies を有効にする (TCP SYN Flood 攻撃対策)
+      net.ipv4.tcp_syncookies = 1
+      # Ping Flood Defence, Smurf Attack Defence          ブロードキャストアドレス宛pingには応答しない (Smurf 攻撃対策)
+      net.ipv4.icmp_echo_ignore_broadcasts=1
+      # Rejected ICMP Redirect Packets                    ICMP Redirect パケットは拒否)
+      net.ipv4.conf.enp0s3.accept_redirects=0
+      # Rejected Source Routed Packets                    Source Routed パケットは拒否
+      net.ipv4.conf.snp0s3.accept_source_route=0
+
+      2. 設定反映
+      # sysctl -p
+
+   3. FireWalld 設定
+
+      1. custom zone の作成
+      # firewall-cmd --permanent --new-zone=custom
+      # firewall-cmd --reload
+
+      2. custom をデフォルトゾーンに指定
+      # firewall-cmd --set-default-zone=custom
+
+      3. trusted ゾーンの Source 指定
+      # firewall-cmd --permanent --add-source=192.168.56.0/24 --zone=trusted
+
+      4. ルール追加
+      # firewall-cmd --zone=custom --list-all
+      # firewall-cmd --permanent --add-service=ftp --zone=custom
+      # firewall-cmd --permanent --add-service=ssh --zone=custom
+      # firewall-cmd --permanent --add-service=dns --zone=custom
+      # firewall-cmd --permanent --add-service=ms-wbt --zone=custo
+      # firewall-cmd --permanent --add-service=vnc-server --zone=c
+      # firewall-cmd --permanent --add-service=smtp --zone=custom
+      # firewall-cmd --permanent --add-service=http --zone=custom
+      # firewall-cmd --permanent --add-service=https --zone=custom
+      # firewall-cmd --permanent --add-service=pop3 --zone=custom
+      # firewall-cmd --permanent --add-service=imap --zone=custom
+      # firewall-cmd --permanent --add-service=squid --zone=custom
+      # systemctl reload firewalld
+
+      5. ネットワークインターフェイスへの割り当て
+      # firewall-cmd --permanent --zone=custom --change-interface=enp0s3
+      # firewall-cmd --permanent --zone=trusted --change-interface=enp0s8
+      # systemctl reload firewalld
+
+      6. 割り当てインターフェイスの確認
+      # firewall-cmd --get-active-zone
+      trusted
+        interfaces: enp0s8
+      custom
+        interfaces: enp0s3
+        sources: 10.23.0.0/16 10.23.203.111/32
+
+      7. 設定内容確認
+      # firewall-cmd --zone=custom --list-all
+      custom (active)
+        target: default
+        icmp-block-inversion: no
+        interfaces: enp0s3
+        sources:
+        services: dns ftp http https imap pop3 smtp squid ssh
+        ports:
+        protocols:
+        masquerade: no
+        forward-ports:
+        sourceports:
+        icmp-blocks:
+        rich rules:
+
+
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536

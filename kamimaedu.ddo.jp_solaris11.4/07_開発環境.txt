@@ -266,6 +266,14 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
 
    ※/usr/local/binutils/bin を PATH から除外しておくこと
    gmp
+<<<<<<< HEAD
+   # wget http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
+   # tar Jxvf gmp-6.1.2.tar.xz
+   # cd gmp-6.1.2
+   # ./configure \
+   > --prefix=/usr/local/gcc7 \
+   > --build=x86_64-pc-solaris2.11
+=======
    # wget https://ftp.gnu.org/gnu/gmp/gmp-6.2.0.tar.xz
    # tar Jxvf gmp-6.2.0.tar.xz
    # cd gmp-6.2.0
@@ -273,27 +281,42 @@ kamimaedu.ddo.jp (VMware + Oracle Solaris 11.4 x86)
    > ./configure \
    > --prefix=/usr/local/gcc7 \
    > --build=i386-pc-solaris2.11
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536
    # make
    # make install
 
    mpfr
+<<<<<<< HEAD
+   # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.1.tar.gz
+   # tar zxvf mpfr-4.0.1.tar.gz
+   # cd mpfr-4.0.1
+=======
    # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz
    # tar zxvf mpfr-4.0.2.tar.gz
    # cd mpfr-4.0.2
    # CFLAGS=-m32 \
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536
    # ./configure \
    > --prefix=/usr/local/gcc7 \
    > --with-gmp=/usr/local/gcc7 \
    > --build=i386-pc-solaris2.11
    # make
    # make install
+   # 
 
    mpc
+<<<<<<< HEAD
+   # wget http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
+   # tar zxvf mpc-1.1.0.tar.gz
+   # cd mpc-1.1.0
+   # ./configure \
+=======
    # wget https://www.mpfr.org/mpfr-current/mpfr-4.0.2.tar.gz
    # tar zxvf mpfr-4.0.2.tar.gz
    # cd mpfr-4.0.2
    # CFLAGS=-m32 \
    > ./configure \
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536
    > --prefix=/usr/local/gcc7 \
    > --with-gmp=/usr/local/gcc7 \
    > --build=i386-pc-solaris2.11

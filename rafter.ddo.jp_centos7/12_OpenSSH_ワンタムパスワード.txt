@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 rafter.ddo.jp CentOS release 7.2 (Oracle VirtualBox)
 
 1. はじめに
@@ -11,3 +12,18 @@ rafter.ddo.jp CentOS release 7.2 (Oracle VirtualBox)
    
 
 1. OpenSSH による二段階認証
+=======
+rafter.ddo.jp CentOS release 7.2 (Oracle VirtualBox)
+
+1. はじめに
+
+   二段階認証とは、に種類以上の認証情報を使用すること、安全性を高める手法である
+
+   ･ SMS で受信するワンタイムパスワード
+   ･ 専用デバイスを使用した認証
+   ･ 認証アプリを使用したワンタイムパスワード
+
+   
+
+1. OpenSSH による二段階認証
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536

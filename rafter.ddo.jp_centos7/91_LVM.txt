@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 LVM 悲劇
 
 1. なぜこんなことになったのか
@@ -146,3 +147,153 @@ LVM 悲劇
 
       # cat /etc/fstab (重要箇所のみ)
       /dev/mapper/VG-swap   swap                    swap    defaults        0 0
+=======
+LVM 悲劇
+
+1. なぜこんなことになったのか
+
+   1. バックアップが出来ない (LVM の Free 領域がないので、スナップショットを作成できない)
+
+      # vgdisplay -v
+          Finding all volume groups
+          Finding volume group "VG"
+        --- Volume group ---
+        VG Name               VG
+        System ID
+        Format                lvm2
+        Metadata Areas        1
+        Metadata Sequence No  3
+        VG Access             read/write
+        VG Status             resizable
+        MAX LV                0
+        Cur LV                2
+        Open LV               2
+        Max PV                0
+        Cur PV                1
+        Act PV                1
+        VG Size               44.92 GiB
+        PE Size               4.00 MiB
+        Total PE              11500
+        Alloc PE / Size       11500 / 44.92 GiB
+        Free  PE / Size       0 / 0
+        VG UUID               Z9Lxo7-zied-3ePX-w8bd-nu5X-FILS-bksiUd
+
+      → "Free  PE / Size" が 0 / 0 となっているため、空き容量がありません
+
+   2. XFS はファイルシステムを縮小できないのに。。。
+
+
+      論理ボリューム名  | 変更前サイズ | 変更後サイズ
+      ------------------+--------------+--------------------------------
+      /dev/VG00/root    |     39.06 GB |      39.06 GB
+      /dev/VG00/home    |      2.00 GB |       1.00 GB
+      /dev/VG00/swap    |      3.91 GB |       3.91 GB
+
+      # umount /home
+      # fsck.ext4 -f /dev/VG00/home
+      # resize2fs /dev/VG00/home 1G
+      # lvm lvreduce -L1G /dev/VG00/home
+
+      途中で、エラーが出ていたはずなのに、慌てて作業を実施したせいで。。。
+
+      # mount /dev/VG00/home /home 
+      mount: /dev/VG00/home: can't read superblock
+
+      となりました、ファイルシステムが破損したようです
+
+2. 現状復旧
+
+   /home 配下に重要なデータが無かったことが幸いです
+
+   1. xfs_repair コマンドによる復旧
+
+      # xfs_repair -Lv /dev/VG00/home
+      found candidate secondary superblock...
+      error reading superblock 3 -- seek to offset 1572864000 failed
+      unable to verify superblock, continuing...
+      ........................Sorry, could not find valid secondary superblock
+      Exiting now.
+
+      → 失敗
+
+   2. 論理ボリュームの削除、再作成
+
+      # lvremove /dev/VG00/home
+      Do you really want to remove active logical volume home? [y/n]: y
+        Logical volume "home" successfully removed
+
+      # lvcreate --size 1.95G --name home VG00
+        Rounding up size to full physical extent 1.95 GiB
+      WARNING: xfs signature detected on /dev/VG00/home at offset 0. Wipe it? [y/n] y
+        Wiping xfs signature on /dev/VG00/home.
+
+      # mkfs.xfs -L /home /dev/VG00/home
+      meta-data=/dev/VG00/home         isize=256    agcount=4, agsize=128000 blks
+               =                       sectsz=512   attr=2, projid32bit=1
+               =                       crc=0
+      data     =                       bsize=4096   blocks=512000, imaxpct=25
+               =                       sunit=0      swidth=0 blks
+      naming   =version 2              bsize=4096   ascii-ci=0 ftype=0
+      log      =internal log           bsize=4096   blocks=2560, version=2
+               =                       sectsz=512   sunit=0 blks, lazy-count=1
+      realtime =none                   extsz=4096   blocks=0, rtextents=0
+
+
+3. 改めて対応
+
+   1. 状況確認
+
+      # fdisk -l
+      
+      Disk /dev/sda: 21.5 GB, 21474836480 bytes, 41943040 sectors
+      Units = sectors of 1 * 512 = 512 bytes
+      Sector size (logical/physical): 512 bytes / 512 bytes
+      I/O サイズ (最小 / 推奨): 512 バイト / 512 バイト
+      Disk label type: dos
+      ディスク識別子: 0x0000aa12
+      
+      デバイス ブート      始点        終点     ブロック   Id  システム
+      /dev/sda1   *        2048     1026047      512000   83  Linux
+      /dev/sda2         1026048    31754239    15364096   8e  Linux LVM
+
+      → シリンダの最終は 41943040 であるのに、31754239 までしか使用されておらず、未使用の領域がある
+
+   2. パーティションの作成
+
+      # fdisk -l
+      
+      Disk /dev/sda: 21.5 GB, 21474836480 bytes, 41943040 sectors
+      Units = sectors of 1 * 512 = 512 bytes
+      Sector size (logical/physical): 512 bytes / 512 bytes
+      I/O サイズ (最小 / 推奨): 512 バイト / 512 バイト
+      Disk label type: dos
+      ディスク識別子: 0x0000aa12
+      
+      デバイス ブート      始点        終点     ブロック   Id  システム
+      /dev/sda1   *        2048     1026047      512000   83  Linux
+      /dev/sda2         1026048    31754239    15364096   8e  Linux LVM
+      /dev/sda3        31754240    41943039     5094400   8e  Linux LVM
+
+      ※以下のようなメッセージが表示された場合、再起動が必要
+      -------------------------------
+      WARNING: Re-reading the partition table failed with error 16: デバイスもしくはリソースがビジー状態です.
+      The kernel still uses the old table. The new table will be used at
+      the next reboot or after you run partprobe(8) or kpartx(8)
+      ディスクを同期しています。
+
+   3. ファイルシステムの作成
+
+      1. LVM 物理ボリュームの作成
+      # pvcreate /dev/sda3
+
+      2. 既存論理ボリュームグループに、新規作成した LVM  物理ボリュームを割り当てる
+      # vgextend VG /dev/sda3
+
+   4. /dev/VG/swap の作成 (忘れてしまったのは内緒だぜ)
+
+      # lvcreate --size 512MB --name swap VG00
+      # mkswap -c /dev/VG/swap
+
+      # cat /etc/fstab (重要箇所のみ)
+      /dev/mapper/VG-swap   swap                    swap    defaults        0 0
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536

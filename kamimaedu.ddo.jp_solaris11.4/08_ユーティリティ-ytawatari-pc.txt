@@ -1,4 +1,4 @@
-kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
+kamimaedu.ddo.jp (VMware + Oracle Solaris 11.3 x86)
 
 すべて /usr/local 以下にインストールすること
 データやログは /var 以下に置くこと
@@ -30,9 +30,9 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
 2. tcsh 64bit
 
-   # wget ftp://ftp.astron.com/pub/tcsh/tcsh-6.22.02.tar.gz
-   # tar zxvf tcsh-6.22.02.tar.gz
-   # cd tcsh-6.22.02
+   # wget ftp://ftp.astron.com/pub/tcsh/tcsh-6.20.00.tar.gz
+   # tar zxvf tcsh-6.20.00.tar.gz
+   # cd tcsh-6.20.00
    # CFLAGS=-m64 \
    # ./configure --prefix=/usr/local/64
    # make
@@ -41,10 +41,12 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
 3. perl 
 
+   デフォルトシェルの変更の変更 (ksh →  Bourne Shell) を行うこと
+
    1. 32bit
-   # wget https://www.cpan.org/src/5.0/perl-5.30.2.tar.gz
-   # tar zxvf perl-5.30.2.tar.gz
-   # cd perl-5.30.2
+   # wget https://www.cpan.org/src/5.0/perl-5.28.1.tar.gz
+   # tar zxvf perl-5.28.1.tar.gz
+   # cd perl-5.28.1
    # ./Configure -de -Dcc=gcc -Doptimize=-O3 \
    > -Dldflags="-L/usr/local/lib -R/usr/local/lib -L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
    > -Dusethreads \
@@ -67,35 +69,12 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
    # LC_ALL=C make test
    # make install
 
-3. DB 6.1.19 ※未インストール
- 
+3. DB
+
    2. 64bit
    ※binutils を PATH から除外しておくこと
    # tar zxvf db-6.1.19.tar.gz
    # cd db-6.1.19/build_unix
-   # CFLAGS=-m64 \
-   > CC=gcc \
-   > LDFLAGS="-L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
-   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
-   # make
-   # make install
-
-4. DB 5.3.28
-
-   1. 32bit
-   ※binutils を PATH から除外しておくこと
-   # tar zxvf db-5.3.28.tar.gz
-   # cd db-5.3.28/build_unix
-   # CC=gcc \
-   > LDFLAGS="-L/usr/local/gcc7/lib -R/usr/local/gcc7/lib" \
-   > ../dist/configure --prefix=/usr/local/64 --enable-compat185 --enable-cxx --disable-java
-   # make
-   # make install
-
-   2. 64bit
-   ※binutils を PATH から除外しておくこと
-   # tar zxvf db-5.3.28.tar.gz
-   # cd db-5.3.28/build_unix
    # CFLAGS=-m64 \
    > CC=gcc \
    > LDFLAGS="-L/usr/local/gcc7/lib/amd64 -R/usr/local/gcc7/lib/amd64" \
@@ -114,6 +93,14 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 7. tcpdump (純正利用) ※インストール済み
 
    # pkg install /diagnostic/tcpdump
+
+8. sudo (純正利用) ※インストール済み
+
+   # pkg install /security/sudo
+
+9. less (純正利用) ※インストール済み
+
+   # pkg install /text/less
 
 10. jwhois
 
@@ -139,7 +126,9 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
     # wget ftp://ftp.cwru.edu/pub/bash/readline-6.3.tar.gz
     # tar xvzfls readline-6.3.tar.gz
     # cd readline-6.3
-    # CC="gcc -m64" \
+    > CFLAGS=-m64 \
+    > CPPFLAGS=-m64 \
+    > LDFLAGS=-m64 \
     # ./configure --prefix=/usr/local/64
     # make
     # make install
@@ -158,9 +147,5 @@ kamimaezu.ddo.jp (VMWare + OpenIndiana Hipster 2018.10)
 
     純正を利用
 
-14. wget
-
-    # wget -q -O $HOME/.cacert.pem http://curl.haxx.se/ca/cacert.pem --no-check-certificate
-    # echo ca-certificate = $HOME/.cacert.pem >> $HOME/.wgetrc
 
 

@@ -1,3 +1,175 @@
+<<<<<<< HEAD
+agassi.ddo.jp (CentOS 6.9 i386 EPSON Endeavor NP31S)
+
+DMARC (Domain-based Message Authentication, Reporting & Conformance)
+
+1. 参考 URL
+
+   https://www.nic.ad.jp/ja/basics/terms/dmarc.html
+   https://www.nic.ad.jp/ja/basics/terms/spf.html
+   https://www.nic.ad.jp/ja/basics/terms/dkim.html
+
+   http://blog.smtps.jp/entry/2017/12/22/095814
+
+2. DMARC の説明 (参考 URL より抜粋)
+
+   1. はじめに
+
+      DMARC (Domain-based Message Authentication, Reporting, and Conformance) とは、 電子メールにおける送信ドメイン認証技術の一つであり、RFC 7489 で標準化されている
+   
+      送信ドメイン認証で用いられる技術には、 SPF (Sender Policy Framework) や DKIM (DomainKeys Identified Mail) があります
+      SPF は、送信元メールサーバの IP アドレス等が正当なものかどうかを判別する手段
+      DKIM は、メールに電子署名を付加することで、メールの送信者および内容の検証 (改ざんの有無) を可能とするもの、DMARC は、両者を利用したメールのドメイン認証を補強する技術である
+
+   2. SPF、DKIM の課題
+
+      SPF および DKIM を用いて送信元ドメインを認証する際、 認証に失敗したメールをどのように取り扱うかは、送信先 (受信者) の判断に任せられており
+      送信元 (送信者) は、認証に失敗したことや、そのメールがどのように処理されたかを把握することはできない
+
+   3. DMARC の仕組み
+
+      SPF、DKIM の挙動を補強するため、DMARC は提案されたものである
+      DMARC では、認証失敗時にどのようにメールを処理すればよいかを、送信元 (送信者) が 送信先 (受信者) に対して、ポリシー (DNS レコード) 公開する仕組みとなっている
+      送信先 (受信者) は、認証に失敗した場合、送信元 (送信者) のポリシーを参照し、それに基づいてメールをどう扱うかを決定する
+
+      ※
+      DMARC では、送信先 (受信者) から、送信元 (送信者) に対して、認証に失敗した旨を通知するレポートを送ることができます
+      送信元 (送信者) は、送信元 (受信者) から送られてきたレポート内容を確認し、運用状況の確認、迷惑メール対策の検討を行うことが可能である
+
+3. DMARC の留意点
+
+   1. SPF の仕様
+
+      Envelope-From に対する検査、送信元は、SPF レコード (送信元 IP アドレスと、それ以外から送信された際、期待する処理) を、Envelope-From のドメインを管理する DNS に公開する
+
+      SPF        : Header-From は一般的に意識しない ※携帯キャリアでは、Header-From に対して検査している様子
+      DMARC SPF  : Envelope-From は Header-From と同じドメイン、 もしくは、Header-From のサブドメインであることを要求する
+
+   2. DKIM の仕様
+
+      Header-From に対する検査、送信元は、秘密鍵で作成した電子署名を DKIM-Signature ヘッダに付与し、DKIM レコード (公開鍵) を Header-From のドメインを管理する DNS に公開する
+      DKIM-Signature ヘッダの d タグに送信ドメインが、Header-From と異なるドメインで作成された署名を、"第三者署名"、同じドメインで作成された署名を、"作成者署名" という
+
+      DKIM       : "第三者署名"、"作成者署名" の評価に違いはない ※2018/4 時点
+　    DMARC DKIM : "作成者署名" を要求する
+
+      ------------
+      DKIM-Filter: OpenDKIM Filter v2.11.0 agassi.ddo.jp 02C9F6177655
+      DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=agassi.ddo.jp; s=20180426; t=1553147631; bh=Jw7WgOiCjBjtYTi+Wtp6ZLPaymTbX8S5DAmzmb9Cow0=; h=Subject:To:References:From:Date:In-Reply-To:From; b=IoWkcVUcYoJg0dRxcbXTKkRfq27NVm9eAPhJOuEbV6PG/bJQC8sU8nISN09Jl5hjI
+      	 CAJ9rpTTTyc6SNtdsqA/0kbalH1EehsG5MhtORzow1O13oN22WrkwfSS/YNe9eJOPu
+      	 xcpd25Zy+AtnN0++6ezuFPVHSQwzEBh6JjMUFlvQ=
+      To: "オレヒル" <orehiru2007@gmail.com>
+      From: Yasutake MASUDA <masuda@agassi.ddo.jp>
+      ------------
+
+      DKIM-Signature の d タグ     : agassi.ddo.jp
+      Header-From の送信元ドメイン : agassi.ddo.jp
+      上記が一致しているため、"作成者署名" であることが確認される
+
+   3. バウンスメールの扱い (メール一斉配信時、Envelope-From の指定)
+
+      > DMARC SPF  : Envelope-From は Header-From と同じドメイン、 もしくは、Header-From のサブドメインであることを要求する
+      上記の仕様から、Header-From のサブドメインとすることが推奨される
+
+4. 送信ドメイン認証の結果確認
+
+   以下、Gmail に送信した際の結果
+
+   ------------
+   ARC-Authentication-Results: i=1; mx.google.com;
+          dkim=pass header.i=@agassi.ddo.jp header.s=20180426 header.b=tBknIX98;
+          spf=pass (google.com: domain of masuda@agassi.ddo.jp designates 203.133.245.13 as permitted sender) smtp.mailfrom=masuda@agassi.ddo.jp;
+   ------------
+
+   dkim=pass                          : DKIM の認証結果、pass 以外の場合、DKIM の設定に問題がある
+   header.i=@agassi.ddo.jp            : DKIM の署名を付与した送信元ドメイン (DKIM-Signature ヘッダの d タグと同じ) ※DMARC を運用する場合、Header-From と同じドメイン or Header-From のサブドメイン の必要がある
+   spf=pass                           : SPF の認証結果、pass 以外の場合、SPF の設定に問題がある
+   smtp.mailfrom=masuda@agassi.ddo.jp : SPF の認証に使用した Envelope-From                                         ※DMARC を運用する場合、Header-From のサブドメインが推奨される
+
+5. DMARC レコードを公開する
+
+   ------------
+   _dmarc.agassi.ddo.jp.        60      IN      TXT     "v=DMARC1\; p=none\; pct=100\; adkim=r\; aspf=r\; rua=mailto:dmarc@agassi.ddo.jp"
+   ------------
+
+   v=DMARC1   : 必須、最初に記述しなければならない、DMARC のバージョンを表す
+   
+   p=none     : 必須、なりすまし と判断したメールに対する、ポリシーを宣言する ※SPF, DKIM の両方の認証に失敗した場合、"なりすまし" と判断する
+                none       : 何もしない
+                quarantine : 隔離する
+                reject     : 拒否する
+   
+   pct=100    : オプション (デフォルト値は 100)、DMARC のポリシーを適用する割合をパーセンテージで指定する 
+   
+   adkim=r    : オプション (デフォルト値は r)、DKIM 認証パラメータ
+                r (relaxed) : DKIM の送信ドメイン (d タグ）のサブドメインを Header-From に使用することができる
+                s (strict)  : DKIM の送信ドメイン (d タグ）と Header-From は同じドメインでなければならない
+   
+   aspf=r     : オプション (デフォルト値は r)、SPF 認証パラメータ
+                r (relaxed) : Header-From のサブドメインを Envelope-From に使用することができる
+                s (strict)  : Envelope-From と Header-From は同じドメインでなければならない
+   
+   rua=mailto : オプション、集計レポート (送信元 IP アドレス、Header-From、Envelope-From、送信ドメイン認証の結果など、主になりすましの判定に使用した情報) の送付先
+
+   ruf=       : オプション、失敗レポート (なりすましと判定した場合、そのメールの詳細な情報がリアルタイムにレポートされる ※まずは集計レポートの解析から)
+
+6. DMARC レコードを受信する
+
+   ------------
+   agassi.ddo.jp._report._dmarc.agassi.ddo.jp.     IN      TXT     "v=DMARC1"
+   ------------
+
+   レコード名 : "送信ドメイン." + ”_report._dmarc.” + "レポートを受信するドメイン"
+   レコード値 : "v=DMARC1"
+
+7. DNS レコードまとめ
+
+   ; SPF
+                           IN      TXT     "v=spf1 +ip4:203.133.240.0/21 ~all"
+   ; DKIM
+   20180426._domainkey     IN      TXT     "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2jbJCbdmnMHFfEOKkGmuozYpuTLNgMKvK1AM6tVievys3PfixV8g3hGhstQW6g6ofJ0BjFHAgeH3iyJQEMpAT+cZRtY9k+TWB0QSPlnMD7N9WimAjou3hpvXGvZDnoDjcxfNpkH1yNyl1a/fE8pMv/KnquMn+qWAxrAGSE/P19wIDAQAB"
+   _adsp._domainkey        IN      TXT     "dkim=unknown"
+   
+   ; DMARC
+   _dmarc.agassi.ddo.jp.                           IN      TXT     "v=DMARC1\; p=none\; pct=100\; adkim=r\; aspf=r\; rua=mailto:dmarc@agassi.ddo.jp"
+   agassi.ddo.jp._report._dmarc.agassi.ddo.jp.     IN      TXT     "v=DMARC1"
+
+8. DNS レコードまとめ (gmail.com)
+
+   1. SPF
+
+      ------------
+      gmail.com       text = "v=spf1 redirect=_spf.google.com"
+      ------------
+
+   2. DKIM
+
+      ------------
+      20161025._domainkey.gmail.com   text = "k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAviPGBk4ZB64UfSqWyAicdR7lodhytae+EYRQVtKDhM+1mXjEqRtP/pDT3sBhazkmA48n2k5NJUyMEoO8nc2r6sUA+/Dom5jRBZp6qDKJOwjJ5R/OpHamlRG+YRJQqR" "tqEgSiJWG7h7efGYWmh4URhFM9k9+rmG/CwCgwx7Et+c8OMlngaLl04/bPmfpjdEyLWyNimk761CX6KymzYiRDNz1MOJOJ7OzFaS4PFbVLn0m5mf0HVNtBpPwWuCNvaFVflUYxEyblbB6h/oWOPGbzoSgtRA47SHV53SwZjIsVpbq4LxUW9IxAEwYzGcSgZ4n5Q8X8TndowsDUzoccPFGhdwIDAQAB"
+      ------------
+
+   3. DMARC
+
+      ------------
+      _dmarc.gmail.com        text = "v=DMARC1; p=none; sp=quarantine; rua=mailto:mailauth-reports@google.com"
+      gmail.com._report._dmarc.google.com     text = "v=DMARC1"
+      ------------
+
+      v=DMARC1      : 必須、最初に記述しなければならない、DMARC のバージョンを表す
+
+      p=none        : 必須、なりすまし と判断したメールに対する、ポリシーを宣言する ※SPF, DKIM の両方の認証に失敗した場合、"なりすまし" と判断する
+                      none       : 何もしない
+                      quarantine : 隔離する
+                      reject     : 拒否する
+
+      sp=quarantine : オプション、サブドメインに対する、ポリシーを宣言する
+
+      ruf=          : オプション、失敗レポート (なりすましと判定した場合、そのメールの詳細な情報がリアルタイムにレポートされる ※まずは集計レポートの解析から)
+
+
+
+
+=======
 agassi.ddo.jp CentOS Linux release 7.6.1810 (Core) / EPSON Endeavor ST11E
 
 DMARC (Domain-based Message Authentication, Reporting & Conformance)
@@ -467,3 +639,4 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
 
     ※有償サービスを利用するのが良さそうな気がする
 
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536

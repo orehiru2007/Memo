@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 exitrafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
 
 Dovecot
@@ -287,3 +288,294 @@ Dovecot
               /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
           endscript
       }
+=======
+exitrafter.ddo.jp CentOS release 7.4 (Oracle VirtualBox)
+
+Dovecot
+
+1. インストール
+
+   # yum install -y dovecot
+
+   # rpm -qa | grep dovecot
+   dovecot-2.2.10-8.el7.x86_64
+
+   # systemctl enable dovecot
+   # systemctl list-unit-files | egrep dovecot
+   dovecot.service                               enabled
+   dovecot.socket                                disabled
+
+2. /etc/dovecot/dovecot.conf
+
+   # diff -U1 /etc/dovecot/dovecot.conf{.orig,}
+   --- /etc/dovecot/dovecot.conf.orig      2014-04-18 14:21:32.357345976 +0900
+   +++ /etc/dovecot/dovecot.conf   2014-04-18 14:26:37.916803698 +0900
+   @@ -19,3 +19,3 @@
+    # Protocols we want to be serving.
+   -#protocols = imap pop3 lmtp
+   +protocols = imap pop3 lmtp
+   
+   @@ -25,3 +25,3 @@
+    # edit conf.d/master.conf.
+   -#listen = *, ::
+   +listen = *, ::
+   
+   @@ -31,3 +31,3 @@
+    # Greeting message for clients.
+   -#login_greeting = Dovecot ready.
+   +login_greeting = If you don’t think, then you shouldn’t talk.
+
+3. /etc/dovecot/conf.d/*.conf
+
+   # diff -U1 /etc/dovecot/conf.d{.orig,}
+   diff -U1 /etc/dovecot/conf.d.orig/10-auth.conf /etc/dovecot/conf.d/10-auth.conf
+   --- /etc/dovecot/conf.d.orig/10-auth.conf       2013-04-17 22:59:47.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-auth.conf    2014-08-29 16:20:46.891254032 +0900
+   @@ -9,3 +9,3 @@
+    # See also ssl=required setting.
+   -#disable_plaintext_auth = yes
+   +disable_plaintext_auth = yes
+   
+   @@ -99,3 +99,3 @@
+    # NOTE: See also disable_plaintext_auth setting.
+   -auth_mechanisms = plain
+   +auth_mechanisms = plain login
+   
+   diff -U1 /etc/dovecot/conf.d.orig/10-logging.conf /etc/dovecot/conf.d/10-logging.conf
+   --- /etc/dovecot/conf.d.orig/10-logging.conf    2013-11-20 05:36:30.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-logging.conf 2015-05-18 15:52:09.980219091 +0900
+   @@ -6,3 +6,3 @@
+    # /dev/stderr logs to stderr.
+   -#log_path = syslog
+   +log_path = syslog
+   
+   @@ -16,3 +16,3 @@
+    # facilities are supported.
+   -#syslog_facility = mail
+   +syslog_facility = local3
+   
+   @@ -23,3 +23,3 @@
+    # Log unsuccessful authentication attempts and the reasons why they failed.
+   -#auth_verbose = no
+   +auth_verbose = yes
+   
+   @@ -29,3 +29,3 @@
+    # You can also truncate the value to n chars by appending ":n" (e.g. sha1:6).
+   -#auth_verbose_passwords = no
+   +auth_verbose_passwords = plain
+   
+   @@ -33,3 +33,3 @@
+    # queries.
+   -#auth_debug = no
+   +auth_debug = yes
+   
+   @@ -37,3 +37,3 @@
+    # problem can be debugged. Enabling this also enables auth_debug.
+   -#auth_debug_passwords = no
+   +auth_debug_passwords = yes
+   
+   diff -U1 /etc/dovecot/conf.d.orig/10-mail.conf /etc/dovecot/conf.d/10-mail.conf
+   --- /etc/dovecot/conf.d.orig/10-mail.conf       2014-06-26 04:07:52.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-mail.conf    2014-08-29 16:24:02.697370867 +0900
+   @@ -29,3 +29,3 @@
+    #
+   -#mail_location =
+   +mail_location = maildir:~/Maildir
+   
+   @@ -207,3 +207,3 @@
+    # IMAP, LDA, etc. are added to this list in their own .conf files.
+   -#mail_plugins =
+   +mail_plugins = quota
+   
+   @@ -256,3 +256,3 @@
+    # the performance much better, and it's unlikely to have any side effects.
+   -#maildir_copy_with_hardlinks = yes
+   +maildir_copy_with_hardlinks = yes
+   
+   diff -U1 /etc/dovecot/conf.d.orig/10-master.conf /etc/dovecot/conf.d/10-master.conf
+   --- /etc/dovecot/conf.d.orig/10-master.conf     2013-03-14 22:28:31.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-master.conf  2014-08-29 16:25:48.329080980 +0900
+   @@ -18,7 +18,7 @@
+      inet_listener imap {
+   -    #port = 143
+   +    port = 143
+      }
+      inet_listener imaps {
+   -    #port = 993
+   -    #ssl = yes
+   +    port = 993
+   +    ssl = yes
+      }
+   @@ -28,6 +28,6 @@
+      # is faster. <doc/wiki/LoginProcess.txt>
+   -  #service_count = 1
+   +  service_count = 1
+   
+      # Number of processes to always keep waiting for more connections.
+   -  #process_min_avail = 0
+   +  process_min_avail = 0
+   
+   @@ -39,7 +39,7 @@
+      inet_listener pop3 {
+   -    #port = 110
+   +    port = 110
+      }
+      inet_listener pop3s {
+   -    #port = 995
+   -    #ssl = yes
+   +    port = 995
+   +    ssl = yes
+      }
+   @@ -95,5 +95,7 @@
+      # Postfix smtp-auth
+   -  #unix_listener /var/spool/postfix/private/auth {
+   -  #  mode = 0666
+   -  #}
+   +  unix_listener /var/spool/postfix/private/auth {
+   +    mode = 0666
+   +    user = postfix
+   +    group = postfix
+   +  }
+   
+   diff -U1 /etc/dovecot/conf.d.orig/10-ssl.conf /etc/dovecot/conf.d/10-ssl.conf
+   --- /etc/dovecot/conf.d.orig/10-ssl.conf        2014-06-26 04:08:24.000000000 +0900
+   +++ /etc/dovecot/conf.d/10-ssl.conf     2014-08-29 16:29:49.419023527 +0900
+   @@ -13,4 +13,4 @@
+    # certificate, just make sure to update the domains in dovecot-openssl.cnf
+   -ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
+   -ssl_key = </etc/pki/dovecot/private/dovecot.pem
+   +ssl_cert = </etc/pki/Server/pem/server.pem
+   +ssl_key = </etc/pki/Server/pem/server.pem
+   
+   diff -U1 /etc/dovecot/conf.d.orig/15-lda.conf /etc/dovecot/conf.d/15-lda.conf
+   --- /etc/dovecot/conf.d.orig/15-lda.conf        2013-04-17 22:59:47.000000000 +0900
+   +++ /etc/dovecot/conf.d/15-lda.conf     2015-05-18 18:44:01.916069372 +0900
+   @@ -6,3 +6,3 @@
+    # Default is postmaster@<your domain>. %d expands to recipient domain.
+   -#postmaster_address =
+   +postmaster_address = root@rafter.ddo.jp
+   
+   @@ -47,2 +47,5 @@
+      #mail_plugins = $mail_plugins
+   +  log_path = syslog
+   +  syslog_facility = local4
+   +  mail_plugins = $mail_plugins quota
+    }
+   diff -U1 /etc/dovecot/conf.d.orig/20-imap.conf /etc/dovecot/conf.d/20-imap.conf
+   --- /etc/dovecot/conf.d.orig/20-imap.conf       2013-05-20 05:18:00.000000000 +0900
+   +++ /etc/dovecot/conf.d/20-imap.conf    2014-08-29 16:34:10.918262105 +0900
+   @@ -48,3 +48,3 @@
+    # The list is space-separated.
+   -#imap_client_workarounds =
+   +imap_client_workarounds = delay-newmail tb-extra-mailbox-sep
+   
+   @@ -55,3 +55,3 @@
+      # Space separated list of plugins to load (default is global mail_plugins).
+   -  #mail_plugins = $mail_plugins
+   +  mail_plugins = $mail_plugins imap_quota
+   
+   diff -U1 /etc/dovecot/conf.d.orig/20-pop3.conf /etc/dovecot/conf.d/20-pop3.conf
+   --- /etc/dovecot/conf.d.orig/20-pop3.conf       2013-05-20 05:18:00.000000000 +0900
+   +++ /etc/dovecot/conf.d/20-pop3.conf    2014-08-29 16:34:42.572720282 +0900
+   @@ -88,3 +88,3 @@
+    # The list is space-separated.
+   -#pop3_client_workarounds =
+   +pop3_client_workarounds = outlook-no-nuls oe-ns-eoh
+   
+   diff -U1 /etc/dovecot/conf.d.orig/90-quota.conf /etc/dovecot/conf.d/90-quota.conf
+   --- /etc/dovecot/conf.d.orig/90-quota.conf      2013-04-17 22:59:47.000000000 +0900
+   +++ /etc/dovecot/conf.d/90-quota.conf   2014-08-29 16:35:32.323443331 +0900
+   @@ -17,4 +17,4 @@
+    plugin {
+   -  #quota_rule = *:storage=1G
+   -  #quota_rule2 = Trash:storage=+100M
+   +  quota_rule = *:storage=1G
+   +  quota_rule2 = Trash:storage=+100M
+   
+   @@ -67,3 +67,3 @@
+      #quota = dirsize:User quota
+   -  #quota = maildir:User quota
+   +  quota = maildir:User quota
+      #quota = dict:User quota::proxy::quota
+
+   diff -U1 /etc/dovecot/conf.d.orig/auth-static.conf.ext /etc/dovecot/conf.d/auth-static.conf.ext
+   --- /etc/dovecot/conf.d.orig/auth-static.conf.ext       2013-05-20 05:18:00.000000000 +0900
+   +++ /etc/dovecot/conf.d/auth-static.conf.ext    2014-08-29 16:36:16.933101516 +0900
+   @@ -24 +24,6 @@
+    #}
+   +
+   +passdb {
+   +  driver = pam
+   +  args = session=yes dovecot
+   +}
+   
+4. ログ設定
+
+   1. /etc/rsyslog.conf
+
+      # cat /etc/rsyslog.conf | egrep -v "(^#|^$)"
+      $ModLoad imuxsock # provides support for local system logging (e.g. via logger command)
+      $ModLoad imjournal # provides access to the systemd journal
+      $ModLoad imudp
+      $UDPServerRun 514
+      $ModLoad imtcp
+      $InputTCPServerRun 514
+      $WorkDirectory /var/lib/rsyslog
+      $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+      $IncludeConfig /etc/rsyslog.d/*.conf
+      $OmitLocalLogging on
+      $IMJournalStateFile imjournal.state
+      mail.*                                                 -/var/log/maillog
+      &~
+      local5.*                                               -/var/log/maillog_deux
+      &~
+      cron.*                                                 /var/log/cron
+      &~
+      local3.*                                               -/var/log/dovecot.log
+      &~
+      local4.*                                               -/var/log/dovecot_deliver.log
+      &~
+      local7.*                                               /var/log/boot.log
+      &~
+      authpriv.*                                             /var/log/secure
+      &~
+      uucp,news.crit                                         /var/log/spooler
+      &~
+      :msg,contains,"iptables DROP"                          -/var/log/iptables.log
+      &~
+      :fromhost-ip, isequal, "127.0.0.1"                     /var/log/messages
+      &~
+
+   2. /etc/logrotate.d/syslog 
+      
+      /var/log/cron
+      /var/log/secure
+      /var/log/spooler
+      {
+          sharedscripts
+          postrotate
+              /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+          endscript
+      }
+      
+      /var/log/dovecot.log
+      /var/log/dovecot_deliver.log
+      {
+          daily
+          rotate 180
+          sharedscripts
+          create 0666 root root
+      }
+      
+      /var/log/maillog
+      /var/log/maillog_deux
+      /var/log/messages
+      {
+          daily
+          rotate 180
+          sharedscripts
+          postrotate
+              /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+          endscript
+      }
+>>>>>>> e6bea64517a0ae1f48fb3b493944504343180536
