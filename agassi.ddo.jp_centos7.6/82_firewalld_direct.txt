@@ -279,7 +279,7 @@ http://qiita.com/ngsw/items/f5083becc0e721ae5bd9#etcfirewallddirectxml-%E6%89%8B
      <rule priority="101" table="filter" ipv="ipv4" chain="INPUT">-i lo -j ACCEPT</rule>
      <rule priority="102" table="filter" ipv="ipv4" chain="INPUT">-i enp0s8 -j ACCEPT</rule>
      <rule priority="103" table="filter" ipv="ipv4" chain="INPUT">-i enp0s9 -j ACCEPT</rule>
-     <rule priority="104" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -s 10.51.20.11/32 -p tcp -m multiport --dports 25 -j LOGGING</rule>
+     <rule priority="104" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -s 10.51.20.11/32  -j LOGGING</rule>
      <rule priority="199" table="filter" ipv="ipv4" chain="INPUT">-i enp0s3 -j ACCEPT</rule>
      <rule priority="299" table="filter" ipv="ipv4" chain="OUTPUT">-o -j ACCEPT</rule>
      <rule priority="399" table="filter" ipv="ipv4" chain="FORWARD"> -j ACCEPT</rule>

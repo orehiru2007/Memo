@@ -185,6 +185,21 @@ firewalld ダイレクトルール
    @@ -69 +69 @@
    -                log.warning("ICMP type '%s' is not supported by the kernel for %s." % (obj.name, ipv))
    +                log.info1("ICMP type '%s' is not supported by the kernel for %s." % (obj.name, ipv))
-   
-   
-   
+
+9. ポートフォワード設定 
+
+   [root@router01 ~]# cat /etc/firewalld/direct.xml
+   <?xml version="1.0" encoding="utf-8"?>
+   <direct>
+     <rule priority="101" ipv="ipv4" table="filter" chain="INPUT" >-i lo -j ACCEPT</rule>
+     <rule priority="102" ipv="ipv4" table="filter" chain="INPUT" >-i eth1 -j ACCEPT</rule>
+     <rule priority="301" ipv="ipv4" table="filter" chain="OUTPUT">-j ACCEPT</rule>
+     <rule priority="401" ipv="ipv4" table="filter" chain="FORWARD">-j ACCEPT</rule>
+     <rule priority="501" ipv="ipv4" table="nat" chain="PREROUTING">-p tcp -m tcp --dport 443 -j DNAT --to-destination 172.20.20.5:443</rule>
+     <rule priority="502" ipv="ipv4" table="nat" chain="PREROUTING">-p tcp -m tcp --dport 1433 -j DNAT --to-destination 40.79.184.8:1433</rule>
+     <rule priority="599" ipv="ipv4" table="nat" chain="POSTROUTING">-o eth0 -j MASQUERADE</rule>
+   </direct>
+
+
+
+

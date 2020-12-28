@@ -200,7 +200,7 @@ CentOS 7 UEFI 環境 バックアップ、リストア手順
    # grub2-mkconfig -o /boot/efi/EFI/centos/grub.cfg
    ※"/run/lvm/lvmetad.socket: connect failed:No such file or directory" は無視する
 
-   10. 初期 RAM ディスク再作
+   10. 初期 RAM ディスク再作成
    # cd /boot
    # mv initramfs-3.10.0-327.13.1.el7.x86_64.img initramfs-3.10.0-327.13.1.el7.x86_64.img.old
    # dracut -f initramfs-3.10.0-327.13.1.el7.x86_64.img 3.10.0-327.13.1.el7.x86_64

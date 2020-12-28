@@ -1,0 +1,123 @@
+lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
+
+
+1. インストール
+
+   [root@lendl ~]# rpm -qa | egrep ^bind
+   bind-9.11.4-17.P2.el8_0.1.x86_64
+   bind-libs-lite-9.11.4-17.P2.el8_0.1.x86_64
+   bind-libs-9.11.4-17.P2.el8_0.1.x86_64
+   bind-license-9.11.4-17.P2.el8_0.1.noarch
+   bind-utils-9.11.4-17.P2.el8_0.1.x86_64
+
+2. /etc/named.conf
+
+   options {
+           //listen-on port 53 { 127.0.0.1; };
+           //listen-on-v6 port 53 { ::1; };
+           version "unknown";
+           directory "/var/named";
+           dump-file "/var/named/data/cache_dump.db";
+           statistics-file "/var/named/data/named_stats.txt";
+           memstatistics-file "/var/named/data/named_mem_stats.txt";
+           allow-query { any; };
+           allow-transfer { 192.168.72.0/24; };
+           notify yes;
+           auth-nxdomain no;
+           empty-zones-enable no;
+   
+           /* DNS SEC */
+           dnssec-enable yes;
+           dnssec-validation no;
+           dnssec-lookaside auto;
+   
+           /* Path to ISC DLV key */
+           bindkeys-file "/etc/named.iscdlv.key";
+   
+           managed-keys-directory "/var/named/dynamic";
+   };
+   logging {
+           channel "default-log" {
+                   file "log/default.log" versions 10 size 10m;
+                   print-time yes;
+                   print-category yes;
+                   print-severity yes;
+                   severity info;
+           };
+           channel "queries-log" {
+                   file "log/queries.log" versions 10 size 10m;
+                   severity info;
+                   print-time yes;
+                   print-severity yes;
+                   print-category yes;
+           };
+           category default {
+                   "default-log";
+                   "default_syslog";
+                   "default_debug";
+                   "default_stderr";
+           };
+           channel default_debug {
+                   file "data/named.run";
+                   severity dynamic;
+           };
+           category queries { "queries-log"; };
+           category lame-servers { null; };
+           category security { null; };
+           category update-security { null; };
+   };
+   
+   view "internal" {
+           allow-query { any; };
+           match-clients {
+                   127.0.0.1/32;
+                   192.168.72.0/24;
+           };
+           recursion yes;
+   
+           zone "." IN {
+                   type hint;
+                   file "named.ca";
+           };
+   
+           zone "0.0.127.in-addr.arpa" IN {
+                   type master;
+                   file "0.0.127.in-addr.arpa";
+                   allow-update { none; };
+           };
+   
+           zone "72.168.192.in-addr.arpa" IN {
+                   type master;
+                   file "72.168.192.in-addr.arpa";
+                   allow-update { none; };
+           };
+   
+           zone "agassi.ddo.jp" IN {
+                   type master;
+                   file "agassi.ddo.jp";
+                   allow-update { none; };
+           };
+   
+           //zone "ibiden.com" IN {
+           //      type master;
+           //      file "ibiden.com";
+           //      allow-update { none; };
+           //};
+   };
+   
+   view "external" {
+           allow-query { any; };
+           match-clients { any; };
+           recursion no;
+   
+           zone "agassi.ddo.jp" IN {
+                   type master;
+                   file "ext.agassi.ddo.jp";
+                   allow-update { none; };
+           };
+   };
+   
+   //include "/etc/named.rfc1912.zones";
+   include "/etc/named.root.key";
+
+
