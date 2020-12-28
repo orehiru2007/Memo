@@ -1,0 +1,36 @@
+各位
+田渡です
+
+IHU から、問い合わせ (G-Cab アカウント数、Share360 アカウント数) を受けていています
+※タックサービスデスク (データセンタ) から、システムを経由して、ネットワークにたどり着いたようです
+
+1. IHU からの質問事項
+
+   Dear Support,
+   
+   I would like to ask you send me the user list of G-Cab and Share360 accounts for IHU users.
+   We would like to know how many users are using these services.
+   Thank you very much for your support.
+
+2. G-Cabinet アカウントリスト
+   
+   資料名: G-cab_accountlist_20181219.xlsx
+
+To: 阪本さん、小川さん
+Share360 内の IHU アカウントの一覧について共有をお願いします
+まとめて、田渡より、IHU 担当者に対して回答します
+
+以上、よろしくお願いします
+
+
+
+
+
+
+
+
+
+
+IPF	SSL-VPN
+
+

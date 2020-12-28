@@ -1,0 +1,118 @@
+Python 環境構築
+
+> https://speakerdeck.com/2bo/python-huan-jing-gou-zhu-fang-fa-2016
+> 
+> pyenv
+> . 色々な Python バージョンを管理するツール
+> . Python2 系と 3 系を切り替えて使える
+> . shell やディレクトリで使用する Python を指定可能
+> . 同一バージョンの Python でライブラリを切り替えて使うことはできない
+> . Windows では使えない
+> 
+> virtualenv
+> . 同一バージョンの Python で使用するライブラリを切り替えて使えるようにするツール
+> . Python2 系と 3.2 までの 3 系で使用 (Python3.3 移行は pyvenv というツールになった？)
+> . pyenv とは無関係
+> . pip でインストールできる
+> . Windows でも使える
+> 
+> pyenv-virtualenv
+> . pyenv で同一バージョンの Python でライブラリを切り替えて使えるようにしたツール
+> . virtualenv とは無関係
+> . 作者は pyenv と同じ型
+> . もちろん Windows では使えない
+> 
+> →
+> pyenv
+> . 複数バージョンの Python を切り替えて使える
+> . Windows では使えない
+> 
+> virtualenv
+> . Python のライブラリ環境を切り替えて使える
+> . Windows で使える
+> 
+> pyenv-virtualenv
+> . pyenv に virtualenv の機能を追加する
+> . Windows では使えない
+
+Linux (CentOS 7) pyenv + pyenv-virtualenv
+
+1. 前提
+
+   OS 標準でインストールされている Python には変更をくわえない
+
+2. pyenv インストール
+
+   1. 必要パッケージのインストール
+   # yum install -y gcc gcc-c++ make git patch openssl-devel zlib-devel readline-devel sqlite-devel bzip2-devel
+
+   2. ダウンロード
+   # git clone https://github.com/yyuu/pyenv.git /usr/local/pyenv
+
+   3. Python インストール
+   # export PYENV_ROOT="/usr/local/pyenv"
+   # export PATH="/usr/local/pyenv/bin:$PATH"
+   # pyenv install 3.5.4
+   # pyenv install 2.7.14
+
+3. pyenv-virtualenv インストール
+ 
+   1. ダウンロード
+   # cd /usr/local/pyenv/plugins/
+   # git clone https://github.com/yyuu/pyenv-virtualenv.git
+   # git clone https://github.com/yyuu/pyenv-virtualenvwrapper.git
+
+4. 環境変数設定
+
+   # cat /.bashrc
+   export PYENV_ROOT="/usr/local/pyenv"
+   export PATH="/usr/local/pyenv/bin:$PATH"
+   eval "$(pyenv init -)"
+   
+   if [ -f /usr/local/pyenv/bin/pyenv ]; then
+           export PYENV_ROOT="/usr/local/pyenv"
+           export PATH="/usr/local/pyenv/bin:$PATH"
+           eval "$(pyenv init -)"
+           PS1='(pyenv:`pyenv version-name`)'$PS1
+   fi
+
+5. 初期設定
+
+   # pyenv virtualenv 3.5.4 Py3
+   # pyenv virtualenv 2.7.14 Py2
+   # pyenv global Py2
+
+6. TIPS pyenv-virtualenv の使い方
+
+   1. インストール可能なPythonの一覧表示
+   # pyenv install -l
+
+   2. python インストール
+   # pyenv install [一覧にあるバージョン名]
+
+   3. python 仮想環境作成
+   # pyenv virtualenv [Pythonバージョン] [仮想環境名]
+
+   例)
+   # pyenv virtualenv 2.7.11 Py2Base
+   # pyenv virtualenv Py2Base py2-test
+   仮想環境から新しい仮想環境を作った場合はライブラリ等も引き継がれます
+
+   4. python 仮想環境削除
+   # pyenv uninstall [ 仮想環境名 ]
+
+   5. 標準で使用する Python を変更
+   # pyenv global [仮想環境名]
+
+   6. 現在のshellの Python を変更
+   # pyenv shell [ 仮想環境名 ]
+
+   7. 現在のディレクトリの Python を変更
+   # pyenv local [ 仮想環境名 ]
+
+   8. 仮想環境の一覧表示
+   # pyenv versions
+
+   9. PyEnvのアップデート
+   # cd /usr/local/pyenv
+   # git pull
