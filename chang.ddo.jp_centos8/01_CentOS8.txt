@@ -526,7 +526,6 @@ chang.ddo.jp / CentOS Linux release 8.3.2011 / Oracle VirtualBox
        # systemctl status rpcbind
 
        # systemctl restart rpcbind
-       # systemctl start nfs-idmap
        # systemctl start nfs-mountd
  
     5. 自動起動

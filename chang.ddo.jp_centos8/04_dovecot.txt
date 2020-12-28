@@ -1,5 +1,4 @@
-lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
-
+chang.ddo.jp / CentOS Linux release 8.3.2011 / Oracle VirtualBox
 
 Dovecot
 
@@ -8,7 +7,7 @@ Dovecot
    # yum install -y dovecot
 
    # rpm -qa | grep dovecot
-   dovecot-2.2.36-5.el8.x86_64
+   dovecot-2.3.8-4.el8.x86_64
 
    # systemctl enable dovecot
    # systemctl list-unit-files | egrep dovecot
@@ -19,22 +18,21 @@ Dovecot
 2. /etc/dovecot/dovecot.conf
 
    # diff -U1 /etc/dovecot/dovecot.conf{.orig,}
-   --- /etc/dovecot/dovecot.conf.orig      2014-04-18 14:21:32.357345976 +0900
-   +++ /etc/dovecot/dovecot.conf   2014-04-18 14:26:37.916803698 +0900
-   @@ -19,3 +19,3 @@
-    # Protocols we want to be serving.
-   -#protocols = imap pop3 lmtp
+   --- /etc/dovecot/dovecot.conf.orig      2020-12-28 16:46:09.587350495 +0900
+   +++ /etc/dovecot/dovecot.conf   2020-12-28 17:38:44.215838136 +0900
+   @@ -24,2 +24,3 @@
+    #protocols = imap pop3 lmtp submission
    +protocols = imap pop3 lmtp
    
-   @@ -25,3 +25,3 @@
+   @@ -29,3 +30,3 @@
     # edit conf.d/master.conf.
    -#listen = *, ::
    +listen = *, ::
    
-   @@ -31,3 +31,3 @@
+   @@ -41,3 +42,3 @@
     # Greeting message for clients.
    -#login_greeting = Dovecot ready.
-   +login_greeting = If you don’t think, then you shouldn’t talk.
+   +login_greeting = How would you know the difference between the dream world and the real world?
 
 3. /etc/dovecot/conf.d/*.conf
 

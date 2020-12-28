@@ -1,14 +1,14 @@
-lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
-
+chang.ddo.jp / CentOS Linux release 8.3.2011 / Oracle VirtualBox
 
 1. インストール
 
-   [root@lendl ~]# rpm -qa | egrep ^bind
-   bind-9.11.4-17.P2.el8_0.1.x86_64
-   bind-libs-lite-9.11.4-17.P2.el8_0.1.x86_64
-   bind-libs-9.11.4-17.P2.el8_0.1.x86_64
-   bind-license-9.11.4-17.P2.el8_0.1.noarch
-   bind-utils-9.11.4-17.P2.el8_0.1.x86_64
+   (pyenv:Py2)[root@chang ~]# rpm -qa | egrep ^bind
+   bind-libs-lite-9.11.20-5.el8.x86_64
+   bind-9.11.20-5.el8.x86_64
+   bind-license-9.11.20-5.el8.noarch
+   bind-export-libs-9.11.20-5.el8.x86_64
+   bind-libs-9.11.20-5.el8.x86_64
+   bind-utils-9.11.20-5.el8.x86_64
 
 2. /etc/named.conf
 

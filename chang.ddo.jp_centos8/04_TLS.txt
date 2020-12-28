@@ -1,4 +1,4 @@
-lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
+chang.ddo.jp / CentOS Linux release 8.3.2011 / Oracle VirtualBox
 
 TLS サーバ証明書 SHA-2 署名
 
@@ -121,9 +121,9 @@ TLS サーバ証明書 SHA-2 署名
 
 2. プライベート CA を構築するためのスクリプトの作成
 
-   # cp -p /usr/local/src/openssl/openssl-1.0.2t/apps/CA.sh /etc/pki/myCA/CA.sh
+   # cp -p /usr/local/src/openssl/openssl-1.0.2u/apps/CA.sh /etc/pki/myCA/CA.sh
 
-   [root@lendl ~]# diff -u /etc/pki/myCA/CA.sh{.orig,}
+   [root@chang ~]# diff -u /etc/pki/myCA/CA.sh{.orig,}
    --- /etc/pki/myCA/CA.sh.orig    2019-10-01 16:28:35.772628925 +0900
    +++ /etc/pki/myCA/CA.sh 2019-10-01 16:29:50.673600230 +0900
    @@ -62,6 +62,9 @@
@@ -151,23 +151,23 @@ TLS サーバ証明書 SHA-2 署名
    (snip)
    Certificate Details:
            Serial Number:
-               66:ba:2f:f0:a1:c3:3b:eb:87:f0:99:21:55:d5:05:c8:1c:cc:e8:78
+               45:80:cf:73:ea:39:97:15:9d:d4:d2:93:0d:5f:12:d1:9e:5d:b6:57
            Validity
-               Not Before: Oct  1 07:47:58 2019 GMT
-               Not After : Sep 28 07:47:58 2029 GMT
+               Not Before: Dec 28 07:36:15 2020 GMT
+               Not After : Dec 26 07:36:15 2030 GMT
            Subject:
                countryName               = JP
                stateOrProvinceName       = Gifu
                organizationName          = Kono
                organizationalUnitName    = PrivateCA
-               commonName                = lendl.ddo.jp
+               commonName                = chang.ddo.jp
            X509v3 extensions:
                X509v3 Subject Key Identifier:
-                   98:A0:1F:7C:46:3F:A9:6B:53:EE:EF:CC:34:73:64:5C:F4:A6:CF:15
+                   CE:F9:65:1D:C9:6C:43:56:F8:37:D1:54:A0:6B:5E:27:B9:30:51:27
                X509v3 Authority Key Identifier:
-                   keyid:98:A0:1F:7C:46:3F:A9:6B:53:EE:EF:CC:34:73:64:5C:F4:A6:CF:15
-                   DirName:/C=JP/ST=Gifu/O=TAK/OU=PrivateCA/CN=lendl.ddo.jp
-                   serial:66:BA:2F:F0:A1:C3:3B:EB:87:F0:99:21:55:D5:05:C8:1C:CC:E8:78
+                   keyid:CE:F9:65:1D:C9:6C:43:56:F8:37:D1:54:A0:6B:5E:27:B9:30:51:27
+                   DirName:/C=JP/ST=Gifu/O=Kono/OU=PrivateCA/CN=chang.ddo.jp
+                   serial:45:80:CF:73:EA:39:97:15:9D:D4:D2:93:0D:5F:12:D1:9E:5D:B6:57
    
                X509v3 Basic Constraints:
                    CA:TRUE
@@ -175,28 +175,28 @@ TLS サーバ証明書 SHA-2 署名
                    Certificate Sign, CRL Sign
                Netscape Cert Type:
                    SSL CA, S/MIME CA
-   Certificate is to be certified until Sep 28 07:47:58 2029 GMT (3650 days)
+   Certificate is to be certified until Dec 26 07:36:15 2030 GMT (3650 days)
    
    Write out database with 1 new entries
    Data Base Updated
 
-   [root@lendl myCA]# ls -al /etc/pki/myCA/
-   合計 44
-   drwxr-xr-x   6 root root  215 10月  1 16:47 .
-   drwxr-xr-x. 13 root root  164 10月  1 16:42 ..
-   -rwxr-xr-x   1 root root 5298 10月  1 16:29 CA.sh
-   -rw-r--r--   1 root root 5175 10月  1 16:28 CA.sh.orig
-   -rw-r--r--   1 root root 3718 10月  1 16:46 ca.cnf
-   -rw-r--r--   1 root root 4878 10月  1 16:47 cacert.pem
-   -rw-r--r--   1 root root 1001 10月  1 16:47 careq.pem
-   drwxr-xr-x   2 root root    6 10月  1 16:47 certs
-   drwxr-xr-x   2 root root    6 10月  1 16:47 crl
-   -rw-r--r--   1 root root  115 10月  1 16:47 index.txt
-   -rw-r--r--   1 root root   21 10月  1 16:47 index.txt.attr
-   -rw-r--r--   1 root root    0 10月  1 16:47 index.txt.old
-   drwxr-xr-x   2 root root   58 10月  1 16:47 newcerts
-   drwxr-xr-x   2 root root   23 10月  1 16:47 private
-   -rw-r--r--   1 root root   41 10月  1 16:47 serial
+   [root@chang myCA]# ls -al /etc/pki/myCA/
+   total 44
+   drwxr-xr-x   6 root root  215 Dec 28 16:36 .
+   drwxr-xr-x. 16 root root  223 Dec 28 16:27 ..
+   -rwxr-xr-x   1 root root 5277 Dec 28 16:35 CA.sh
+   -rw-r--r--   1 root root 5175 Dec 28 16:34 CA.sh.orig
+   -rw-r--r--   1 root root 3692 Dec 28 16:28 ca.cnf
+   -rw-r--r--   1 root root 4885 Dec 28 16:36 cacert.pem
+   -rw-r--r--   1 root root 1001 Dec 28 16:36 careq.pem
+   drwxr-xr-x   2 root root    6 Dec 28 16:35 certs
+   drwxr-xr-x   2 root root    6 Dec 28 16:35 crl
+   -rw-r--r--   1 root root  116 Dec 28 16:36 index.txt
+   -rw-r--r--   1 root root   21 Dec 28 16:36 index.txt.attr
+   -rw-r--r--   1 root root    0 Dec 28 16:35 index.txt.old
+   drwxr-xr-x   2 root root   58 Dec 28 16:36 newcerts
+   drwxr-xr-x   2 root root   23 Dec 28 16:35 private
+   -rw-r--r--   1 root root   41 Dec 28 16:36 serial
 
 4. サーバ用 SSL 証明書の作成
 
@@ -254,7 +254,7 @@ TLS サーバ証明書 SHA-2 署名
       Locality Name (eg, city) [Default City]:Ogaki
       Organization Name (eg, company) [Default Company Ltd]:Kono
       Organizational Unit Name (eg, section) []:PrivateServer
-      Common Name (eg, your name or your server's hostname) []:lendl.ddo.jp
+      Common Name (eg, your name or your server's hostname) []:chang.ddo.jp
       (snip)
 
 5. 証明書の発行 (プライベート CA での署名)
@@ -267,35 +267,34 @@ TLS サーバ証明書 SHA-2 署名
    Signature ok
    Certificate Details:
            Serial Number:
-               0c:41:ac:b5:14:9a:02:77:9f:73:30:5b:1b:12:6b:77:84:52:b7:e4
+               45:80:cf:73:ea:39:97:15:9d:d4:d2:93:0d:5f:12:d1:9e:5d:b6:58
            Validity
-               Not Before: Oct  1 08:21:13 2019 GMT
-               Not After : Sep 28 08:21:13 2029 GMT
+               Not Before: Dec 28 07:41:38 2020 GMT
+               Not After : Dec 26 07:41:38 2030 GMT
            Subject:
                countryName               = JP
                stateOrProvinceName       = Gifu
                organizationName          = Kono
                organizationalUnitName    = PrivateServer
-               commonName                = lendl.ddo.jp
+               commonName                = chang.ddo.jp
            X509v3 extensions:
                X509v3 Basic Constraints:
                    CA:FALSE
                Netscape Cert Type:
                    SSL Server
                X509v3 Subject Key Identifier:
-                   B2:A2:C0:91:3A:D9:BD:36:61:35:AF:C2:68:DD:9D:1E:D7:E5:32:D8
+                   6E:56:E8:5A:FE:9E:55:73:C7:EB:00:26:18:55:07:DB:7D:07:4E:4E
                X509v3 Authority Key Identifier:
-                   keyid:35:AF:0C:96:DB:EF:03:2F:E4:29:78:91:38:FF:A7:90:73:92:28:7F
+                   keyid:CE:F9:65:1D:C9:6C:43:56:F8:37:D1:54:A0:6B:5E:27:B9:30:51:27
    
-   Certificate is to be certified until Sep 28 08:21:13 2029 GMT (3650 days)
+   Certificate is to be certified until Dec 26 07:41:38 2030 GMT (3650 days)
    Sign the certificate? [y/n]:y
    
    
    1 out of 1 certificate requests certified, commit? [y/n]y
    Write out database with 1 new entries
    Data Base Updated
-   
-   
+
    確認 (Signature Algorithm: が、sha256WithRSAEncryption であることを確認すること)
    # openssl x509 -text -in server.crt
 
@@ -355,10 +354,10 @@ TLS サーバ証明書 SHA-2 署名
       Signature ok
       Certificate Details:
               Serial Number:
-                  0c:41:ac:b5:14:9a:02:77:9f:73:30:5b:1b:12:6b:77:84:52:b7:e5
+                  45:80:cf:73:ea:39:97:15:9d:d4:d2:93:0d:5f:12:d1:9e:5d:b6:59
               Validity
-                  Not Before: Oct  1 08:24:45 2019 GMT
-                  Not After : Sep 28 08:24:45 2029 GMT
+                  Not Before: Dec 28 07:44:11 2020 GMT
+                  Not After : Dec 26 07:44:11 2030 GMT
               Subject:
                   countryName               = JP
                   stateOrProvinceName       = Gifu
@@ -371,11 +370,11 @@ TLS サーバ証明書 SHA-2 署名
                   Netscape Cert Type:
                       SSL Client, S/MIME, Object Signing
                   X509v3 Subject Key Identifier:
-                      E7:DC:B5:47:63:38:8A:E2:25:77:F7:44:E3:9E:E4:51:65:E2:76:3F
+                      7E:AB:0D:C4:09:A1:C3:97:FF:5E:F7:71:A1:BE:A1:5E:1F:E3:F5:C7
                   X509v3 Authority Key Identifier:
-                      keyid:35:AF:0C:96:DB:EF:03:2F:E4:29:78:91:38:FF:A7:90:73:92:28:7F
+                      keyid:CE:F9:65:1D:C9:6C:43:56:F8:37:D1:54:A0:6B:5E:27:B9:30:51:27
       
-      Certificate is to be certified until Sep 28 08:24:45 2029 GMT (3650 days)
+      Certificate is to be certified until Dec 26 07:44:11 2030 GMT (3650 days)
       Sign the certificate? [y/n]:y
       
       
