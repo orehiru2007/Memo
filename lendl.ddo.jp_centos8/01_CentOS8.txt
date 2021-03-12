@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
 
 1. インストール

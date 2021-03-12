@@ -657,3 +657,27 @@ chang.ddo.jp / CentOS Linux release 8.3.2011 / Oracle VirtualBox
     4. グラフ表示
     # sadf -g <"sa" ファイル> -- -A > sa_graph.svg
 
+24. CentOS Stream 8 への移行
+
+   https://blog.centos.org/2020/12/future-is-centos-stream/
+
+   ･ CentOS 8 は 2021/12/31 でサポートが終了する
+   ･ CentOS は今後 CentOS Stream に移行する
+   ･ CentOS Streamは、RHEL のアップストリーム (開発) ブランチ、従来のリビルドしたものとは違う位置づけ
+   ･ CentOS 7 のサポート期間は従来通り 2024/06/30 で変わらず
+   ･ CentOS 8 の利用者は、差分が少ない CentOS Stream に移行するか、本番環境利用で心配ならば RHEL に移行することが推奨されている
+
+   バージョン          | サポート終了
+   --------------------+------------------------
+   RHEL/CentOS 6       | 2020/11/30
+   RHEL/CentOS 7       | 2024/06/30
+   CentOS 8            | 2021/12/31
+   RHEL 8              | 2029/05/31
+   CentOS Stream 8     | N/A (未定) ※1/8 時点
+
+   # dnf install centos-release-stream
+   # dnf swap centos-{linux,stream}-repos
+   # dnf distro-sync
+
+   # cat /etc/centos-release
+   CentOS Stream release 8

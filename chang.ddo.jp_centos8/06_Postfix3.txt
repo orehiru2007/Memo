@@ -1,4 +1,4 @@
-lendl.ddo.jp CentOS release 8.0 (1905) / Oracle VirtualBox
+chang.ddo.jp / CentOS Linux release 8.3.2011 / Oracle VirtualBox
 
 Postfix 3 系 (コンパイルインストール)
 
@@ -23,20 +23,28 @@ Postfix 3 系 (コンパイルインストール)
 
 4. インストール
 
-   1. postfix-3.3.3-sleep.patch
+   1. postfix-3.5.8-sleep.patch
 
-      --- postfix-3.3.3.orig/src/smtpd/smtpd_check.c  2018-01-07 08:12:51.000000000 +0900
-      +++ postfix-3.3.3/src/smtpd/smtpd_check.c       2019-10-02 10:23:53.564750471 +0900
-      @@ -216,6 +216,8 @@
-       #include <valid_utf8_hostname.h>
+      diff -urpN postfix-3.5.8.orig/src/smtpd/smtpd_check.c postfix-3.5.8/src/smtpd/smtpd_check.c
+      --- postfix-3.5.8.orig/src/smtpd/smtpd_check.c  2020-05-06 07:33:34.000000000 +0900
+      +++ postfix-3.5.8/src/smtpd/smtpd_check.c       2021-01-04 14:56:20.117115251 +0900
+      @@ -217,6 +217,7 @@
        #include <midna_domain.h>
        #include <mynetworks.h>
+       #include <name_code.h>
       +#include <iostuff.h>
-      +
       
        /* DNS library. */
       
-      @@ -4070,6 +4072,7 @@
+      @@ -4102,6 +4103,7 @@ static int check_policy_service(SMTPD_ST
+                                       "policy query", reply_name,
+                                       reply_class, def_acl);
+           }
+      +#include <iostuff.h>
+       #ifdef USE_TLS
+           if (subject_buf)
+              vstring_free(subject_buf);
+      @@ -4162,6 +4164,7 @@ static int generic_checks(SMTPD_STATE *s
            ARGV   *list;
            int     found;
            int     saved_recursion = state->recursion++;
@@ -44,75 +52,51 @@ Postfix 3 系 (コンパイルインストール)
       
            if (msg_verbose)
               msg_info(">>> START %s RESTRICTIONS <<<", reply_class);
-      @@ -4158,8 +4161,35 @@
+      @@ -4250,8 +4253,35 @@ static int generic_checks(SMTPD_STATE *s
                   if (cpp[1] == 0 || alldig(cpp[1]) == 0) {
                       msg_warn("restriction %s must be followed by number", SLEEP);
                       reject_server_error(state);
       -           } else
       -               sleep(atoi(*++cpp));
-      +                   } else {
+      +               } else {
       +                       /* sleep(atoi(*++cpp)); */
       +                       int sleep_time = atoi(*++cpp);
       +                       int i;
       +                       for ( i = 0; i < sleep_time; i++ ) {
-      +                                    /* sleep( 1 ); */
-      +                                    if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
-      +                                    int ch = VSTREAM_GETC(state->client);
-      +                                    if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost connection */
-      +                                        vstream_ungetc(state->client, ch);
-      +                                        buf = vstring_alloc(100);
-      +                                        vstring_sprintf(buf, "lost connection after %d sec", i);
-      +                                        log_whatsup(state, "sleep", STR(buf));
-      +                                        vstring_free(buf);
-      +                                        status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
-      +                                        break;
-      +                                    }
-      +                                    else { /* pipelining */
-      +                                        vstream_ungetc(state->client, ch);
-      +                                        buf = vstring_alloc(100);
-      +                                        vstring_sprintf(buf, "pipelining after %d sec", i);
-      +                                        log_whatsup(state, "sleep", STR(buf));
-      +                                        vstring_free(buf);
-      +                                        sleep( sleep_time - i );
-      +                                        break;
-      +                                        }
-      +                                    }
+      +                               /* sleep( 1 ); */
+      +                               if ( ! read_wait(state->client->fd, 1) ) { /* read enabled */
+      +                               int ch = VSTREAM_GETC(state->client);
+      +                               if (vstream_feof(state->client) || vstream_ferror(state->client)) { /* lost connection */
+      +                                       vstream_ungetc(state->client, ch);
+      +                                       buf = vstring_alloc(100);
+      +                                       vstring_sprintf(buf, "lost connection after %d sec", i);
+      +                                       log_whatsup(state, "sleep", STR(buf));
+      +                                       vstring_free(buf);
+      +                                       status = SMTPD_CHECK_REJECT; /* finish immediately if lost connection */
+      +                                       break;
+      +                               }
+      +                               else { /* pipelining */
+      +                                       vstream_ungetc(state->client, ch);
+      +                                       buf = vstring_alloc(100);
+      +                                       vstring_sprintf(buf, "pipelining after %d sec", i);
+      +                                       log_whatsup(state, "sleep", STR(buf));
+      +                                       vstring_free(buf);
+      +                                       sleep( sleep_time - i );
+      +                                       break;
+      +                                       }
+      +                               }
       +                       }
-      +                   }
+      +               }
               } else if (strcasecmp(name, REJECT_PLAINTEXT_SESSION) == 0) {
                   status = reject_plaintext_session(state);
               }
-   
-   2. mysql80.patch
-
-      --- postfix-3.3.3.orig/src/global/dict_mysql.c  2017-02-19 10:58:20.000000000 +0900
-      +++ postfix-3.3.3/src/global/dict_mysql.c       2019-10-02 08:42:53.576861836 +0900
-      @@ -656,10 +656,14 @@
-                            dict_mysql->tls_key_file, dict_mysql->tls_cert_file,
-                            dict_mysql->tls_CAfile, dict_mysql->tls_CApath,
-                            dict_mysql->tls_ciphers);
-      -#if MYSQL_VERSION_ID >= 50023
-      +#if MYSQL_VERSION_ID >= 80000
-           if (dict_mysql->tls_verify_cert != -1)
-      -       mysql_options(host->db, MYSQL_OPT_SSL_VERIFY_SERVER_CERT,
-      -                     &dict_mysql->tls_verify_cert);
-      +       mysql_options(host->db, MYSQL_OPT_SSL_MODE,
-      +                     &dict_mysql->tls_verify_cert);
-      +#elif MYSQL_VERSION_ID >= 50023
-      +     if (dict_mysql->tls_verify_cert != -1)
-      +        mysql_options(host->db, MYSQL_OPT_SSL_VERIFY_SERVER_CERT,
-      +                      &dict_mysql->tls_verify_cert);
-       #endif
-       #endif
-           if (mysql_real_connect(host->db,
 
    3. インストール
 
-      # wget http://mirror.postfix.jp/postfix-release/official/postfix-3.3.3.tar.gz
-      # tar zxvf postfix-3.3.3.tar.gz
-      # cd postfix-3.3.3
-      # patch -p1 < ../postfix-3.3.3-sleep.patch
-      # patch -p1 < ../mysql80.patch
+      # wget http://mirror.postfix.jp/postfix-release/official/postfix-3.5.8.tar.gz
+      # tar zxvf postfix-3.5.8.tar.gz
+      # cd postfix-3.5.8
+      # patch -p1 < ../postfix-3.5.8-sleep.patch
       # make -f Makefile.init makefiles shared=yes dynamicmaps=yes shlib_directory=/usr/lib/postfix \
       > CCARGS='-fPIC \
       > -DHAS_LDAP \
@@ -129,9 +113,9 @@ Postfix 3 系 (コンパイルインストール)
       > AUXLIBS_MYSQL="-L/usr/lib64/mysql/ -lmysqlclient -lz -lm"
       # make
 
-      #make install
+      # make install
       install_root: [/]
-      tempdir: [/usr/local/src/Postfix/3.3.3/postfix-3.3.3]
+      tempdir: [/usr/local/src/postfix/postfix-3.5.8]
       config_directory: [/etc/postfix]
       command_directory: [/usr/sbin]
       daemon_directory: [/usr/libexec/postfix]
@@ -211,72 +195,6 @@ Postfix 3 系 (コンパイルインストール)
        endscript
    }
 
-SPF-Python
-
-1. python DNS
-
-   # wget http://pypi.python.org/packages/source/p/pydns/pydns-2.3.6.tar.gz
-   # tar zxvf pydns-2.3.6.tar.gz
-   # cd pydns-2.3.6
-   # python setup.py install
-
-2. python pyspf
-
-   # tar zxvf pyspf-2.0.12t.tar.gz
-   # cd pyspf-2.0.12
-   # python setup.py install
-
-3. python pypolicyd-spf
-
-   # easy_install ipaddr
-
-   # wget https://launchpad.net/pypolicyd-spf/1.3/1.3.2/+download/pypolicyd-spf-1.3.2.tar.gz
-   # tar xfz pypolicyd-spf-1.3.2.tar.gz
-   # cd pypolicyd-spf-1.3.2
-   # python setup.py install
-   # mv /etc/python-policyd-spf/policyd-spf.conf /etc/python-policyd-spf/policyd-spf.conf.orig
-   # cp ./policyd-spf.conf.commented /etc/python-policyd-spf/policyd-spf.conf
-
-4. /etc/python-policyd-spf/policyd-spf.conf
-
-   # egrep -v "(^#|^$)" /etc/python-policyd-spf/policyd-spf.conf
-   debugLevel = 1
-   defaultSeedOnly = 1
-   HELO_reject = Fail
-   Mail_From_reject = Fail
-   PermError_reject = False
-   TempError_Defer = False
-   skip_addresses = 127.0.0.0/8,::ffff:127.0.0.0/104,::1
-   Whitelist = 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
-
-5. policyd-spf
-
-   (pyenv:Py2)[root@agassi ~]# diff -U0 /usr/local/pyenv/versions/2.7.16/envs/Py2/bin/policyd-spf{.orig,}
-   --- /usr/local/pyenv/versions/2.7.16/envs/Py2/bin/policyd-spf.orig      2019-10-02 11:07:46.995888938 +0900
-   +++ /usr/local/pyenv/versions/2.7.16/envs/Py2/bin/policyd-spf   2019-10-02 11:09:26.751136602 +0900
-   @@ -41,2 +40,0 @@
-   -    import ipaddress
-   -except ImportError:
-   @@ -43,0 +42,2 @@
-   +except ImportError:
-   +    import ipaddress
-
-5. /etc/postfix/master.cf
-
-   policy-spf  unix  -       n       n       -       0       spawn
-      user=nobody argv=/usr/local/pyenv/shims/policyd-spf /etc/python-policyd-spf/policyd-spf.conf
-
-6. /etc/postfix/main.cf
-
-   smtpd_client_restrictions =
-            permit_sasl_authenticated,
-            permit_mynetworks,
-            check_policy_service unix:private/policy-spf,
-            check_client_access hash:/etc/postfix/smtpd_client_restrictions_access,
-             permit
-   policy-spf_time_limit = 3600s
-
-
 S25R + Postgrey
 
 1. 必要パッケージのインストール
@@ -295,7 +213,7 @@ S25R + Postgrey
 3. tarpit 用パッチの適用
 
    $ cd ../SOURCES/
-   $ tar zxvf postgrey-1.34.tar.gz 
+   $ tar zxvf postgrey-1.34.tar.gz
    $ cd postgrey-1.34
    $ wget http://k2net.hakuba.jp/pub/targrey-0.31-postgrey-1.34.patch
    $ patch -p0 < targrey-0.31-postgrey-1.34.patch 
@@ -312,13 +230,12 @@ S25R + Postgrey
 
    # rpm -Uvh --nodeps /home/tak/rpmbuild/RPMS/noarch/postgrey-1.34-12.el8.noarch.rpm
    # systemctl enable postgrey
-   # systemctl start postgrey
 
 6. /etc/sysconfig/postgrey
 
    POSTGREY_OPTS="--inet=127.0.0.1:60000 --tarpit=125 --targrey --retry-count=3 --delay=3600 --max-age=30"
 
-7. 起動スクリプト (/usr/lib/systemd/system/postgrey.service) の修正
+7. /usr/lib/systemd/system/postgrey.service 起動スクリプトの修正
 
    [Unit]
    Description=Postfix Greylisting Service
@@ -348,16 +265,43 @@ S25R + Postgrey
    [Install]
    WantedBy=multi-user.target
 
-8. /usr/lib/tmpfiles.d/var-run.conf
+8. /usr/lib/tmpfiles.d/postgrey.conf
 
-   #Type   Path                    Mode    UID     GID     Age     Argument
-   d       /var/run/postgrey       0755    root    root    -
+   #Type   Path                    Mode    UID        GID         Age     Argument
+   d       /var/run/postgrey       0755    postgrey   postgrey    -
 
-9. 設定ファイル配置
+9. taRgrey 動作確認
 
-   # wget http://k2net.hakuba.jp/spam/postfix.conf.2.tar.gz
-   # tar zxvf postfix.conf.2.tar.gz
-   # cp postfix.conf.2/* /etc/postfix/
+   2. taRgrey の利用するデータベース (/var/spool/postfix/postgrey 配下)
+
+      postgrey_clients.db : 自動ホワイトリスト
+      tarpit_clients.db   : tarpitting グレイリスト
+      postgrey.db         : 送信状況を管理
+
+   3. taRgrey の仕組み
+
+      smtpd_recipient_restrictions での一度目の check_policy_service で tarpitting を仕掛け、一旦、tarpit_clients.db (tarpitting グレイリスト) に登録される
+      tarpitting を抜けた接続は smtpd_data_restrictions まで渡ってくるため、再度 check_policy_service で呼び出し、tarpitting のグレイリストから該当の IP を削除する
+
+      tarpitting を抜けれなかった接続は tarpit_clients.db (tarpitting ブラックリスト) に登録されたままとなり、次回 接続時には smtpd_recipient_restrictions で greylisting の処理に回る
+
+   4. 自動 Whitelist (postgrey_clients.db) の仕組み
+
+      # db_dump -p postgrey.db
+      VERSION=3
+      format=print
+      type=btree
+      db_pagesize=4096
+      HEADER=END
+       192.168.56.0/root@chang.ddo.jp/tak@chang.ddo.jp   ※1
+       1609831614,1609832319,3,130                       ※2
+      DATA=END
+
+      ※1 送信元メールサーバ IP アドレス / 送信元アドレス / 送信先アドレス
+      ※2 最初に受信した時間 (UNIX time) / 最後に受信した時間 (UNIX time) / リトライ回数 / 送信元メールサーバ IP アドレスの第四オクテット
+
+      最後に受信した時間 (UNIX time) が 最初に受信した時間から 300 秒以上経過していること、かつ リトライ回数が 2回以上であれば
+      postgrey_clients.db (自動ホワイトリスト) へ登録を行う ※30日を経過した場合 削除される
 
 10. TIPS
 

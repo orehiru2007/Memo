@@ -639,4 +639,3 @@ DMARC (Domain-based Message Authentication, Reporting & Conformance)
 
     ※有償サービスを利用するのが良さそうな気がする
 
->>>>>>> e6bea64517a0ae1f48fb3b493944504343180536
